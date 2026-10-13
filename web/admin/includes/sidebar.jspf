@@ -1,0 +1,18 @@
+<%
+    String adminPath = request.getServletPath();
+    String adminSection = adminPath == null ? "" : adminPath;
+%>
+<aside class="admin-sidebar">
+    <a class="admin-brand" href="<%=request.getContextPath()%>/admin/products">MENS<i>FORM</i></a>
+    <div>
+        <div class="admin-caption">Qu&#7843;n l&#253; c&#7917;a h&#224;ng</div>
+        <nav class="admin-nav">
+            <a class="admin-link <%=adminSection.contains("products") || adminSection.contains("product-form") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/products"><span>&#9638;</span>S&#7843;n ph&#7849;m</a>
+            <a class="admin-link <%=adminSection.contains("categories") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/categories"><span>&#9672;</span>Danh m&#7909;c</a>
+            <a class="admin-link <%=adminSection.contains("variants") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/variants"><span>&#9671;</span>Bi&#7871;n th&#7875; &amp; SKU</a>
+            <a class="admin-link <%=adminSection.contains("reports") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/reports"><span>&#9639;</span>B&#225;o c&#225;o</a>
+            <a class="admin-link <%=adminSection.contains("users") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/users"><span>&#9811;</span>T&#224;i kho&#7843;n</a>
+        </nav>
+    </div>
+    <div class="admin-side-bottom">&#272;&#259;ng nh&#7853;p v&#7899;i quy&#7873;n Admin<br><a href="<%=request.getContextPath()%>/index.jsp">&#8592; V&#7873; c&#7917;a h&#224;ng</a></div>
+</aside>

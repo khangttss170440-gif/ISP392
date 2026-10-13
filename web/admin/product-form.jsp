@@ -1,0 +1,94 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.List,model.Product,model.ProductCategory"%>
+<%
+    Product product = (Product) request.getAttribute("product");
+    List<ProductCategory> categories = (List<ProductCategory>) request.getAttribute("categories");
+    boolean hasProduct = product != null;
+    boolean editing = hasProduct && product.getProductID() > 0;
+    boolean warehouseCreator = Boolean.TRUE.equals(request.getAttribute("warehouseCreator"));
+    String formAction = (String) request.getAttribute("formAction");
+    String cancelUrl = (String) request.getAttribute("cancelUrl");
+%>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sản phẩm · MENSFORM</title>
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
+</head>
+<body>
+<% if (warehouseCreator) { %>
+    <div class="portal-layout">
+        <%@include file="/staff/includes/nav.jspf"%>
+        <main class="portal-main">
+<% } else { %>
+    <div class="admin-layout">
+        <%@include file="/admin/includes/sidebar.jspf"%>
+        <main class="admin-main">
+<% } %>
+            <div class="admin-topline">
+                <div>
+                    <small><%=warehouseCreator ? "WAREHOUSE / CATALOG / NEW" : "CATALOG / PRODUCTS / " + (editing ? "EDIT" : "NEW")%></small>
+                    <h1 class="admin-title"><%=editing ? "Cập nhật sản phẩm" : "Tạo sản phẩm mới"%></h1>
+                </div>
+                <a class="button line small" href="<%=cancelUrl%>"><%=warehouseCreator ? "← Trang kho" : "← Danh sách sản phẩm"%></a>
+            </div>
+            <p class="admin-subtitle"><%=warehouseCreator ? "Nhập thông tin để đăng sản phẩm; sau đó thêm SKU, màu, kích cỡ, giá và số lượng." : "Thông tin sản phẩm là dữ liệu gốc; giá và tồn kho được quản lý ở phần biến thể."%></p>
+            <% if (request.getAttribute("message") != null) { %>
+                <div class="alert success"><%=request.getAttribute("message")%></div>
+            <% } %>
+            <% if (request.getAttribute("error") != null) { %>
+                <div class="alert error"><%=request.getAttribute("error")%></div>
+            <% } %>
+            <section class="admin-panel">
+                <form action="<%=formAction%>" method="post">
+                    <% if (editing) { %><input type="hidden" name="productId" value="<%=product.getProductID()%>"><% } %>
+                    <div class="admin-form-grid">
+                        <div class="span-2">
+                            <label class="form-label" for="productName">Tên sản phẩm *</label>
+                            <input class="field" id="productName" name="productName" maxlength="200" required value="<%=hasProduct && product.getProductName() != null ? product.getProductName() : ""%>">
+                        </div>
+                        <div>
+                            <label class="form-label" for="categoryId">Danh mục *</label>
+                            <select class="select" id="categoryId" name="categoryId" required>
+                                <option value="">Chọn danh mục</option>
+                                <% if (categories != null) { for (ProductCategory category : categories) { %>
+                                    <option value="<%=category.getCategoryID()%>" <%=hasProduct && category.getCategoryID() == product.getCategoryID() ? "selected" : ""%>><%=category.getCategoryName()%></option>
+                                <% } } %>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="brand">Thương hiệu</label>
+                            <input class="field" id="brand" name="brand" maxlength="100" value="<%=hasProduct && product.getBrand() != null ? product.getBrand() : ""%>">
+                        </div>
+                        <div>
+                            <label class="form-label" for="material">Chất liệu</label>
+                            <input class="field" id="material" name="material" maxlength="100" value="<%=hasProduct && product.getMaterial() != null ? product.getMaterial() : ""%>">
+                        </div>
+                        <% if (!warehouseCreator) { %>
+                            <div>
+                                <label class="form-label" for="status">Trạng thái</label>
+                                <select class="select" id="status" name="status">
+                                    <option value="Active" <%=!hasProduct || product.getStatus() == null || "Active".equalsIgnoreCase(product.getStatus()) ? "selected" : ""%>>Đang hoạt động</option>
+                                    <option value="Inactive" <%=hasProduct && "Inactive".equalsIgnoreCase(product.getStatus()) ? "selected" : ""%>>Đã tắt</option>
+                                </select>
+                            </div>
+                        <% } %>
+                        <div class="span-2">
+                            <label class="form-label" for="description">Mô tả</label>
+                            <textarea class="textarea" id="description" name="description" maxlength="1000"><%=hasProduct && product.getDescription() != null ? product.getDescription() : ""%></textarea>
+                            <small class="admin-note">Tối đa 1.000 ký tự.</small>
+                        </div>
+                    </div>
+                    <div class="admin-actions" style="margin-top:20px">
+                        <button class="button" type="submit"><%=editing ? "Lưu thay đổi" : "Đăng sản phẩm"%></button>
+                        <a class="button line" href="<%=cancelUrl%>">Hủy</a>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
+

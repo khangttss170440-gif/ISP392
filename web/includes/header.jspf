@@ -1,0 +1,20 @@
+<%@page import="model.Customer"%>
+<%
+    Customer navCustomer = null;
+    Object navAccount = session.getAttribute("customer");
+    if (navAccount instanceof Customer) navCustomer = (Customer) navAccount;
+%>
+<div class="announcement">MI&#x1EC4;N PH&#xCD; V&#x1EAC;N CHUY&#x1EC2;N CHO &#x110;&#x1A0;N H&#xC0;NG T&#x1EEA; 799.000&#x20AB;</div>
+<header class="topbar"><div class="shell nav">
+    <a class="brand" href="<%=request.getContextPath()%>/index.jsp">MENS<span><i>FORM</i></span></a>
+    <nav class="navlinks"><a href="<%=request.getContextPath()%>/index.jsp">Trang ch&#x1EE7;</a><a href="<%=request.getContextPath()%>/products">S&#x1EA3;n ph&#x1EA9;m</a><a href="<%=request.getContextPath()%>/products">B&#x1ED9; s&#x1B0;u t&#x1EAD;p</a></nav>
+    <div class="nav-actions">
+        <a class="nav-icon mobile-menu" href="<%=request.getContextPath()%>/products" aria-label="Xem s&#x1EA3;n ph&#x1EA9;m">&#x2630;</a>
+        <% if (navCustomer != null) { %>
+            <a class="text-link" href="<%=request.getContextPath()%>/customer/account.jsp">T&#xE0;i kho&#x1EA3;n c&#x1EE7;a t&#xF4;i</a>
+        <% } else { %>
+            <a class="text-link" href="<%=request.getContextPath()%>/login">&#x110;&#x103;ng nh&#x1EAD;p</a>
+        <% } %>
+        <a class="nav-icon" href="<%=request.getContextPath()%>/cart" aria-label="Gi&#x1ECF; h&#xE0;ng">&#x2311;</a>
+    </div>
+</div></header>
