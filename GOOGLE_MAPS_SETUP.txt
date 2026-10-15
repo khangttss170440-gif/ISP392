@@ -1,0 +1,37 @@
+MENSFORM - GOOGLE MAPS VA PHI GIAO HANG
+
+Dia chi shop: 138 Quang Trung, khu pho 7, thi tran Hoc Mon, TP. Ho Chi Minh, Viet Nam.
+Khoang cach la ban kinh duong thang (Haversine), khong phai quang duong lai xe.
+Tu shop den dia chi giao hang <= 5 km: 0 dong. Ngoai 5 km: 45.000 dong toan quoc.
+Phi luu trong SalesOrder.ShippingFee va cong vao Payment.Amount ngay khi tao don.
+Coupon chi giam tien hang; khong giam phi giao hang.
+
+KHI CHUA CO API KEY
+- So dia chi va checkout co ban do xem dia chi va nut mo Google Maps.
+- Chua the tu xac minh toa do/ban kinh. Khong tu gan toa do gan dung cho shop.
+- Giao dien bao chua xac minh khoang cach, phi tam tinh 45.000 dong.
+- Phi duoc kiem tra lai tren server khi dat hang. Trinh duyet khong quyet dinh phi.
+
+DE BAT TIM TOA DO VA MIEN PHI TU DONG TRONG 5 KM
+1. Tao Google Cloud project, lien ket billing va bat Geocoding API.
+2. Tao API key rieng cho server, gioi han chi Geocoding API va IP server khi trien khai.
+3. Dat bien moi truong GOOGLE_MAPS_SERVER_API_KEY tren may chay Tomcat.
+4. Neu muon ve vong tron 5 km truc tiep trong trang: bat Maps JavaScript API,
+   tao key trinh duyet rieng GOOGLE_MAPS_BROWSER_API_KEY, gioi han referrer
+   http://localhost:8080/* khi phat trien va domain that khi trien khai.
+5. Khoi dong lai Tomcat (va NetBeans neu Tomcat duoc mo tu NetBeans) de nhan bien moi truong.
+
+Neu Google khong dinh vi chinh xac dia chi shop, mo vi tri shop tren Google Maps,
+kiem tra ghim dung so nha, roi dat SHOP_LATITUDE va SHOP_LONGITUDE theo ghim da xac minh.
+Khong co toa do mac dinh gia dinh. Khong tu nhan toa do do khach hang gui len de mien phi ship.
+Toa do Google chi dung cho lan tinh phi, khong ghi lau dai vao database.
+
+Su dung: Tai khoan -> So dia chi -> Them/Sua -> nhap dia chi -> Tim dia chi & tinh phi.
+Checkout: chon dia chi da luu hoac nhap dia chi moi, bam tinh phi truoc khi dat hang.
+Neu phi thay doi khi server kiem tra lai, don khong duoc tao va khach duoc yeu cau xem lai tong tien.
+
+Tai lieu chinh thuc:
+https://developers.google.com/maps/documentation/geocoding/get-api-key
+https://developers.google.com/maps/documentation/geocoding/requests-geocoding
+https://developers.google.com/maps/documentation/javascript/get-api-key
+https://developers.google.com/maps/documentation/urls/get-started

@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import model.Product;
+import service.ProductImageStore;
 
 @WebServlet("/product-detail")
 public class ProductDetailController extends HttpServlet {
@@ -55,6 +56,8 @@ public class ProductDetailController extends HttpServlet {
             }
 
             request.setAttribute("product", product);
+            request.setAttribute("productImages", ProductImageStore.from(getServletContext()).list(productID));
+            request.setAttribute("imageColors", ProductImageStore.from(getServletContext()).imageColors(productID));
             request.setAttribute(
                     "variants",
                     productCatalogDAO.getActiveVariantsByProduct(productID)

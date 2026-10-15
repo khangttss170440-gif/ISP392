@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,16 +14,21 @@ import javax.servlet.http.HttpSession;
 import model.Product;
 import model.ProductCategory;
 import model.Staff;
+import service.ProductImageStore;
+import service.ProductImageStore.Upload;
 
 @WebServlet(urlPatterns = {"/admin/product-form", "/staff/warehouse/product-form"})
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 32 * 1024 * 1024)
 public class AdminProductFormController extends HttpServlet {
 
     private static final String PAGE = "/admin/product-form.jsp";
     private AdminProductDAO productDAO;
+    private ProductImageStore images;
 
     @Override
     public void init() {
         productDAO = new AdminProductDAO();
+        images = ProductImageStore.from(getServletContext());
     }
 
     @Override
@@ -50,6 +56,7 @@ public class AdminProductFormController extends HttpServlet {
                     return;
                 }
                 request.setAttribute("product", product);
+                request.setAttribute("productImages", images.list(productID));
             }
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -67,6 +74,17 @@ public class AdminProductFormController extends HttpServlet {
                           HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        if (requireProductAccess(request, response, false) == null) return;
+        try {
+            saveProduct(request, response);
+        } catch (IllegalStateException e) {
+            response.sendError(413,
+                    "Ảnh tải lên vượt giới hạn. Tối đa 6 ảnh, mỗi ảnh 5 MB. Vui lòng quay lại và chọn lại ảnh.");
+        }
+    }
+
+    private void saveProduct(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String productIDValue = request.getParameter("productId");
         boolean editing = productIDValue != null && !productIDValue.trim().isEmpty();
         Staff actor = requireProductAccess(request, response, editing);
@@ -77,8 +95,22 @@ public class AdminProductFormController extends HttpServlet {
         prepareFormContext(request, actor);
 
         try {
+            if (editing) product.setProductID(Integer.parseInt(productIDValue));
+            List<Upload> uploads;
+            try {
+                uploads = request.getContentType() != null
+                        && request.getContentType().toLowerCase(java.util.Locale.ROOT).startsWith("multipart/form-data")
+                        ? images.readUploads(request.getParts()) : java.util.Collections.emptyList();
+            } catch (ServletException | IOException e) {
+                getServletContext().log("Could not read product image upload.", e);
+                forwardError(request, response, product, "Không đọc được ảnh tải lên. Vui lòng chọn lại ảnh.");
+                return;
+            }
+            if (editing) images.checkCapacity(product.getProductID(), uploads);
             if (!editing) {
                 int createdProductID = productDAO.createProduct(product, actor.getStaffID());
+                product.setProductID(createdProductID);
+                saveImages(product, uploads, session, actor);
                 if ("Warehouse".equalsIgnoreCase(actor.getRole())) {
                     response.sendRedirect(request.getContextPath()
                             + "/staff/warehouse/variants?productId="
@@ -90,6 +122,7 @@ public class AdminProductFormController extends HttpServlet {
             } else {
                 product.setProductID(Integer.parseInt(productIDValue));
                 productDAO.updateProduct(product, actor.getStaffID());
+                saveImages(product, uploads, session, actor);
                 session.setAttribute("ADMIN_PRODUCT_MESSAGE", "Đã cập nhật sản phẩm.");
             }
             response.sendRedirect(request.getContextPath() + "/admin/products");
@@ -104,6 +137,18 @@ public class AdminProductFormController extends HttpServlet {
                 message = "Không tìm thấy sản phẩm.";
             }
             forwardError(request, response, product, message);
+        }
+    }
+
+    private void saveImages(Product product, List<Upload> uploads, HttpSession session, Staff actor) {
+        try {
+            images.save(product.getProductID(), uploads);
+        } catch (IOException | IllegalArgumentException e) {
+            getServletContext().log("Product saved but image storage failed for " + product.getProductID(), e);
+            String key = "Warehouse".equalsIgnoreCase(actor.getRole())
+                    ? "WAREHOUSE_VARIANT_ERROR" : "ADMIN_PRODUCT_ERROR";
+            session.setAttribute(key, "Đã lưu sản phẩm #" + product.getProductID()
+                    + " nhưng chưa lưu được ảnh. Vui lòng tải lại ảnh tại mục Ảnh sản phẩm.");
         }
     }
 
@@ -135,6 +180,7 @@ public class AdminProductFormController extends HttpServlet {
             throws ServletException, IOException {
         request.setAttribute("product", product);
         request.setAttribute("error", error);
+        if (product.getProductID() > 0) request.setAttribute("productImages", images.list(product.getProductID()));
         Staff actor = getStaff(request.getSession(false));
         if (actor != null) prepareFormContext(request, actor);
         try {

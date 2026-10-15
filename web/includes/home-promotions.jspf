@@ -1,0 +1,23 @@
+<%@page pageEncoding="UTF-8" import="java.util.List,java.util.Locale,java.text.NumberFormat,java.time.format.DateTimeFormatter,model.Promotion"%>
+<%
+    List<Promotion> homeOffers = (List<Promotion>) request.getAttribute("homePromotions");
+    NumberFormat homeOfferMoney = NumberFormat.getInstance(new Locale("vi", "VN"));
+    if (homeOffers != null && !homeOffers.isEmpty()) {
+%>
+<div class="shell home-offer-grid">
+    <% for (Promotion homeOffer : homeOffers) { %>
+    <article class="home-offer-card">
+        <span class="eyebrow">Ưu đãi đang diễn ra</span>
+        <h3>Giảm <%=homeOfferMoney.format(homeOffer.getDiscountValue())%><%="Percentage".equals(homeOffer.getDiscountType()) ? "%" : "₫"%></h3>
+        <h4><%=navEscape(homeOffer.getPromotionName())%></h4>
+        <p><%=homeOffer.getMinOrderValue() == null || homeOffer.getMinOrderValue().signum() == 0 ? "Áp dụng cho mọi giá trị đơn hàng" : "Cho đơn từ " + homeOfferMoney.format(homeOffer.getMinOrderValue()) + "₫"%></p>
+        <% if (homeOffer.getMaxDiscount() != null) { %><p>Giảm tối đa <%=homeOfferMoney.format(homeOffer.getMaxDiscount())%>₫</p><% } %>
+        <p>Đến <%=homeOffer.getEndDate().toLocalDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))%></p>
+        <div class="home-offer-code"><span>Mã ưu đãi</span><strong><%=navEscape(homeOffer.getPromotionCode())%></strong></div>
+        <a href="<%=request.getContextPath()%>/promotions">Xem điều kiện ưu đãi →</a>
+    </article>
+    <% } %>
+</div>
+<% } else { %>
+<p class="shell home-offer-empty"><%=Boolean.TRUE.equals(request.getAttribute("homePromotionsUnavailable")) ? "Chưa tải được ưu đãi. Bạn vui lòng thử lại sau." : "Chưa có khuyến mãi đang diễn ra. Ghé lại để khám phá những ưu đãi mới."%></p>
+<% } %>

@@ -3,7 +3,8 @@ package model;
 import java.sql.Date;
 import java.sql.Timestamp;
 
-public class Customer {
+public class Customer implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
 
     private int customerID;
     private String fullName;

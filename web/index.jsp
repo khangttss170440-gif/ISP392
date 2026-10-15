@@ -1,7 +1,46 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MENSFORM — Mặc đúng chất riêng</title><link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css"></head><body>
+<!DOCTYPE html>
+<html lang="vi"><head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MENSFORM — Phong cách từ những điều tinh giản</title>
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/chatbot.css">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/home-theme.css">
+</head><body class="home-theme">
 <%@include file="/includes/header.jspf"%>
-<main><section class="hero"><div class="shell"><div class="hero-panel"><div class="hero-copy"><span class="eyebrow">Bộ sưu tập mới · 2026</span><h1>Mặc đẹp.<br>Đúng chất riêng.</h1><p>Những thiết kế nam hiện đại, dễ phối và đủ tinh tế để đồng hành cùng bạn mỗi ngày.</p><a class="button light" href="<%=request.getContextPath()%>/products">Khám phá bộ sưu tập <span>↗</span></a></div><div class="hero-note">THIẾT KẾ TỐI GIẢN · CHẤT LIỆU CHỌN LỌC</div></div></div></section>
-<section class="section"><div class="shell"><div class="section-head"><div><span class="eyebrow">Tìm phong cách của bạn</span><h2>Mặc gì hôm nay?</h2></div><a class="text-link" href="<%=request.getContextPath()%>/products">Xem tất cả sản phẩm ↗</a></div><div class="category-grid"><a class="category-card" href="<%=request.getContextPath()%>/products"><span>01 · Everyday</span><h3>Áo & lớp ngoài</h3><b>Khám phá ↗</b></a><a class="category-card" href="<%=request.getContextPath()%>/products"><span>02 · Essential</span><h3>Quần & denim</h3><b>Khám phá ↗</b></a><a class="category-card" href="<%=request.getContextPath()%>/products"><span>03 · Finishing touch</span><h3>Phụ kiện</h3><b>Khám phá ↗</b></a></div>
-<div class="value-strip"><div class="value"><b>Thiết kế có chủ đích</b><span>Phom dáng hiện đại, dễ ứng dụng.</span></div><div class="value"><b>Chọn đúng, mặc lâu</b><span>Chất liệu được ưu tiên cho sự thoải mái.</span></div><div class="value"><b>Đặt hàng an tâm</b><span>Thanh toán khi nhận hàng tiện lợi.</span></div></div></div></section></main>
-<%@include file="/includes/footer.jspf"%></body></html>
+<main>
+    <section class="editorial-hero" aria-labelledby="heroTitle">
+        <div class="shell">
+            <span class="eyebrow">THE MODERN GENTLEMAN</span>
+            <h1 id="heroTitle">Phong cách nằm<br>ở từng chi tiết.</h1>
+            <p>Những lựa chọn tinh giản cho người đàn ông hiện đại. Tự tin trong phom dáng, khác biệt trong cách mặc.</p>
+            <a class="button light" href="<%=request.getContextPath()%>/products">Khám phá ngay <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="hero-index" aria-hidden="true">MENSFORM <span></span> THE EVERYDAY EDIT</div>
+    </section>
+    <section class="wardrobe-section" id="discover" aria-labelledby="discoverTitle">
+        <div class="shell">
+            <div class="editorial-intro"><span class="eyebrow">THE WARDROBE</span><h2 id="discoverTitle">Định hình phong cách riêng.</h2><p>Từ ngày làm việc đến những cuộc hẹn cuối tuần. Luôn là chính bạn.</p></div>
+            <div class="wardrobe-grid">
+                <a class="wardrobe-card" href="<%=request.getContextPath()%>/products"><small>01 / THE EVERYDAY EDIT</small><h3>Chỉn chu mỗi ngày</h3><span class="wardrobe-link">Khám phá sản phẩm →</span></a>
+                <a class="wardrobe-card" href="<%=request.getContextPath()%>/products"><small>02 / LESS, BUT BETTER</small><h3>Tinh giản mà khác biệt</h3><span class="wardrobe-link">Khám phá sản phẩm →</span></a>
+                <a class="wardrobe-card" href="<%=request.getContextPath()%>/products"><small>03 / YOUR SIGNATURE</small><h3>Dấu ấn của bạn</h3><span class="wardrobe-link">Khám phá sản phẩm →</span></a>
+            </div>
+        </div>
+    </section>
+    <section class="editorial-offer" aria-labelledby="offerTitle"><div class="shell">
+        <div><span class="eyebrow">A LITTLE SOMETHING FOR YOU</span><h2 id="offerTitle">Lựa chọn có gu. Ưu đãi xứng tầm.</h2><p>Khám phá các mã khuyến mãi và điều kiện áp dụng cho đơn hàng của bạn.</p></div>
+        <a class="button" href="<%=request.getContextPath()%>/promotions">Xem ưu đãi <span aria-hidden="true">→</span></a>
+    </div>
+    <%@include file="/includes/home-promotions.jspf"%>
+    </section>
+    <section class="collection-story" id="collection" aria-labelledby="collectionTitle">
+        <div class="collection-image" role="img" aria-label="Phong cách thời trang nam tinh giản"></div>
+        <div class="collection-copy"><span class="eyebrow">MENSFORM COLLECTION</span><h2 id="collectionTitle">Tối giản.<br>Tinh tế. Khác biệt.</h2><p>Không cần quá nhiều chi tiết để tạo nên dấu ấn. Chọn những thiết kế phù hợp, phối theo cách của bạn và tự tin trong từng khoảnh khắc.</p><a class="button" href="<%=request.getContextPath()%>/products">Xem bộ sưu tập <span aria-hidden="true">→</span></a></div>
+    </section>
+    <div class="store-values-band"><div class="shell store-values"><div><b>THIẾT KẾ TINH GIẢN</b><p>Phom dáng hiện đại, dễ dàng kết hợp.</p></div><div><b>PHONG CÁCH CỦA BẠN</b><p>Chọn đúng thiết kế, thể hiện chất riêng.</p></div><div><b>MUA SẮM AN TÂM</b><p>Thanh toán khi nhận hàng tiện lợi.</p></div></div></div>
+</main>
+<%@include file="/includes/footer.jspf"%>
+<%@include file="/includes/chatbot.jspf"%>
+<script src="<%=request.getContextPath()%>/assets/chatbot.js" defer></script>
+</body></html>

@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -21,6 +22,7 @@ public class AdminPromotionController extends HttpServlet {
     private static final String PAGE = "/admin/promotions.jsp";
     private static final String MESSAGE_KEY = "ADMIN_PROMOTION_MESSAGE";
     private static final String ERROR_KEY = "ADMIN_PROMOTION_ERROR";
+    private static final String CSRF_KEY = "adminPromotions.csrf";
 
     private AdminPromotionDAO promotionDAO;
 
@@ -40,6 +42,9 @@ public class AdminPromotionController extends HttpServlet {
         }
 
         HttpSession session = request.getSession(false);
+        response.setHeader("Cache-Control", "no-store");
+        if (session.getAttribute(CSRF_KEY) == null) session.setAttribute(CSRF_KEY, java.util.UUID.randomUUID().toString());
+        request.setAttribute("csrfToken", session.getAttribute(CSRF_KEY));
         request.setAttribute("message", takeFlash(session, MESSAGE_KEY));
         request.setAttribute("error", takeFlash(session, ERROR_KEY));
 
@@ -72,6 +77,11 @@ public class AdminPromotionController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
+        Object token = session.getAttribute(CSRF_KEY);
+        if (!(token instanceof String) || !token.equals(request.getParameter("csrfToken"))) {
+            response.sendError(403, "Phiên làm việc không hợp lệ. Vui lòng tải lại trang.");
+            return;
+        }
         String action = request.getParameter("action");
 
         try {
@@ -107,6 +117,9 @@ public class AdminPromotionController extends HttpServlet {
                         "Đã cập nhật trạng thái khuyến mãi."
                 );
 
+            } else if ("delete".equals(action)) {
+                promotionDAO.deletePromotion(Integer.parseInt(request.getParameter("promotionId")));
+                session.setAttribute(MESSAGE_KEY, "Đã xóa chương trình khuyến mãi.");
             } else {
                 throw new IllegalArgumentException(
                         "Thao tác khuyến mãi không hợp lệ."
@@ -127,6 +140,10 @@ public class AdminPromotionController extends HttpServlet {
                         ERROR_KEY,
                         "Không tìm thấy chương trình khuyến mãi."
                 );
+            } else if ("PROMOTION_QUANTITY_CHANGED".equals(e.getMessage())) {
+                session.setAttribute(ERROR_KEY, "Số lượt coupon đã thay đổi hoặc mã không còn tồn tại. Vui lòng tải lại và kiểm tra số lượng.");
+            } else if (e.getErrorCode() == 547) {
+                session.setAttribute(ERROR_KEY, "Khuyến mãi đang được dữ liệu khác sử dụng nên chưa thể xóa. Bạn có thể tắt khuyến mãi để ngừng hiển thị.");
             } else {
                 session.setAttribute(
                         ERROR_KEY,
@@ -142,6 +159,11 @@ public class AdminPromotionController extends HttpServlet {
 
     private Promotion readPromotion(HttpServletRequest request) {
         Promotion promotion = new Promotion();
+        String quantity = request.getParameter("quantity");
+        if (quantity == null || quantity.isBlank()) throw new IllegalArgumentException("Hãy nhập số lượt coupon.");
+        promotion.setQuantity(Integer.parseInt(quantity));
+        String original = request.getParameter("originalQuantity");
+        promotion.setOriginalQuantity(original == null || original.isBlank() ? 0 : Integer.parseInt(original));
 
         promotion.setPromotionCode(
                 request.getParameter("promotionCode")
@@ -152,9 +174,9 @@ public class AdminPromotionController extends HttpServlet {
         promotion.setDiscountType(
                 request.getParameter("discountType")
         );
-        promotion.setDiscountValue(
-                new BigDecimal(request.getParameter("discountValue"))
-        );
+        String discountValue = request.getParameter("discountValue");
+        if (discountValue == null || discountValue.isBlank()) throw new IllegalArgumentException("Hãy nhập giá trị giảm.");
+        promotion.setDiscountValue(new BigDecimal(discountValue));
         promotion.setStartDate(parseTimestamp(
                 request.getParameter("startDate")
         ));
@@ -185,7 +207,11 @@ public class AdminPromotionController extends HttpServlet {
             );
         }
 
-        return Timestamp.valueOf(LocalDateTime.parse(value));
+        try {
+            return Timestamp.valueOf(LocalDateTime.parse(value));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Thời gian khuyến mãi không hợp lệ.");
+        }
     }
 
     private BigDecimal parseOptionalDecimal(String value) {

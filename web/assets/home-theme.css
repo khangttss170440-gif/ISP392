@@ -1,0 +1,39 @@
+.home-theme .topbar {
+    background: #33271f;
+    border-bottom-color: #b99a6040;
+}
+.home-theme .brand, .home-theme .navlinks, .home-theme .nav-actions { color: #faf6ee; }
+.home-theme .brand-caption { color: #d5b57a; }
+.home-theme .navlinks { border-color: #b99a6040; }
+.home-theme .nav a:hover { color: #e5c994; }
+.home-theme .account-panel { background: #33271f; color: #faf6ee; border-color: #8f7550; }
+.home-theme .account-panel-title { border-color: #b99a6040; }
+.home-theme .account-panel-title small { color: #d5b57a; }
+.home-theme .account-panel > a, .home-theme .account-panel button { color: #faf6ee; }
+.home-theme .account-panel > a:hover, .home-theme .account-panel button:hover { background: #453429; color: #e5c994; }
+.home-theme .account-panel form { border-color: #b99a6040; }
+.home-theme .avatar-icon { background: #453429; border-color: #8f7550; }
+.home-theme .editorial-hero .button.light {
+    background: #b99a60;
+    border-color: #b99a60;
+    color: #211b17;
+}
+.home-theme .editorial-hero .button.light:hover { background: #cdb786; border-color: #7b5a35; }
+.home-theme .store-values-band { background: #33271f; border-top: 1px solid #b99a6040; }
+.home-theme .store-values b { color: #e0c38e; }
+.home-theme .store-values p { color: #e0d4c5; }
+.home-theme .store-values > div + div { border-color: #b99a6040; }
+.home-theme .editorial-offer .home-offer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 30px; align-items: stretch; }
+.home-offer-card { display: flex; flex-direction: column; padding: 28px; background: #33271f; border: 1px solid #b99a6060; color: #faf6ee; min-width: 0; }
+.home-offer-card .eyebrow { color: #d5b57a; font-size: 9px; }
+.home-offer-card h3 { margin: 14px 0 10px; font: 400 36px "Times New Roman", serif; color: #e0c38e; }
+.home-offer-card h4 { font-size: 15px; font-weight: 500; margin: 0 0 14px; overflow-wrap: anywhere; }
+.home-theme .home-offer-card p { color: #dfd2bf; font-size: 12px; margin: 4px 0; }
+.home-offer-code { display: flex; flex-direction: column; gap: 5px; border-block: 1px solid #b99a6050; padding: 15px 0; margin: 18px 0; }
+.home-offer-code span { color: #c0b3a2; font-size: 10px; }
+.home-offer-code strong { color: #e0c38e; letter-spacing: .13em; overflow-wrap: anywhere; user-select: all; }
+.home-offer-card > a { color: #e0c38e; font-size: 11px; margin-top: auto; }
+.home-offer-card > a:hover { color: #fff8ec; text-decoration: underline; }
+.home-theme .editorial-offer .home-offer-empty { display: block; margin-top: 24px; font-size: 13px; color: #65523e; }
+@media(max-width:900px) { .home-theme .editorial-offer .home-offer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width:680px) { .home-theme .editorial-offer .home-offer-grid { grid-template-columns: 1fr; } }

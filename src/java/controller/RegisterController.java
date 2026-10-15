@@ -11,9 +11,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import model.Customer;
 import util.PasswordUtil;
+import util.AuthSession;
 
 @WebServlet("/register")
 public class RegisterController extends HttpServlet {
@@ -128,12 +128,7 @@ public class RegisterController extends HttpServlet {
             customer.setCustomerID(customerID);
             customer.setStatus("Active");
 
-            HttpSession oldSession = request.getSession(false);
-            if (oldSession != null) {
-                oldSession.invalidate();
-            }
-
-            request.getSession(true).setAttribute("customer", customer);
+            AuthSession.loginCustomer(request, customer);
 
             response.sendRedirect(
                     request.getContextPath() + "/index.jsp"

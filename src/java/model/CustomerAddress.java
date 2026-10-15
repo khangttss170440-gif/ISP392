@@ -14,6 +14,12 @@ public class CustomerAddress implements Serializable {
     private String province;
     private boolean defaultAddress;
 
+    public String locationAddress() {
+        return java.util.stream.Stream.of(addressLine, ward, district, province, "Việt Nam")
+                .filter(value -> value != null && !value.isBlank()).map(String::trim)
+                .collect(java.util.stream.Collectors.joining(", "));
+    }
+
     public int getAddressID() {
         return addressID;
     }

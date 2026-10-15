@@ -2,3 +2,5 @@
 /dist/
 /nbproject/private/
 *.class
+/product-images/*/
+/test/.scratch/

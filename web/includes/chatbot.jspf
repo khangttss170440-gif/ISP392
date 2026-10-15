@@ -1,0 +1,31 @@
+<%@page pageEncoding="UTF-8"%>
+<aside class="chatbot" data-endpoint="<%=request.getContextPath()%>/chatbot" aria-label="Trợ lý MENSFORM">
+    <section class="chatbot-panel" id="chatbot-panel" aria-labelledby="chatbot-title" hidden>
+        <header class="chatbot-head">
+            <div class="chatbot-brand">
+                <span class="chatbot-avatar" aria-hidden="true">M</span>
+                <div><small>YOUR STYLE COMPANION</small><h2 id="chatbot-title">Trợ lý MENSFORM</h2><span class="chatbot-status">Tư vấn phong cách cùng AI</span></div>
+            </div>
+            <div class="chatbot-head-actions">
+                <button class="chatbot-icon-button" id="chatbot-reset" type="button" aria-label="Bắt đầu cuộc trò chuyện mới" title="Cuộc trò chuyện mới">↻</button>
+                <button class="chatbot-icon-button" id="chatbot-close" type="button" aria-label="Đóng khung chat" title="Đóng">×</button>
+            </div>
+        </header>
+        <div class="chatbot-messages" id="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions" aria-label="Nội dung trò chuyện"></div>
+        <div class="chatbot-suggestions" aria-label="Gợi ý câu hỏi">
+            <button type="button" data-message="Gợi ý cách phối đồ đi làm cho nam">Phối đồ đi làm</button>
+            <button type="button" data-message="Tìm áo sơ mi dưới 500k">Tìm áo sơ mi</button>
+            <button type="button" data-message="Tư vấn cách chọn size áo phù hợp">Chọn size áo</button>
+        </div>
+        <form class="chatbot-form" id="chatbot-form">
+            <label class="chatbot-sr-only" for="chatbot-input">Tin nhắn cho trợ lý</label>
+            <input id="chatbot-input" name="message" type="text" maxlength="1200" placeholder="Bạn đang tìm phong cách nào?" autocomplete="off" required>
+            <button type="submit" aria-label="Gửi tin nhắn" title="Gửi tin nhắn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 12 7-7 7 7M12 5v15"/></svg></button>
+        </form>
+        <p class="chatbot-note">AI có thể nhầm lẫn. Hãy kiểm tra chi tiết sản phẩm.</p>
+    </section>
+    <button class="chatbot-launcher" id="chatbot-toggle" type="button" aria-controls="chatbot-panel" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 3V11.5a9 9 0 0 1 18 0Z"/><path d="M7 10h8M7 14h5"/></svg>
+        <span>Tư vấn phong cách</span><small>AI</small>
+    </button>
+</aside>

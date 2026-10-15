@@ -1,1 +1,9 @@
-<footer class="footer"><div class="shell footer-inner"><div><a class="brand" href="<%=request.getContextPath()%>/index.jsp">MENS<i>FORM</i></a><p>Phong c&#xE1;ch ch&#x1EC9;n chu, b&#x1EAF;t &#x111;&#x1EA7;u t&#x1EEB; nh&#x1EEF;ng &#x111;i&#x1EC1;u v&#x1EEB;a v&#x1EB7;n.</p></div><div class="footer-links"><a href="<%=request.getContextPath()%>/products">Kh&#xE1;m ph&#xE1; s&#x1EA3;n ph&#x1EA9;m</a><a href="<%=request.getContextPath()%>/customer/orders">Theo d&#xF5;i &#x111;&#x1A1;n h&#xE0;ng</a><a href="<%=request.getContextPath()%>/login">T&#xE0;i kho&#x1EA3;n</a></div></div></footer>
+<%@page pageEncoding="UTF-8"%>
+<footer class="footer" id="contact"><div class="shell">
+    <div class="footer-inner">
+        <div class="footer-intro"><a class="brand" href="<%=request.getContextPath()%>/index.jsp">MENSFORM<span class="brand-caption">THE MODERN GENTLEMAN</span></a><p>Phong cách nam hiện đại, tinh giản và chỉn chu.<br>Bắt đầu từ những lựa chọn mang dấu ấn của bạn.</p></div>
+        <div><h2>KHÁM PHÁ</h2><nav class="footer-links" aria-label="Khám phá cửa hàng"><a href="<%=request.getContextPath()%>/products">Tất cả sản phẩm</a><a href="<%=request.getContextPath()%>/index.jsp#collection">Bộ sưu tập</a><a href="<%=request.getContextPath()%>/promotions">Khuyến mãi</a></nav></div>
+        <div><h2>ĐỒNG HÀNH CÙNG BẠN</h2><nav class="footer-links" aria-label="Hỗ trợ tài khoản"><a href="<%=request.getContextPath()%>/customer/account.jsp">Tài khoản của tôi</a><a href="<%=request.getContextPath()%>/customer/orders">Đơn hàng</a><a href="<%=request.getContextPath()%>/customer/support">Hỗ trợ khách hàng</a></nav></div>
+    </div>
+    <div class="footer-bottom"><span>© <%=java.time.Year.now().getValue()%> MENSFORM</span><span>TIMELESS STYLE. EVERYDAY CONFIDENCE.</span></div>
+</div></footer>

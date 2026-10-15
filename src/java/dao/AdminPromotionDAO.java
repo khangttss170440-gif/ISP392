@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import model.Promotion;
 import util.DBConnection;
 
@@ -17,7 +18,7 @@ public class AdminPromotionDAO {
     private static final String COLUMNS =
             "PromotionID, PromotionCode, PromotionName, DiscountType, "
             + "DiscountValue, StartDate, EndDate, MinOrderValue, "
-            + "MaxDiscount, Status";
+            + "MaxDiscount, Status, Quantity";
 
     public List<Promotion> getAllPromotions() throws SQLException {
         String sql =
@@ -47,14 +48,16 @@ public class AdminPromotionDAO {
                 "INSERT INTO dbo.Promotion "
                 + "(PromotionCode, PromotionName, DiscountType, "
                 + "DiscountValue, StartDate, EndDate, MinOrderValue, "
-                + "MaxDiscount, Status) "
+                + "MaxDiscount, Status, Quantity) "
                 + "OUTPUT INSERTED.PromotionID "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active')";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             bindPromotion(statement, promotion);
+            statement.setString(9, promotion.getStatus());
+            statement.setInt(10, promotion.getQuantity());
 
             try (ResultSet result = statement.executeQuery()) {
                 if (result.next()) {
@@ -82,18 +85,21 @@ public class AdminPromotionDAO {
                 + "SET PromotionCode = ?, PromotionName = ?, "
                 + "    DiscountType = ?, DiscountValue = ?, "
                 + "    StartDate = ?, EndDate = ?, MinOrderValue = ?, "
-                + "    MaxDiscount = ?, Status = ? "
-                + "WHERE PromotionID = ?";
+                + "    MaxDiscount = ?, Status = ?, Quantity = Quantity + ? "
+                + "WHERE PromotionID = ? AND CAST(Quantity AS bigint) + ? BETWEEN 0 AND 2147483647";
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             bindPromotion(statement, promotion);
             statement.setString(9, validateStatus(promotion.getStatus()));
-            statement.setInt(10, promotion.getPromotionID());
+            int quantityChange = promotion.getQuantity() - promotion.getOriginalQuantity();
+            statement.setInt(10, quantityChange);
+            statement.setInt(11, promotion.getPromotionID());
+            statement.setInt(12, quantityChange);
 
             if (statement.executeUpdate() != 1) {
-                throw new SQLException("PROMOTION_NOT_FOUND");
+                throw new SQLException("PROMOTION_QUANTITY_CHANGED");
             }
         }
     }
@@ -121,6 +127,15 @@ public class AdminPromotionDAO {
             if (statement.executeUpdate() != 1) {
                 throw new SQLException("PROMOTION_NOT_FOUND");
             }
+        }
+    }
+
+    public void deletePromotion(int promotionID) throws SQLException {
+        if (promotionID <= 0) throw new IllegalArgumentException("Mã khuyến mãi không hợp lệ.");
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("DELETE FROM dbo.Promotion WHERE PromotionID = ?")) {
+            statement.setInt(1, promotionID);
+            if (statement.executeUpdate() != 1) throw new SQLException("PROMOTION_NOT_FOUND");
         }
     }
 
@@ -155,9 +170,12 @@ public class AdminPromotionDAO {
                     "Thiếu thông tin khuyến mãi."
             );
         }
+        if (promotion.getQuantity() < 0 || promotion.getOriginalQuantity() < 0) {
+            throw new IllegalArgumentException("Số lượt coupon không được âm.");
+        }
 
         String code = trim(promotion.getPromotionCode())
-                .toUpperCase();
+                .toUpperCase(Locale.ROOT);
         String name = trim(promotion.getPromotionName());
 
         if (!code.matches("[A-Z0-9_-]{3,50}")) {
@@ -199,7 +217,7 @@ public class AdminPromotionDAO {
             );
         }
 
-        if (value.precision() > 18) {
+        if (value.precision() - value.scale() > 16) {
             throw new IllegalArgumentException(
                     "Giá trị giảm vượt giới hạn database."
             );
@@ -237,7 +255,7 @@ public class AdminPromotionDAO {
             return;
         }
 
-        if (value.signum() < 0 || value.precision() > 18) {
+        if (value.signum() < 0 || value.precision() - value.scale() > 16) {
             throw new IllegalArgumentException(
                     fieldName + " không hợp lệ."
             );
@@ -321,6 +339,8 @@ public class AdminPromotionDAO {
         promotion.setMinOrderValue(result.getBigDecimal("MinOrderValue"));
         promotion.setMaxDiscount(result.getBigDecimal("MaxDiscount"));
         promotion.setStatus(result.getString("Status"));
+        promotion.setQuantity(result.getInt("Quantity"));
+        promotion.setOriginalQuantity(promotion.getQuantity());
 
         return promotion;
     }

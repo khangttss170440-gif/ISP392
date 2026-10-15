@@ -1,0 +1,38 @@
+THU MUC ANH SAN PHAM MENSFORM
+
+Moi san pham co mot thu muc theo Product ID, vi du:
+  product-images/12/00-cover.jpg
+  product-images/12/01-front.jpg
+  product-images/12/02-back.png
+
+Thay 12 bang Product ID that trong danh sach san pham.
+Ban co the tu tao thu muc va chep anh JPG/PNG vao day.
+Ten file chi dung chu cai khong dau, so, dau gach ngang, gach duoi va dau cham.
+Anh dau tien theo thu tu ten file se la anh dai dien. Nen dat 00-cover.jpg.
+
+Admin va nhan vien kho co the chon toi da 6 anh khi tao san pham.
+Admin va nhan vien kho co the vao muc Anh san pham de tai them, thay, xoa
+va chon anh dai dien. Tong toi da 6 anh, thay anh khong tang so luong.
+Moi anh toi da 5 MB, 12 megapixel. Chi ho tro JPG va PNG.
+Thu muc Product ID duoc tu tao khi luu san pham, ke ca khi chua chon anh.
+Co the thay/xoa anh cu truc tiep tren trang Anh san pham hoac trong thu muc.
+Anh tai len tu form duoc dat ten tu dong; anh cover-* la anh dai dien mac dinh.
+Khi da chon anh dai dien tren giao dien, file .cover luu lua chon nay.
+Neu chi quan ly bang thu muc, xoa file .cover de dung lai thu tu ten file,
+roi dat anh mong muon thanh 00-cover.jpg hoac 00-cover.png.
+
+Anh luu ngoai web/ va WAR, nen khong bi xoa khi Clean and Build/deploy lai.
+Can sao luu thu muc nay cung voi du lieu san pham.
+May hien tai: web/WEB-INF/web.xml cau hinh D:/ISP392/ISP392/product-images.
+Khi chuyen may, doi productImageDirectory trong web.xml hoac dat bien moi truong
+MENSFORM_PRODUCT_IMAGE_DIR thanh duong dan tuyet doi. Bien moi truong duoc uu tien.
+Tomcat can quyen doc/ghi thu muc do. Khoi dong lai Tomcat sau khi doi cau hinh.
+
+ANH THEO MAU BIEN THE
+Admin/Kho: Anh san pham -> chon Product ID -> chon Mau trong anh -> Luu mau anh.
+Danh sach mau lay tu SKU / Bien the cua dung Product ID. Them SKU truoc neu chua co mau.
+Co the gan nhieu anh cho cung mot mau; cac size cung mau dung chung nhom anh.
+Chon Anh chung / moi mau de dung anh cho tat ca mau.
+File .colors tu luu lien ket anh-mau (UTF-8); can sao luu cung voi anh.
+Thay anh tren giao dien se giu mau cu. Xoa anh se xoa lien ket mau cua anh do.
+Anh khong co lien ket mau van hien thi nhu anh chung, khong can doi ten hay chuyen thu muc.

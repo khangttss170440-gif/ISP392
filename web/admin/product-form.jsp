@@ -16,6 +16,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sản phẩm · MENSFORM</title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/product-images.css">
 </head>
 <body>
 <% if (warehouseCreator) { %>
@@ -42,7 +43,7 @@
                 <div class="alert error"><%=request.getAttribute("error")%></div>
             <% } %>
             <section class="admin-panel">
-                <form action="<%=formAction%>" method="post">
+                <form action="<%=formAction%>" method="post" enctype="multipart/form-data">
                     <% if (editing) { %><input type="hidden" name="productId" value="<%=product.getProductID()%>"><% } %>
                     <div class="admin-form-grid">
                         <div class="span-2">
@@ -81,6 +82,28 @@
                             <small class="admin-note">Tối đa 1.000 ký tự.</small>
                         </div>
                     </div>
+                    <div class="product-upload">
+                        <label class="form-label" for="productImages">Ảnh sản phẩm</label>
+                        <p class="admin-note" id="imageHelp">Chọn tối đa 6 ảnh JPG/PNG, mỗi ảnh tối đa 5 MB và 12 megapixel. Ảnh đầu tiên là ảnh đại diện; ảnh tải thêm không thay ảnh cũ.</p>
+                        <input class="field" id="productImages" name="images" type="file" accept="image/jpeg,image/png" multiple aria-describedby="imageHelp imageUploadError">
+                        <p id="imageUploadError" role="alert" class="product-upload-error"></p>
+                        <div class="product-image-thumbs" id="uploadPreview" aria-label="Ảnh vừa chọn"></div>
+                        <% List<String> productImages = (List<String>) request.getAttribute("productImages");
+                           if (editing && productImages != null && !productImages.isEmpty()) { %>
+                        <p class="admin-note">Ảnh hiện tại (<%=productImages.size()%>/6)</p>
+                        <div class="product-image-thumbs">
+                            <% for (String image : productImages) { %>
+                            <a href="<%=request.getContextPath()%>/product-image?productId=<%=product.getProductID()%>&amp;file=<%=image%>" target="_blank" rel="noopener">
+                                <img src="<%=request.getContextPath()%>/product-image?productId=<%=product.getProductID()%>&amp;file=<%=image%>" alt="Ảnh sản phẩm hiện tại" loading="lazy">
+                            </a>
+                            <% } %>
+                        </div>
+                        <% } %>
+                        <% if (editing) { %>
+                        <p class="admin-note">Mã sản phẩm: #<%=product.getProductID()%>. Bạn cũng có thể chép ảnh vào thư mục mang mã sản phẩm trong kho ảnh.</p>
+                        <a class="button line small" href="<%=request.getContextPath()%>/admin/product-images?productId=<%=product.getProductID()%>">Quản lý ảnh: thay, xóa, chọn ảnh đại diện →</a>
+                        <% } %>
+                    </div>
                     <div class="admin-actions" style="margin-top:20px">
                         <button class="button" type="submit"><%=editing ? "Lưu thay đổi" : "Đăng sản phẩm"%></button>
                         <a class="button line" href="<%=cancelUrl%>">Hủy</a>
@@ -89,6 +112,7 @@
             </section>
         </main>
     </div>
+    <script src="<%=request.getContextPath()%>/assets/product-images.js" defer></script>
 </body>
 </html>
 

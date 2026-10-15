@@ -2,6 +2,8 @@ package controller;
 
 import dao.CheckoutDAO;
 import dao.CustomerAddressDAO;
+import dao.PromotionDAO;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -14,6 +16,7 @@ import javax.servlet.http.HttpSession;
 import model.Cart;
 import model.Customer;
 import model.CustomerAddress;
+import service.ShippingService;
 
 @WebServlet("/checkout")
 public class CheckoutController extends HttpServlet {
@@ -23,6 +26,7 @@ public class CheckoutController extends HttpServlet {
 
     private CheckoutDAO checkoutDAO;
     private CustomerAddressDAO addressDAO;
+    private final ShippingService shipping = new ShippingService();
 
     @Override
     public void init() {
@@ -54,11 +58,43 @@ public class CheckoutController extends HttpServlet {
         request.setAttribute("cart", cart);
         request.setAttribute("customer", customer);
         request.setAttribute("error", takeError(session));
+        String promotionCode = request.getParameter("promotionCode");
+        if (promotionCode == null) {
+            promotionCode = (String) session.getAttribute("CHECKOUT_PROMOTION_CODE");
+        }
+        promotionCode = value(promotionCode);
+        session.setAttribute("CHECKOUT_PROMOTION_CODE", promotionCode);
+        BigDecimal discount = BigDecimal.ZERO;
+        if (!promotionCode.isEmpty()) {
+            try {
+                discount = new PromotionDAO().findAvailableByCode(promotionCode)
+                        .calculateDiscount(cart.getSubtotal());
+            } catch (IllegalArgumentException e) {
+                request.setAttribute("promotionError", e.getMessage());
+            } catch (SQLException e) {
+                getServletContext().log("Could not check promotion.", e);
+                request.setAttribute("promotionError", "Chưa kiểm tra được mã khuyến mãi. Vui lòng thử lại.");
+            }
+        }
+        request.setAttribute("promotionCode", promotionCode);
+        request.setAttribute("discountAmount", discount);
         try {
             List<CustomerAddress> addresses = addressDAO.findByCustomer(
                     customer.getCustomerID()
             );
             request.setAttribute("addresses", addresses);
+            CustomerAddress selected = addresses.stream().filter(CustomerAddress::isDefaultAddress).findFirst()
+                    .orElse(addresses.isEmpty() ? null : addresses.get(0));
+            String selectedId = request.getParameter("addressId");
+            if ("new".equals(selectedId)) selected = null;
+            else if (selectedId != null) {
+                selected = addresses.stream().filter(a -> Integer.toString(a.getAddressID()).equals(selectedId)).findFirst().orElse(null);
+            }
+            ShippingService.Quote quote = shipping.quote(selected == null ? "" : selected.locationAddress());
+            request.setAttribute("selectedAddressId", selected == null ? "new" : Integer.toString(selected.getAddressID()));
+            request.setAttribute("shippingQuote", quote);
+            request.setAttribute("shippingFee", quote.fee);
+            request.setAttribute("checkoutTotal", cart.getSubtotal().subtract(discount).add(quote.fee));
         } catch (SQLException e) {
             throw new ServletException("Could not load saved shipping addresses.", e);
         }
@@ -105,6 +141,7 @@ public class CheckoutController extends HttpServlet {
 
         String submittedAddressId = value(request.getParameter("addressId"));
         String shippingAddress;
+        CustomerAddress deliveryAddress;
 
         if (!submittedAddressId.isEmpty() && !"new".equals(submittedAddressId)) {
             try {
@@ -119,6 +156,7 @@ public class CheckoutController extends HttpServlet {
                     return;
                 }
                 shippingAddress = formatShippingAddress(address);
+                deliveryAddress = address;
             } catch (NumberFormatException e) {
                 session.setAttribute(ERROR_KEY, "Địa chỉ giao hàng không hợp lệ.");
                 response.sendRedirect(request.getContextPath() + "/checkout");
@@ -143,6 +181,7 @@ public class CheckoutController extends HttpServlet {
             }
 
             shippingAddress = formatShippingAddress(newAddress);
+            deliveryAddress = newAddress;
             if (shippingAddress.length() > 500) {
                 session.setAttribute(ERROR_KEY, "Địa chỉ giao hàng vượt quá độ dài cho phép.");
                 response.sendRedirect(request.getContextPath() + "/checkout");
@@ -151,13 +190,15 @@ public class CheckoutController extends HttpServlet {
 
             try {
                 // Save checkout-entered addresses in the customer's address book.
-                addressDAO.save(newAddress, customer.getCustomerID());
+                newAddress.setAddressID(addressDAO.save(newAddress, customer.getCustomerID()));
             } catch (SQLException e) {
                 throw new ServletException("Could not save the new shipping address.", e);
             }
         }
 
         String notes = value(request.getParameter("notes"));
+        String promotionCode = value(request.getParameter("promotionCode"));
+        session.setAttribute("CHECKOUT_PROMOTION_CODE", promotionCode);
 
         if (shippingAddress.isEmpty()
                 || shippingAddress.length() > 500
@@ -170,15 +211,33 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
+        ShippingService.Quote shippingQuote = shipping.quote(deliveryAddress.locationAddress());
+        String previewFee = request.getParameter("shippingFeePreview");
+        if (previewFee != null) {
+            try {
+                if (new BigDecimal(previewFee).compareTo(shippingQuote.fee) != 0) {
+                    session.setAttribute(ERROR_KEY, "Phí giao hàng đã thay đổi. Vui lòng kiểm tra tổng tiền và đặt hàng lại.");
+                    response.sendRedirect(request.getContextPath() + "/checkout?addressId=" + deliveryAddress.getAddressID());
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                session.setAttribute(ERROR_KEY, "Phí giao hàng không hợp lệ. Vui lòng kiểm tra lại địa chỉ.");
+                response.sendRedirect(request.getContextPath() + "/checkout");
+                return;
+            }
+        }
         try {
             int orderID = checkoutDAO.createCodOrder(
                     customer.getCustomerID(),
                     cart,
                     shippingAddress,
-                    notes
+                    notes,
+                    promotionCode,
+                    shippingQuote.fee
             );
 
             cart.clear();
+            session.removeAttribute("CHECKOUT_PROMOTION_CODE");
 
             response.sendRedirect(
                     request.getContextPath()

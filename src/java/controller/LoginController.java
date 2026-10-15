@@ -11,10 +11,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import model.Customer;
 import model.Staff;
 import util.PasswordUtil;
+import util.AuthSession;
 
 @WebServlet("/login")
 public class LoginController extends HttpServlet {
@@ -36,7 +36,7 @@ public class LoginController extends HttpServlet {
 
         if ("1".equals(request.getParameter("registered"))) {
             request.setAttribute("message",
-                    "Account created. You can now log in.");
+                    "Đăng ký thành công. Bạn có thể đăng nhập ngay.");
         }
 
         request.getRequestDispatcher("/login.jsp")
@@ -106,12 +106,7 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        HttpSession oldSession = request.getSession(false);
-        if (oldSession != null) {
-            oldSession.invalidate();
-        }
-
-        request.getSession(true).setAttribute("customer", customer);
+        AuthSession.loginCustomer(request, customer);
         response.sendRedirect(request.getContextPath() + "/index.jsp");
     }
 
@@ -132,26 +127,14 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        String role = staff.getRole();
-        String destination;
-        if ("Admin".equalsIgnoreCase(role)) {
-            destination = "/admin/products";
-        } else if ("Sales".equalsIgnoreCase(role)) {
-            destination = "/staff/sales/orders";
-        } else if ("Warehouse".equalsIgnoreCase(role)) {
-            destination = "/staff/warehouse/orders";
-        } else {
+        String destination = AuthSession.staffHome(staff.getRole());
+        if (destination == null) {
             showError(request, response,
                     "Tài khoản chưa được cấp quyền đăng nhập.", "STAFF");
             return;
         }
 
-        HttpSession oldSession = request.getSession(false);
-        if (oldSession != null) {
-            oldSession.invalidate();
-        }
-
-        request.getSession(true).setAttribute("staff", staff);
+        AuthSession.loginStaff(request, staff);
         response.sendRedirect(request.getContextPath() + destination);
     }
 

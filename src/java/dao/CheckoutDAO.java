@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import model.Cart;
 import model.CartItem;
+import model.Promotion;
 import util.DBConnection;
 
 public class CheckoutDAO {
@@ -20,6 +21,21 @@ public class CheckoutDAO {
             Cart cart,
             String shippingAddress,
             String notes) throws SQLException {
+        return createCodOrder(customerID, cart, shippingAddress, notes, "");
+    }
+
+    public int createCodOrder(int customerID, Cart cart, String shippingAddress,
+                              String notes, String promotionCode) throws SQLException {
+        return createCodOrder(customerID, cart, shippingAddress, notes, promotionCode, service.ShippingService.NATIONAL_FEE);
+    }
+
+    public int createCodOrder(int customerID, Cart cart, String shippingAddress,
+                              String notes, String promotionCode, BigDecimal shippingFee) throws SQLException {
+
+        if (shippingFee == null || (shippingFee.compareTo(BigDecimal.ZERO) != 0
+                && shippingFee.compareTo(service.ShippingService.NATIONAL_FEE) != 0)) {
+            throw new IllegalArgumentException("Phí giao hàng không hợp lệ.");
+        }
 
         if (customerID <= 0 || cart == null || cart.isEmpty()) {
             throw new IllegalArgumentException(
@@ -38,7 +54,7 @@ public class CheckoutDAO {
         List<CartItem> items = new ArrayList<>(cart.getItems());
         items.sort(Comparator.comparingInt(CartItem::getVariantID));
 
-        try (Connection connection = DBConnection.getConnection()) {
+        try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
 
             try {
@@ -61,10 +77,20 @@ public class CheckoutDAO {
                     );
                 }
 
+                BigDecimal discount = BigDecimal.ZERO;
+                if (promotionCode != null && !promotionCode.trim().isEmpty()) {
+                    PromotionDAO promotions = new PromotionDAO();
+                    Promotion promotion = promotions.findAvailableByCode(connection, promotionCode, true);
+                    discount = promotion.calculateDiscount(subtotal);
+                    promotions.consumeCoupon(connection, promotion.getPromotionID());
+                }
+
                 int orderID = insertOrder(
                         connection,
                         customerID,
-                        notes
+                        notes,
+                        discount,
+                        shippingFee
                 );
 
                 for (int i = 0; i < items.size(); i++) {
@@ -85,7 +111,7 @@ public class CheckoutDAO {
                     );
                 }
 
-                insertCodPayment(connection, orderID, subtotal);
+                insertCodPayment(connection, orderID, subtotal.subtract(discount).add(shippingFee));
                 insertShipment(
                         connection,
                         orderID,
@@ -105,6 +131,10 @@ public class CheckoutDAO {
                 throw e;
             }
         }
+    }
+
+    protected Connection getConnection() throws SQLException {
+        return DBConnection.getConnection();
     }
 
     private BigDecimal lockAndGetPrice(
@@ -150,23 +180,26 @@ public class CheckoutDAO {
     private int insertOrder(
             Connection connection,
             int customerID,
-            String notes) throws SQLException {
+            String notes,
+            BigDecimal discount, BigDecimal shippingFee) throws SQLException {
 
         String sql =
                 "INSERT INTO dbo.SalesOrder "
                 + "(CustomerID, DiscountAmount, ShippingFee, Notes) "
                 + "OUTPUT INSERTED.OrderID "
-                + "VALUES (?, 0, 0, ?)";
+                + "VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
             statement.setInt(1, customerID);
+            statement.setBigDecimal(2, discount);
+            statement.setBigDecimal(3, shippingFee);
 
             if (notes == null || notes.trim().isEmpty()) {
-                statement.setNull(2, Types.NVARCHAR);
+                statement.setNull(4, Types.NVARCHAR);
             } else {
-                statement.setString(2, notes.trim());
+                statement.setString(4, notes.trim());
             }
 
             try (ResultSet result = statement.executeQuery()) {

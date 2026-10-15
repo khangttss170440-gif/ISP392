@@ -31,6 +31,13 @@
         }
         if (defaultAddress == null && !addresses.isEmpty()) defaultAddress = addresses.get(0);
     }
+    String selectedShippingAddress = (String) request.getAttribute("selectedAddressId");
+    if (selectedShippingAddress != null) {
+        defaultAddress = null;
+        if (addresses != null) for (CustomerAddress address : addresses) {
+            if (Integer.toString(address.getAddressID()).equals(selectedShippingAddress)) { defaultAddress = address; break; }
+        }
+    }
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -39,6 +46,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Đặt hàng — MENSFORM</title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/shipping-map.css">
 </head>
 <body>
 <%@include file="/includes/header.jspf"%>
@@ -53,6 +61,8 @@
         <% } %>
         <div class="checkout-layout">
             <form class="cart-list" action="<%=request.getContextPath()%>/checkout" method="post">
+                <input type="hidden" name="shippingFeePreview" value="<%=request.getAttribute("shippingFee")%>">
+                <input type="hidden" name="promotionCode" value="<%=checkoutEscape(request.getAttribute("promotionCode"))%>">
                 <h2 style="font:700 20px Manrope;margin:0 0 15px">Người nhận hàng</h2>
                 <label class="form-label" for="recipientName">Họ và tên tài khoản</label>
                 <input class="field" id="recipientName" value="<%=checkoutEscape(customer.getFullName())%>" readonly>
@@ -60,7 +70,7 @@
                 <label class="form-label" for="addressId">Chọn địa chỉ giao hàng *</label>
                 <select class="select" id="addressId" name="addressId">
                     <% if (addresses != null) { for (CustomerAddress address : addresses) { %>
-                        <option value="<%=address.getAddressID()%>" data-preview="<%=checkoutEscape(address.getRecipientName() + " · " + (address.getPhone() == null ? "" : address.getPhone()) + " · " + checkoutFullAddress(address))%>"
+                        <option value="<%=address.getAddressID()%>" data-location="<%=checkoutEscape(address.locationAddress())%>" data-preview="<%=checkoutEscape(address.getRecipientName() + " · " + (address.getPhone() == null ? "" : address.getPhone()) + " · " + checkoutFullAddress(address))%>"
                                 <%=defaultAddress != null && defaultAddress.getAddressID() == address.getAddressID() ? "selected" : ""%>>
                             <%=checkoutEscape(address.getRecipientName())%> — <%=checkoutEscape(address.getPhone() == null ? "" : address.getPhone())%><%=address.isDefaultAddress() ? " (Mặc định)" : ""%>
                         </option>
@@ -89,6 +99,7 @@
                     <p class="notice">Địa chỉ này sẽ được lưu trong sổ địa chỉ để bạn có thể chọn ở những lần đặt hàng sau.</p>
                 </div>
 
+                <%@include file="/includes/shipping-map.jspf"%>
                 <label class="form-label" for="notes">Ghi chú cho đơn hàng</label>
                 <textarea class="textarea" id="notes" name="notes" maxlength="1000" placeholder="Khung giờ nhận hàng hoặc lưu ý khác"></textarea>
                 <label class="form-label" for="paymentMethod">Phương thức thanh toán</label>
@@ -100,15 +111,27 @@
 
             <aside class="summary">
                 <h2>Đơn hàng của bạn</h2>
+                <form class="promotion-checkout" action="<%=request.getContextPath()%>/checkout" method="get">
+                    <input type="hidden" id="promotionAddressId" name="addressId" value="<%=checkoutEscape(selectedShippingAddress)%>">
+                    <label class="form-label" for="promotionCode">Mã khuyến mãi</label>
+                    <div class="promotion-input"><input class="field" id="promotionCode" name="promotionCode" maxlength="50" placeholder="Nhập mã ưu đãi" value="<%=checkoutEscape(request.getAttribute("promotionCode"))%>"><button class="button small" type="submit">Áp dụng</button></div>
+                    <a class="text-link" href="<%=request.getContextPath()%>/promotions" target="_blank" rel="noopener">Xem mã ưu đãi ↗</a>
+                    <% if (request.getAttribute("promotionError") != null) { %><p class="alert error" role="alert"><%=checkoutEscape(request.getAttribute("promotionError"))%></p>
+                    <% } else if (request.getAttribute("promotionCode") != null && !request.getAttribute("promotionCode").toString().isEmpty()) { %><p class="alert success">Đã áp dụng mã. <a class="text-link" href="<%=request.getContextPath()%>/checkout?promotionCode=">Bỏ mã</a></p><% } %>
+                </form>
                 <% for (CartItem item : cart.getItems()) { %>
                     <div class="summary-row">
                         <span><%=checkoutEscape(item.getProductName())%> · <%=checkoutEscape(item.getColor())%> / <%=checkoutEscape(item.getSize())%> × <%=item.getQuantity()%></span>
                         <b><%=money.format(item.getLineTotal())%>₫</b>
                     </div>
                 <% } %>
-                <div class="summary-row"><span>Vận chuyển</span><span>0₫</span></div>
-                <div class="summary-row total"><span>Tổng thanh toán</span><span><%=money.format(cart.getSubtotal())%>₫</span></div>
+                <div class="summary-row"><span>Vận chuyển</span><span id="shippingFeeLabel"><%=money.format(request.getAttribute("shippingFee"))%>₫</span></div>
+                <div class="summary-row"><span>Giảm giá</span><span>−<%=money.format(request.getAttribute("discountAmount"))%>₫</span></div>
+                <div class="summary-row total"><span>Tổng thanh toán</span><span id="checkoutTotalLabel" data-subtotal="<%=cart.getSubtotal().toPlainString()%>" data-discount="<%=request.getAttribute("discountAmount")%>"><%=money.format(request.getAttribute("checkoutTotal"))%>₫</span></div>
+                <% service.ShippingService.Quote summaryQuote = (service.ShippingService.Quote) request.getAttribute("shippingQuote"); %>
+                <p class="notice"><%=checkoutEscape(summaryQuote.message)%></p>
                 <p class="notice">Bạn thanh toán khi nhận hàng.</p>
+                <p class="notice">Mã được kiểm tra và trừ 1 lượt ngay khi đặt hàng thành công. Áp dụng thử mã không trừ lượt.</p>
             </aside>
         </div>
     </div>
@@ -133,6 +156,7 @@
     updateAddressChoice();
 }());
 </script>
+<script src="<%=request.getContextPath()%>/assets/shipping-map.js" defer></script>
 </body>
 </html>
 
