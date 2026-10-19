@@ -13,7 +13,7 @@
 <main class="shell page">
     <a href="<%=request.getContextPath()%>/customer/addresses">← Sổ địa chỉ</a>
     <h1 class="page-title"><%=editing ? "Sửa địa chỉ" : "Thêm địa chỉ"%></h1>
-    <p class="page-intro">Nhập địa chỉ nhận hàng để tìm trên Google Maps và kiểm tra phí giao hàng.</p>
+    <p class="page-intro">Nhập địa chỉ nhận hàng để kiểm tra phí giao hàng theo khu vực.</p>
     <% if (request.getAttribute("error") != null) { %><div class="alert error"><%=navEscape(request.getAttribute("error"))%></div><% } %>
     <section class="portal-panel"><form action="<%=request.getContextPath()%>/customer/address-form" method="post" class="portal-form-grid">
         <% if (editing) { %><input type="hidden" name="addressId" value="<%=a.getAddressID()%>"><% } %>

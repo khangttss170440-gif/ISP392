@@ -145,20 +145,18 @@ public class InventoryStocktakingController extends HttpServlet {
             );
         }
 
-        if (variantIDs.length > 50) {
-            throw new IllegalArgumentException(
-                    "Mỗi lần kiểm kê tối đa 50 biến thể."
-            );
-        }
-
         Map<Integer, Integer> result = new LinkedHashMap<>();
 
         for (int i = 0; i < variantIDs.length; i++) {
-            if (variantIDs[i] == null
-                    || variantIDs[i].trim().isEmpty()
-                    || quantities[i] == null
-                    || quantities[i].trim().isEmpty()) {
-                continue;
+            boolean variantBlank = variantIDs[i] == null
+                    || variantIDs[i].trim().isEmpty();
+            boolean quantityBlank = quantities[i] == null
+                    || quantities[i].trim().isEmpty();
+            if (variantBlank && quantityBlank) continue;
+            if (variantBlank || quantityBlank) {
+                throw new IllegalArgumentException(
+                        "Vui lòng nhập số lượng thực tế cho đúng biến thể."
+                );
             }
 
             int variantID = Integer.parseInt(variantIDs[i]);
@@ -167,6 +165,11 @@ public class InventoryStocktakingController extends HttpServlet {
             if (result.put(variantID, quantity) != null) {
                 throw new IllegalArgumentException(
                         "Không gửi trùng biến thể trong một phiếu kiểm kê."
+                );
+            }
+            if (result.size() > 50) {
+                throw new IllegalArgumentException(
+                        "Mỗi lần kiểm kê tối đa 50 biến thể."
                 );
             }
         }

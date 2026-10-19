@@ -101,6 +101,18 @@ public class SalesOrderRequestDAO {
                         responseText
                 );
 
+                String requestLabel = "CANCEL".equalsIgnoreCase(state.requestType)
+                        ? "hủy đơn" : "RETURN".equalsIgnoreCase(state.requestType)
+                        ? "trả hàng" : "đổi hàng";
+                String decision = "approve".equals(normalizedAction)
+                        ? "đã chấp nhận" : "chưa thể chấp nhận";
+                new CustomerNotificationDAO().create(connection,
+                        state.customerID, state.orderID,
+                        "Cập nhật yêu cầu " + requestLabel + " cho đơn #" + state.orderID,
+                        "Cửa hàng " + decision + " yêu cầu " + requestLabel + "."
+                                + (responseText == null ? ""
+                                : " Phản hồi: " + responseText));
+
                 connection.commit();
 
             } catch (SQLException | RuntimeException e) {
@@ -120,7 +132,7 @@ public class SalesOrderRequestDAO {
             int requestID) throws SQLException {
 
         String sql =
-                "SELECT r.RequestStatus, r.RequestType, r.OrderID, "
+                "SELECT r.RequestStatus, r.RequestType, r.OrderID, r.CustomerID, "
                 + "so.OrderStatus, payment.PaymentStatus "
                 + "FROM dbo.CustomerOrderRequest r WITH (UPDLOCK, ROWLOCK) "
                 + "INNER JOIN dbo.SalesOrder so WITH (UPDLOCK, ROWLOCK) "
@@ -145,6 +157,7 @@ public class SalesOrderRequestDAO {
                 state.requestStatus = result.getString("RequestStatus");
                 state.requestType = result.getString("RequestType");
                 state.orderID = result.getInt("OrderID");
+                state.customerID = result.getInt("CustomerID");
                 state.orderStatus = result.getString("OrderStatus");
                 state.paymentStatus = result.getString("PaymentStatus");
 
@@ -360,6 +373,7 @@ public class SalesOrderRequestDAO {
 
     private static class RequestState {
         private int orderID;
+        private int customerID;
         private String requestStatus;
         private String requestType;
         private String orderStatus;

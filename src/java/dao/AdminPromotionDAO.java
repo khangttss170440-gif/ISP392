@@ -275,7 +275,8 @@ public class AdminPromotionDAO {
             return "Percentage";
         }
 
-        if ("Fixed".equalsIgnoreCase(type)) {
+        if ("Fixed".equalsIgnoreCase(type)
+                || "FixedAmount".equalsIgnoreCase(type)) {
             return "Fixed";
         }
 
@@ -304,7 +305,7 @@ public class AdminPromotionDAO {
 
         statement.setString(1, promotion.getPromotionCode());
         statement.setString(2, promotion.getPromotionName());
-        statement.setString(3, promotion.getDiscountType());
+        statement.setString(3, databaseDiscountType(promotion.getDiscountType()));
         statement.setBigDecimal(4, promotion.getDiscountValue());
         statement.setTimestamp(5, promotion.getStartDate());
         statement.setTimestamp(6, promotion.getEndDate());
@@ -324,6 +325,10 @@ public class AdminPromotionDAO {
         }
     }
 
+    private String databaseDiscountType(String type) {
+        return "Fixed".equalsIgnoreCase(type) ? "FixedAmount" : "Percentage";
+    }
+
     private Promotion mapPromotion(ResultSet result)
             throws SQLException {
 
@@ -332,7 +337,7 @@ public class AdminPromotionDAO {
         promotion.setPromotionID(result.getInt("PromotionID"));
         promotion.setPromotionCode(result.getString("PromotionCode"));
         promotion.setPromotionName(result.getString("PromotionName"));
-        promotion.setDiscountType(result.getString("DiscountType"));
+        promotion.setDiscountType(normalizeDiscountType(result.getString("DiscountType")));
         promotion.setDiscountValue(result.getBigDecimal("DiscountValue"));
         promotion.setStartDate(result.getTimestamp("StartDate"));
         promotion.setEndDate(result.getTimestamp("EndDate"));

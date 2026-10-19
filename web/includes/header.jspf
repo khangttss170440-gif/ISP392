@@ -1,4 +1,4 @@
-<%@page pageEncoding="UTF-8" import="model.Customer,model.Staff"%>
+<%@page pageEncoding="UTF-8" import="model.Customer,model.Staff,model.CustomerNotification"%>
 <%!
     private String navEscape(Object value) {
         return value == null ? "" : value.toString().replace("&", "&amp;")
@@ -13,6 +13,9 @@
     Object navStaffAccount = session.getAttribute("staff");
     if (!(navStaffAccount instanceof Staff)) navStaffAccount = session.getAttribute("STAFF");
     Staff navStaff = navStaffAccount instanceof Staff ? (Staff) navStaffAccount : null;
+    CustomerNotification navNotification = navCustomer != null
+            && session.getAttribute("LATEST_CUSTOMER_NOTIFICATION") instanceof CustomerNotification
+            ? (CustomerNotification) session.getAttribute("LATEST_CUSTOMER_NOTIFICATION") : null;
     boolean navLoggedIn = navCustomer != null || navStaff != null;
     String navName = navCustomer != null ? navCustomer.getFullName() : navStaff != null ? navStaff.getFullName() : "";
     if (navName == null || navName.trim().isEmpty()) navName = "Tài khoản";
@@ -56,6 +59,20 @@
         <a class="nav-icon shopping-bag" href="<%=request.getContextPath()%>/cart" aria-label="Giỏ hàng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 7h14l1 14H4L5 7Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg></a>
     </div>
 </div></header>
+<% if (navNotification != null) { %>
+<aside class="customer-notification" role="status" aria-live="polite">
+    <div class="customer-notification-mark" aria-hidden="true">!</div>
+    <div class="customer-notification-copy">
+        <strong><%=navEscape(navNotification.getTitle())%></strong>
+        <p><%=navEscape(navNotification.getMessage()).replace("\r\n", "<br>").replace("\n", "<br>")%></p>
+        <small>Thông báo mới nhất · <%=navNotification.getCreatedAt()%></small>
+    </div>
+    <form action="<%=request.getContextPath()%>/customer/notifications/read" method="post">
+        <input type="hidden" name="notificationId" value="<%=navNotification.getNotificationID()%>">
+        <button class="customer-notification-dismiss" type="submit">Đã đọc</button>
+    </form>
+</aside>
+<% } %>
 <script>
 (function () {
     var dropdown = document.getElementById('storeAccountDropdown');

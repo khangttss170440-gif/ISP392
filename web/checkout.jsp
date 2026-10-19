@@ -1,5 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="java.util.List,java.util.Locale,java.text.NumberFormat,model.Cart,model.CartItem,model.Customer,model.CustomerAddress"%>
+<%@page import="java.util.List,java.util.Locale,java.text.NumberFormat,model.Cart,model.CartItem,model.Customer,model.CustomerAddress,model.Promotion"%>
 <%!
     private String checkoutEscape(Object value) {
         if (value == null) return "";
@@ -23,6 +23,8 @@
     Cart cart = (Cart) request.getAttribute("cart");
     Customer customer = (Customer) request.getAttribute("customer");
     List<CustomerAddress> addresses = (List<CustomerAddress>) request.getAttribute("addresses");
+    List<Promotion> availablePromotions = (List<Promotion>) request.getAttribute("availablePromotions");
+    if (availablePromotions == null) availablePromotions = java.util.Collections.emptyList();
     NumberFormat money = NumberFormat.getInstance(new Locale("vi", "VN"));
     CustomerAddress defaultAddress = null;
     if (addresses != null) {
@@ -38,6 +40,8 @@
             if (Integer.toString(address.getAddressID()).equals(selectedShippingAddress)) { defaultAddress = address; break; }
         }
     }
+    service.ShippingService.Quote currentShippingQuote = (service.ShippingService.Quote) request.getAttribute("shippingQuote");
+    boolean shippingAllowed = currentShippingQuote != null && currentShippingQuote.isCheckoutAllowed();
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -106,7 +110,7 @@
                 <select class="select" id="paymentMethod" name="paymentMethod">
                     <option value="COD">Thanh toán khi nhận hàng (COD)</option>
                 </select>
-                <button class="button" style="margin-top:20px" type="submit">Xác nhận đặt hàng ↗</button>
+                <button class="button" id="checkoutSubmit" style="margin-top:20px" type="submit" <%=shippingAllowed ? "" : "disabled"%>>Xác nhận đặt hàng ↗</button>
             </form>
 
             <aside class="summary">
@@ -115,6 +119,20 @@
                     <input type="hidden" id="promotionAddressId" name="addressId" value="<%=checkoutEscape(selectedShippingAddress)%>">
                     <label class="form-label" for="promotionCode">Mã khuyến mãi</label>
                     <div class="promotion-input"><input class="field" id="promotionCode" name="promotionCode" maxlength="50" placeholder="Nhập mã ưu đãi" value="<%=checkoutEscape(request.getAttribute("promotionCode"))%>"><button class="button small" type="submit">Áp dụng</button></div>
+                    <label class="form-label" for="availablePromotionSelect">Chọn ưu đãi đang khả dụng</label>
+                    <select class="select" id="availablePromotionSelect" <%=availablePromotions.isEmpty() ? "disabled" : ""%>>
+                        <option value=""><%=availablePromotions.isEmpty() ? "Hiện chưa có mã phù hợp với đơn hàng" : "Chọn một mã ưu đãi"%></option>
+                        <% for (Promotion promotion : availablePromotions) {
+                            boolean selectedPromotion = promotion.getPromotionCode().equalsIgnoreCase(String.valueOf(request.getAttribute("promotionCode")));
+                            String discountLabel = money.format(promotion.getDiscountValue())
+                                    + ("Percentage".equals(promotion.getDiscountType()) ? "%" : "₫");
+                        %>
+                            <option value="<%=checkoutEscape(promotion.getPromotionCode())%>" <%=selectedPromotion ? "selected" : ""%>>
+                                <%=checkoutEscape(promotion.getPromotionCode())%> — <%=checkoutEscape(promotion.getPromotionName())%> · Giảm <%=discountLabel%><% if (promotion.getMinOrderValue() != null) { %> · Đơn từ <%=money.format(promotion.getMinOrderValue())%>₫<% } %>
+                            </option>
+                        <% } %>
+                    </select>
+                    <% if (request.getAttribute("promotionListError") != null) { %><p class="notice"><%=checkoutEscape(request.getAttribute("promotionListError"))%></p><% } %>
                     <a class="text-link" href="<%=request.getContextPath()%>/promotions" target="_blank" rel="noopener">Xem mã ưu đãi ↗</a>
                     <% if (request.getAttribute("promotionError") != null) { %><p class="alert error" role="alert"><%=checkoutEscape(request.getAttribute("promotionError"))%></p>
                     <% } else if (request.getAttribute("promotionCode") != null && !request.getAttribute("promotionCode").toString().isEmpty()) { %><p class="alert success">Đã áp dụng mã. <a class="text-link" href="<%=request.getContextPath()%>/checkout?promotionCode=">Bỏ mã</a></p><% } %>
@@ -125,10 +143,10 @@
                         <b><%=money.format(item.getLineTotal())%>₫</b>
                     </div>
                 <% } %>
-                <div class="summary-row"><span>Vận chuyển</span><span id="shippingFeeLabel"><%=money.format(request.getAttribute("shippingFee"))%>₫</span></div>
+                <div class="summary-row"><span>Vận chuyển</span><span id="shippingFeeLabel"><%=shippingAllowed ? (currentShippingQuote.fee.compareTo(java.math.BigDecimal.ZERO) == 0 ? "Miễn phí" : money.format(currentShippingQuote.fee) + "₫") : "Chưa tính"%></span></div>
                 <div class="summary-row"><span>Giảm giá</span><span>−<%=money.format(request.getAttribute("discountAmount"))%>₫</span></div>
                 <div class="summary-row total"><span>Tổng thanh toán</span><span id="checkoutTotalLabel" data-subtotal="<%=cart.getSubtotal().toPlainString()%>" data-discount="<%=request.getAttribute("discountAmount")%>"><%=money.format(request.getAttribute("checkoutTotal"))%>₫</span></div>
-                <% service.ShippingService.Quote summaryQuote = (service.ShippingService.Quote) request.getAttribute("shippingQuote"); %>
+                <% service.ShippingService.Quote summaryQuote = currentShippingQuote; %>
                 <p class="notice"><%=checkoutEscape(summaryQuote.message)%></p>
                 <p class="notice">Bạn thanh toán khi nhận hàng.</p>
                 <p class="notice">Mã được kiểm tra và trừ 1 lượt ngay khi đặt hàng thành công. Áp dụng thử mã không trừ lượt.</p>
@@ -139,6 +157,13 @@
 <%@include file="/includes/footer.jspf"%>
 <script>
 (function () {
+    var promotionSelect = document.getElementById('availablePromotionSelect');
+    var promotionInput = document.getElementById('promotionCode');
+    if (promotionSelect && promotionInput) {
+        promotionSelect.addEventListener('change', function () {
+            if (promotionSelect.value) promotionInput.value = promotionSelect.value;
+        });
+    }
     var selector = document.getElementById('addressId');
     var preview = document.getElementById('savedAddressPreview');
     var customBox = document.getElementById('customAddressBox');

@@ -1,6 +1,7 @@
 package controller;
 
 import dao.CustomerDAO;
+import dao.CustomerNotificationDAO;
 import dao.StaffDAO;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import model.Customer;
+import model.CustomerNotification;
 import model.Staff;
 import util.PasswordUtil;
 import util.AuthSession;
@@ -107,6 +109,17 @@ public class LoginController extends HttpServlet {
         }
 
         AuthSession.loginCustomer(request, customer);
+        try {
+            CustomerNotification latest = new CustomerNotificationDAO()
+                    .getLatestUnread(customer.getCustomerID());
+            if (latest != null) {
+                request.getSession(false).setAttribute(
+                        "LATEST_CUSTOMER_NOTIFICATION", latest);
+            }
+        } catch (SQLException e) {
+            getServletContext().log(
+                    "Could not load customer notifications after login.", e);
+        }
         response.sendRedirect(request.getContextPath() + "/index.jsp");
     }
 

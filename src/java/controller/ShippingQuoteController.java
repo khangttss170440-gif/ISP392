@@ -2,8 +2,8 @@ package controller;
 
 import dao.CustomerAddressDAO;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.Locale;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import model.Customer;
 import model.CustomerAddress;
+import model.Cart;
 import service.ShippingService;
 
 @WebServlet("/customer/shipping-quote")
@@ -46,12 +47,15 @@ public class ShippingQuoteController extends HttpServlet {
                 address.setProvince(value(request, "province", 100));
                 if (address.getAddressLine().isEmpty() || address.getProvince().isEmpty()) throw new IllegalArgumentException("Nhập địa chỉ chi tiết và tỉnh/thành phố để tìm kiếm.");
             }
-            ShippingService.Quote quote = shipping.quote(address.locationAddress());
-            String points = quote.isVerified() ? String.format(Locale.ROOT,
-                    ",\"shopLat\":%.8f,\"shopLng\":%.8f,\"lat\":%.8f,\"lng\":%.8f", quote.shop.latitude, quote.shop.longitude, quote.destination.latitude, quote.destination.longitude) : "";
-            response.getWriter().write("{\"fee\":" + quote.fee.toPlainString() + ",\"verified\":" + quote.isVerified()
-                    + ",\"distanceKm\":" + (quote.distanceKm == null ? "null" : String.format(Locale.ROOT, "%.6f", quote.distanceKm))
-                    + ",\"address\":" + json(address.locationAddress()) + ",\"message\":" + json(quote.message) + points + "}");
+            Object cartValue = session.getAttribute("CART");
+            BigDecimal subtotal = cartValue instanceof Cart ? ((Cart) cartValue).getSubtotal() : BigDecimal.ZERO;
+            int quantity = cartValue instanceof Cart ? ((Cart) cartValue).getTotalQuantity() : 0;
+            ShippingService.Quote quote = shipping.quote(address.locationAddress(), address.getProvince(), subtotal, quantity);
+            response.getWriter().write("{\"fee\":" + quote.fee.toPlainString() + ",\"priced\":" + quote.isPriced()
+                    + ",\"freeByOrderValue\":" + quote.freeByOrderValue
+                    + ",\"zone\":" + json(quote.zone == null ? "" : quote.zone)
+                    + ",\"estimatedHalfKilogramUnits\":" + quote.estimatedHalfKilogramUnits
+                    + ",\"address\":" + json(address.locationAddress()) + ",\"message\":" + json(quote.message) + "}");
         } catch (IllegalArgumentException e) {
             response.setStatus(400); response.getWriter().write("{\"error\":" + json(e.getMessage()) + "}");
         } catch (SQLException e) {

@@ -1,0 +1,39 @@
+MENSFORM - PHI GIAO HANG UOC TINH THEO VUNG
+
+Khong can Google Maps API key. Phi duoc tinh o server tu tinh/thanh pho giao hang,
+so luong san pham va gia tri tien hang. Khach hang khong the tu sua phi tren trinh duyet.
+
+CHINH SACH CUA SHOP
+- Don tu 799.000 dong (tinh theo tien hang truoc ma giam gia): mien phi ship toan quoc.
+- Don duoi nguong: tinh phi tham khao theo ma vung J&T.
+- Du lieu project chua co can nang san pham, nen tam uoc tinh moi san pham nang 0,5 kg.
+- Phi luu trong SalesOrder.ShippingFee va cong vao Payment.Amount khi tao don.
+
+BANG GIA THAM KHAO
+Ma vung | 0,5 kg | 1 kg | 1,5 kg | 2 kg | Moi 0,5 kg tiep theo
+A       | 17.700 | 17.700 | 17.700 | 17.700 | +2.500
+B       | 22.500 | 24.500 | 26.600 | 28.600 | +2.500
+C       | 24.000 | 28.000 | 32.000 | 36.000 | +4.500
+F       | 25.000 | 29.000 | 33.000 | 37.000 | +4.500
+
+PHAN VUNG DON GIAN CHO PROJECT
+- A: TP. Ho Chi Minh.
+- B: Long An, Binh Duong, Dong Nai, Ba Ria - Vung Tau, Tien Giang, Ben Tre,
+  Tra Vinh, Vinh Long.
+- C: An Giang, Bac Lieu, Binh Phuoc, Binh Thuan, Ca Mau, Can Tho, Dong Thap,
+  Hau Giang, Soc Trang, Tay Ninh, Kien Giang.
+- F: cac tinh/thanh con lai.
+
+LUU Y VE DO CHINH XAC
+Bieu gia cong khai duoc chon la bang J&T tu Long An, ap dung tu 01/01/2024.
+Project dung bang nay lam moc tham khao va gom tinh/thanh vao 4 vung; day khong phai
+bao gia truc tiep, bang gia hop dong rieng, phu phi hay cuoc hien hanh duoc bao dam.
+J&T co cong cu tra cuu rieng theo diem gui, diem nhan va can nang; shop nen doi chieu
+voi cong cu do hoac bang gia hop dong truoc khi thu phi khach hang that.
+
+Neu muon cuoc gan thuc te hon, bo sung can nang dong goi cho tung san pham va cap nhat
+bang gia/vung theo hop dong van chuyen cua shop. Khong can toa do hay geocoding.
+
+Nguon tham khao:
+https://website.jtexpress.vn/storage/app/uploads/public/659/133/656/659133656f9bb667501771.pdf
+https://jtexpress.vn/vi/tracking?type=price-list

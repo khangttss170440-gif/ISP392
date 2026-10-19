@@ -250,4 +250,21 @@ public class ProductReviewDAO {
 
         return BigDecimal.ZERO;
     }
+
+    public long getVisibleReviewCount(int productID) throws SQLException {
+        String sql
+                = "SELECT COUNT_BIG(*) AS ReviewCount "
+                + "FROM dbo.ProductReview "
+                + "WHERE ProductID = ? AND Status = 'Visible'";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, productID);
+
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next() ? result.getLong("ReviewCount") : 0L;
+            }
+        }
+    }
 }

@@ -1,114 +1,153 @@
 package service;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
+import java.text.Normalizer;
+import java.util.Locale;
 
-/** Shipping uses straight-line radius, never a browser-submitted fee or coordinates. */
+/** Estimated shipping based on J&T's published zone tariff; no map/API key required. */
 public class ShippingService {
     public static final String SHOP_ADDRESS = "138 Quang Trung, khu phố 7, thị trấn Hóc Môn, TP. Hồ Chí Minh, Việt Nam";
+    /** Kept for legacy callers; current quotes use the destination zone tariff. */
     public static final BigDecimal NATIONAL_FEE = new BigDecimal("45000");
-    public static final double FREE_RADIUS_KM = 5.0;
-    private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+    public static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("799000");
+    private static final int[] ZONE_A = {17700, 17700, 17700, 17700};
+    private static final int[] ZONE_B = {22500, 24500, 26600, 28600};
+    private static final int[] ZONE_C = {24000, 28000, 32000, 36000};
+    private static final int[] ZONE_F = {25000, 29000, 33000, 37000};
+    private static final int HALF_KG_A_B_INCREMENT = 2500;
+    private static final int HALF_KG_C_F_INCREMENT = 4500;
 
+    /** Compatibility overload: expects a comma-separated address ending in the province. */
     public Quote quote(String address) {
-        if (address == null || address.isBlank()) return Quote.unknown("Chọn địa chỉ để kiểm tra miễn phí giao hàng trong bán kính 5 km.");
-        try {
-            Point shop = shopPoint();
-            Point destination = geocode(address);
-            if (shop == null || destination == null) return Quote.unknown("Chưa xác định chính xác khoảng cách. Phí giao hàng toàn quốc tạm tính 45.000₫.");
-            double distance = distanceKm(shop.latitude, shop.longitude, destination.latitude, destination.longitude);
-            boolean free = distance <= FREE_RADIUS_KM + 1e-9;
-            return new Quote(free ? BigDecimal.ZERO : NATIONAL_FEE, distance, shop, destination,
-                    free ? "Miễn phí giao hàng trong bán kính 5 km từ shop." : "Ngoài bán kính 5 km: phí giao hàng toàn quốc 45.000₫.");
-        } catch (Exception e) {
-            if (e instanceof InterruptedException) Thread.currentThread().interrupt();
-            return Quote.unknown("Chưa xác minh được khoảng cách. Phí giao hàng toàn quốc tạm tính 45.000₫.");
+        return quote(address, BigDecimal.ZERO);
+    }
+
+    /** Compatibility overload for callers without cart quantity. */
+    public Quote quote(String address, BigDecimal merchandiseSubtotal) {
+        return quote(address, inferProvince(address), merchandiseSubtotal, 1);
+    }
+
+    public Quote quote(String address, String province, BigDecimal merchandiseSubtotal, int itemQuantity) {
+        boolean freeByOrderValue = merchandiseSubtotal != null
+                && merchandiseSubtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0;
+        if (address == null || address.isBlank()) {
+            return Quote.unavailable("Nhập địa chỉ giao hàng để tính phí.", freeByOrderValue);
         }
+        if (province == null || province.isBlank()) {
+            return Quote.unavailable("Cần nhập tỉnh/thành phố để tính phí theo vùng.", freeByOrderValue);
+        }
+
+        String zone = zoneFor(province);
+        int halfKilogramUnits = Math.max(1, itemQuantity);
+        BigDecimal carrierEstimate = estimate(zone, halfKilogramUnits);
+        BigDecimal fee = freeByOrderValue ? BigDecimal.ZERO : carrierEstimate;
+        String message = freeByOrderValue
+                ? "Đơn hàng từ 799.000₫ được miễn phí giao hàng toàn quốc."
+                : "Phí tham khảo vùng " + zone + " (" + zoneDescription(zone) + ") theo bảng giá J&T: " + fee.toPlainString()
+                        + "₫. Ước tính mỗi sản phẩm nặng 0,5 kg; cước hãng có thể thay đổi theo cân nặng thực tế và hợp đồng.";
+        return Quote.priced(fee, zone, halfKilogramUnits, message, freeByOrderValue);
     }
 
-    protected Point shopPoint() throws Exception {
-        String lat = System.getenv("SHOP_LATITUDE"), lng = System.getenv("SHOP_LONGITUDE");
-        if (lat != null && lng != null) return new Point(Double.parseDouble(lat), Double.parseDouble(lng));
-        return geocode(SHOP_ADDRESS);
+    public static BigDecimal estimate(String zone, int halfKilogramUnits) {
+        int units = Math.max(1, halfKilogramUnits);
+        int[] tariff;
+        switch (zone == null ? "F" : zone.toUpperCase(Locale.ROOT)) {
+            case "A": tariff = ZONE_A; break;
+            case "B": tariff = ZONE_B; break;
+            case "C": tariff = ZONE_C; break;
+            default: tariff = ZONE_F;
+        }
+        int fee = tariff[Math.min(units, 4) - 1];
+        if (units > 4) {
+            int increment = tariff == ZONE_A || tariff == ZONE_B
+                    ? HALF_KG_A_B_INCREMENT : HALF_KG_C_F_INCREMENT;
+            fee += (units - 4) * increment;
+        }
+        return BigDecimal.valueOf(fee);
     }
 
-    protected Point geocode(String address) throws Exception {
-        String key = System.getenv("GOOGLE_MAPS_SERVER_API_KEY");
-        if (key == null || key.isBlank()) return null;
-        String url = "https://maps.googleapis.com/maps/api/geocode/xml?components=country%3AVN&language=vi&address="
-                + URLEncoder.encode(address, StandardCharsets.UTF_8) + "&key=" + URLEncoder.encode(key, StandardCharsets.UTF_8);
-        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(8)).GET().build();
-        HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-        if (response.statusCode() != 200) throw new IOException("Geocoding service unavailable.");
-        return parseGeocode(response.body());
+    public static boolean isValidEstimatedFee(BigDecimal fee, int halfKilogramUnits) {
+        if (fee == null || fee.signum() < 0) return false;
+        if (fee.compareTo(BigDecimal.ZERO) == 0 || fee.compareTo(NATIONAL_FEE) == 0) return true;
+        return fee.compareTo(estimate("A", halfKilogramUnits)) == 0
+                || fee.compareTo(estimate("B", halfKilogramUnits)) == 0
+                || fee.compareTo(estimate("C", halfKilogramUnits)) == 0
+                || fee.compareTo(estimate("F", halfKilogramUnits)) == 0;
     }
 
-    public static Point parseGeocode(String xml) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        factory.setXIncludeAware(false);
-        factory.setExpandEntityReferences(false);
-        Element root = factory.newDocumentBuilder().parse(new InputSource(new StringReader(xml))).getDocumentElement();
-        if (!"OK".equals(text(root, "status"))) return null;
-        NodeList results = root.getElementsByTagName("result");
-        if (results.getLength() != 1) return null;
-        Element result = (Element) results.item(0);
-        if ("true".equals(text(result, "partial_match"))) return null;
-        String type = text(result, "location_type");
-        if (!"ROOFTOP".equals(type) && !"RANGE_INTERPOLATED".equals(type)) return null;
-        Element location = (Element) result.getElementsByTagName("location").item(0);
-        if (location == null) return null;
-        return new Point(Double.parseDouble(text(location, "lat")), Double.parseDouble(text(location, "lng")));
+    /** J&T destination zone groups for a HCMC-area shop; unlisted destinations use far zone F. */
+    public static String zoneFor(String province) {
+        String value = normalize(province);
+        // Match common full names, abbreviations and colloquial spellings after accent/punctuation removal.
+        if (containsAny(value, "HO CHI MINH", "HO CHI MIN", "SAI GON", "SAIGON", "TPHCM", "TP HCM",
+                "THANH PHO HCM", "HCMC", "HCM CITY")) return "A";
+        if (containsAny(value, "LONG AN", "BINH DUONG", "DONG NAI", "BA RIA", "VUNG TAU",
+                "BRVT", "TIEN GIANG", "BEN TRE", "TRA VINH", "VINH LONG")) return "B";
+        if (containsAny(value, "AN GIANG", "BAC LIEU", "BINH PHUOC", "BINH THUAN", "CA MAU",
+                "CAN THO", "DONG THAP", "HAU GIANG", "SOC TRANG", "TAY NINH", "KIEN GIANG")) return "C";
+        return "F";
     }
 
-    private static String text(Element parent, String tag) {
-        NodeList nodes = parent.getElementsByTagName(tag);
-        return nodes.getLength() == 0 ? "" : nodes.item(0).getTextContent().trim();
+    private static String inferProvince(String address) {
+        if (address == null) return "";
+        String[] parts = address.split(",");
+        for (int i = parts.length - 1; i >= 0; i--) {
+            String candidate = parts[i].trim();
+            if (candidate.isEmpty() || "VIET NAM".equals(normalize(candidate))) continue;
+            return candidate;
+        }
+        return "";
     }
 
-    public static double distanceKm(double lat1, double lng1, double lat2, double lng2) {
-        new Point(lat1, lng1); new Point(lat2, lng2);
-        double lat = Math.toRadians(lat2 - lat1), lng = Math.toRadians(lng2 - lng1);
-        double a = Math.pow(Math.sin(lat / 2), 2) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.pow(Math.sin(lng / 2), 2);
-        return 6371.0088 * 2 * Math.asin(Math.sqrt(Math.min(1, a)));
+    private static String normalize(String text) {
+        String decomposed = Normalizer.normalize(text == null ? "" : text, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "").replace('đ', 'd').replace('Đ', 'D')
+                .toUpperCase(Locale.ROOT);
+        return decomposed.replaceAll("[^A-Z0-9]+", " ").trim();
     }
 
-    public static String browserKey() {
-        String key = System.getenv("GOOGLE_MAPS_BROWSER_API_KEY");
-        return key != null && key.matches("[A-Za-z0-9_-]+") ? key : "";
+    private static boolean containsAny(String text, String... terms) {
+        for (String term : terms) if (text.contains(term)) return true;
+        return false;
     }
 
-    public static class Point {
-        public final double latitude, longitude;
-        public Point(double latitude, double longitude) {
-            if (!Double.isFinite(latitude) || !Double.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) throw new IllegalArgumentException("Invalid coordinates.");
-            this.latitude = latitude; this.longitude = longitude;
+    private static String zoneDescription(String zone) {
+        switch (zone) {
+            case "A": return "TP. Hồ Chí Minh";
+            case "B": return "tỉnh lân cận";
+            case "C": return "các tỉnh miền Nam khác";
+            default: return "các tỉnh/thành còn lại";
         }
     }
 
     public static class Quote {
         public final BigDecimal fee;
-        public final Double distanceKm;
-        public final Point shop, destination;
+        public final String zone;
+        public final int estimatedHalfKilogramUnits;
         public final String message;
-        public Quote(BigDecimal fee, Double distanceKm, Point shop, Point destination, String message) {
-            this.fee = fee; this.distanceKm = distanceKm; this.shop = shop; this.destination = destination; this.message = message;
+        public final boolean freeByOrderValue;
+        private final boolean priced;
+
+        private Quote(BigDecimal fee, String zone, int estimatedHalfKilogramUnits,
+                      String message, boolean freeByOrderValue, boolean priced) {
+            this.fee = fee;
+            this.zone = zone;
+            this.estimatedHalfKilogramUnits = estimatedHalfKilogramUnits;
+            this.message = message;
+            this.freeByOrderValue = freeByOrderValue;
+            this.priced = priced;
         }
-        public boolean isVerified() { return distanceKm != null; }
-        public static Quote unknown(String message) { return new Quote(NATIONAL_FEE, null, null, null, message); }
+
+        private static Quote priced(BigDecimal fee, String zone, int units, String message, boolean freeByOrderValue) {
+            return new Quote(fee, zone, units, message, freeByOrderValue, true);
+        }
+
+        private static Quote unavailable(String message, boolean freeByOrderValue) {
+            if (freeByOrderValue) message += " Đơn này vẫn được miễn phí theo giá trị đơn hàng.";
+            return new Quote(BigDecimal.ZERO, null, 0, message, freeByOrderValue, false);
+        }
+
+        public boolean isPriced() { return priced; }
+        public boolean isCheckoutAllowed() { return priced || freeByOrderValue; }
     }
 }

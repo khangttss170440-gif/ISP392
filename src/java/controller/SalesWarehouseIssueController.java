@@ -87,46 +87,50 @@ public class SalesWarehouseIssueController extends HttpServlet {
         String action = value(request.getParameter("action"));
         String note = value(request.getParameter("resolutionNote"));
 
-        if (issueID == null || note.length() > 1000) {
+        if (issueID == null || note.isEmpty() || note.length() > 1000) {
             session.setAttribute("WAREHOUSE_ISSUE_ERROR",
-                    "Dữ liệu xử lý sự cố không hợp lệ.");
-            redirectToIssues(request, response);
-            return;
-        }
-
-        String status;
-
-        if ("resolve".equals(action)) {
-            status = "Resolved";
-        } else if ("reject".equals(action)) {
-            status = "Rejected";
-        } else {
-            session.setAttribute("WAREHOUSE_ISSUE_ERROR",
-                    "Thao tác xử lý không hợp lệ.");
+                    "Hãy nhập ghi chú xử lý hoặc nội dung gửi khách (tối đa 1000 ký tự).");
             redirectToIssues(request, response);
             return;
         }
 
         try {
-            boolean updated = issueDAO.resolveIssue(
-                    issueID,
-                    staff.getStaffID(),
-                    status,
-                    note
-            );
+            boolean updated;
+            String successMessage;
+
+            if ("resolve".equals(action)) {
+                updated = issueDAO.resolveIssue(
+                        issueID, staff.getStaffID(), "Resolved", note
+                );
+                successMessage = "Đã cập nhật trạng thái sự cố.";
+            } else if ("reject".equals(action)) {
+                updated = issueDAO.resolveIssue(
+                        issueID, staff.getStaffID(), "Rejected", note
+                );
+                successMessage = "Đã từ chối báo cáo sự cố.";
+            } else if ("cancel_order".equals(action)) {
+                updated = issueDAO.cancelOrderForIssue(
+                        issueID, staff.getStaffID(), note
+                );
+                successMessage =
+                        "Đã hủy đơn, cập nhật lại tồn kho và gửi thông báo "
+                        + "cho khách trong mục Hỗ trợ.";
+            } else {
+                session.setAttribute("WAREHOUSE_ISSUE_ERROR",
+                        "Thao tác xử lý không hợp lệ.");
+                redirectToIssues(request, response);
+                return;
+            }
 
             session.setAttribute(
-                    updated
-                            ? "WAREHOUSE_ISSUE_MESSAGE"
-                            : "WAREHOUSE_ISSUE_ERROR",
-                    updated
-                            ? "Đã cập nhật trạng thái sự cố."
+                    updated ? "WAREHOUSE_ISSUE_MESSAGE" : "WAREHOUSE_ISSUE_ERROR",
+                    updated ? successMessage
                             : "Sự cố không tồn tại hoặc đã được xử lý."
             );
         } catch (SQLException e) {
             getServletContext().log("Could not resolve warehouse issue.", e);
             session.setAttribute("WAREHOUSE_ISSUE_ERROR",
-                    "Không thể cập nhật sự cố. Vui lòng thử lại.");
+                    messageFor(e));
         }
 
         redirectToIssues(request, response);
@@ -134,7 +138,8 @@ public class SalesWarehouseIssueController extends HttpServlet {
 
     private boolean isSalesOrAdmin(Staff staff) {
         String role = staff.getRole();
-        return role != null
+        return "Active".equalsIgnoreCase(staff.getStatus())
+                && role != null
                 && ("Sales".equalsIgnoreCase(role)
                 || "Admin".equalsIgnoreCase(role));
     }
@@ -163,6 +168,20 @@ public class SalesWarehouseIssueController extends HttpServlet {
 
     private String value(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String messageFor(SQLException e) {
+        String code = e.getMessage();
+        if ("PAID_ORDER_REQUIRES_REFUND".equals(code)) {
+            return "Đơn đã thanh toán. Hãy hoàn tiền cho khách trước khi hủy đơn.";
+        }
+        if ("ORDER_ALREADY_SHIPPED".equals(code)) {
+            return "Đơn đã xuất giao hoặc giao thành công nên không thể hủy tại đây.";
+        }
+        if ("ORDER_NOT_CANCELLABLE".equals(code)) {
+            return "Trạng thái đơn hiện tại không cho phép hủy.";
+        }
+        return "Không thể cập nhật sự cố. Vui lòng thử lại.";
     }
 
     private Object removeSessionValue(HttpSession session, String key) {

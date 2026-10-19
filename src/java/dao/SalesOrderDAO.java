@@ -143,6 +143,14 @@ public class SalesOrderDAO {
                     restoreOrderStock(connection, orderID);
                     cancelPendingPayment(connection, orderID);
                     cancelPendingShipment(connection, orderID);
+                    CustomerNotificationDAO notifications =
+                            new CustomerNotificationDAO();
+                    notifications.create(connection,
+                            findCustomerID(connection, orderID), orderID,
+                            "Đơn hàng #" + orderID + " đã bị hủy",
+                            "Đơn hàng của bạn đã được cửa hàng hủy."
+                                    + (reason == null ? ""
+                                    : " Lý do: " + reason));
                 }
 
                 connection.commit();
@@ -263,7 +271,7 @@ public class SalesOrderDAO {
 
         String sql
                 = "UPDATE dbo.Payment "
-                + "SET PaymentStatus = 'Cancelled' "
+                + "SET PaymentStatus = 'Failed' "
                 + "WHERE OrderID = ? AND PaymentStatus = 'Pending'";
 
         try (PreparedStatement statement
@@ -288,6 +296,18 @@ public class SalesOrderDAO {
 
             statement.setInt(1, orderID);
             statement.executeUpdate();
+        }
+    }
+
+    private int findCustomerID(Connection connection, int orderID)
+            throws SQLException {
+        String sql = "SELECT CustomerID FROM dbo.SalesOrder WHERE OrderID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, orderID);
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next()) throw new SQLException("ORDER_NOT_FOUND");
+                return result.getInt("CustomerID");
+            }
         }
     }
 

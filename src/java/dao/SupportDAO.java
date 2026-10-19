@@ -281,6 +281,15 @@ public class SupportDAO {
                         message
                 );
 
+                SupportTicket customerTicket = getTicketCustomer(connection, ticketID);
+                if (customerTicket != null) {
+                    new CustomerNotificationDAO().create(connection,
+                            customerTicket.getCustomerID(),
+                            customerTicket.getOrderID(),
+                            "Cửa hàng đã phản hồi yêu cầu hỗ trợ",
+                            "Bạn có tin nhắn mới từ MENSFORM: " + message);
+                }
+
                 String update =
                         "UPDATE dbo.SupportTicket "
                         + "SET Status = ?, UpdatedAt = GETDATE() "
@@ -354,6 +363,22 @@ public class SupportDAO {
 
             try (ResultSet result = statement.executeQuery()) {
                 return result.next() ? result.getString("Status") : null;
+            }
+        }
+    }
+
+    private SupportTicket getTicketCustomer(Connection connection, int ticketID)
+            throws SQLException {
+        String sql = "SELECT CustomerID, OrderID FROM dbo.SupportTicket WHERE TicketID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, ticketID);
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next()) return null;
+                SupportTicket ticket = new SupportTicket();
+                ticket.setCustomerID(result.getInt("CustomerID"));
+                int orderID = result.getInt("OrderID");
+                if (!result.wasNull()) ticket.setOrderID(orderID);
+                return ticket;
             }
         }
     }

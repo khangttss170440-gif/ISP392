@@ -1,5 +1,6 @@
 package dao;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,6 +27,26 @@ public class PromotionDAO {
              ResultSet result = statement.executeQuery()) {
             while (result.next()) {
                 promotions.add(mapPromotion(result));
+            }
+        }
+        return promotions;
+    }
+
+    public List<Promotion> getAvailablePromotions(BigDecimal subtotal)
+            throws SQLException {
+        List<Promotion> promotions = new ArrayList<>();
+        String sql = "SELECT " + COLUMNS + " FROM dbo.Promotion WHERE "
+                + AVAILABLE
+                + "AND (MinOrderValue IS NULL OR MinOrderValue <= ?) "
+                + "ORDER BY EndDate, PromotionID DESC";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setBigDecimal(1, subtotal == null ? BigDecimal.ZERO : subtotal);
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    promotions.add(mapPromotion(result));
+                }
             }
         }
         return promotions;
@@ -75,7 +96,9 @@ public class PromotionDAO {
         promotion.setPromotionID(result.getInt("PromotionID"));
         promotion.setPromotionCode(result.getString("PromotionCode"));
         promotion.setPromotionName(result.getString("PromotionName"));
-        promotion.setDiscountType(result.getString("DiscountType"));
+        String discountType = result.getString("DiscountType");
+        promotion.setDiscountType("FixedAmount".equalsIgnoreCase(discountType)
+                ? "Fixed" : discountType);
         promotion.setDiscountValue(result.getBigDecimal("DiscountValue"));
         promotion.setStartDate(result.getTimestamp("StartDate"));
         promotion.setEndDate(result.getTimestamp("EndDate"));

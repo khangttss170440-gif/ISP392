@@ -38,6 +38,33 @@ public class WarehouseOrderDAO {
         return orders;
     }
 
+    public List<WarehouseOrder> getReportableOrders() throws SQLException {
+        String sql
+                = "SELECT so.OrderID, c.FullName AS CustomerName, "
+                + "c.Phone AS CustomerPhone, so.OrderDate, "
+                + "so.OrderStatus, sh.ShippingAddress, "
+                + "sh.ShipmentStatus, sh.TrackingNumber, sh.Carrier "
+                + "FROM dbo.SalesOrder so "
+                + "INNER JOIN dbo.Customer c "
+                + "    ON c.CustomerID = so.CustomerID "
+                + "LEFT JOIN dbo.Shipment sh "
+                + "    ON sh.OrderID = so.OrderID "
+                + "WHERE UPPER(so.OrderStatus) IN ('CONFIRMED', 'PROCESSING', 'PACKING') "
+                + "ORDER BY so.OrderDate ASC, so.OrderID ASC";
+
+        List<WarehouseOrder> orders = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+                orders.add(mapOrder(result));
+            }
+        }
+
+        return orders;
+    }
+
     public WarehouseOrder getOrderForWarehouse(int orderID)
             throws SQLException {
 
@@ -296,12 +323,31 @@ public class WarehouseOrderDAO {
             }
         }
 
+        completeCodPayment(connection, orderID);
+
         updateOrderStatus(
                 connection,
                 orderID,
                 "Delivered",
                 "Shipped"
         );
+    }
+
+    private void completeCodPayment(Connection connection, int orderID)
+            throws SQLException {
+
+        String sql
+                = "UPDATE dbo.Payment "
+                + "SET PaymentStatus = 'Paid', "
+                + "    PaymentDate = COALESCE(PaymentDate, SYSDATETIME()) "
+                + "WHERE OrderID = ? "
+                + "AND UPPER(LTRIM(RTRIM(PaymentMethod))) IN ('COD', 'CASH ON DELIVERY') "
+                + "AND UPPER(LTRIM(RTRIM(PaymentStatus))) = 'PENDING'";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, orderID);
+            statement.executeUpdate();
+        }
     }
 
     private void updateOrderStatus(

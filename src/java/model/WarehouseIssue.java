@@ -11,10 +11,13 @@ public class WarehouseIssue {
     private String issueType;
     private String description;
     private String status;
+    private String resolutionNote;
     private String productName;
     private String sku;
     private String reportedByName;
+    private String resolvedByName;
     private Timestamp createdAt;
+    private Timestamp updatedAt;
 
     public int getIssueID() {
         return issueID;
@@ -72,6 +75,14 @@ public class WarehouseIssue {
         this.status = status;
     }
 
+    public String getResolutionNote() {
+        return resolutionNote;
+    }
+
+    public void setResolutionNote(String resolutionNote) {
+        this.resolutionNote = resolutionNote;
+    }
+
     public String getProductName() {
         return productName;
     }
@@ -96,11 +107,27 @@ public class WarehouseIssue {
         this.reportedByName = reportedByName;
     }
 
+    public String getResolvedByName() {
+        return resolvedByName;
+    }
+
+    public void setResolvedByName(String resolvedByName) {
+        this.resolvedByName = resolvedByName;
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

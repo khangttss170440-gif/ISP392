@@ -123,9 +123,10 @@ public class InventoryStocktakingDAO {
                 ? ""
                 : cycleType.trim();
 
-        if (safeCycleType.isEmpty() || safeCycleType.length() > 20) {
+        if (!"Weekly".equalsIgnoreCase(safeCycleType)
+                && !"Monthly".equalsIgnoreCase(safeCycleType)) {
             throw new IllegalArgumentException(
-                    "Loại kiểm kê phải có từ 1 đến 20 ký tự."
+                    "Loại kiểm kê chỉ gồm hàng tuần hoặc hàng tháng."
             );
         }
 
@@ -270,8 +271,8 @@ public class InventoryStocktakingDAO {
         String sql =
                 "INSERT INTO dbo.Stocktaking "
                 + "(VariantID, StaffID, CycleType, SystemQuantity, "
-                + "ActualQuantity, DifferenceQuantity, Status, Note) "
-                + "VALUES (?, ?, ?, ?, ?, ?, 'Completed', ?)";
+                + "ActualQuantity, Status, Note) "
+                + "VALUES (?, ?, ?, ?, ?, 'Completed', ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, variantID);
@@ -279,8 +280,7 @@ public class InventoryStocktakingDAO {
             statement.setString(3, cycleType);
             statement.setInt(4, systemQuantity);
             statement.setInt(5, actualQuantity);
-            statement.setInt(6, actualQuantity - systemQuantity);
-            statement.setString(7, note);
+            statement.setString(6, note);
 
             if (statement.executeUpdate() != 1) {
                 throw new SQLException("STOCKTAKING_INSERT_FAILED");

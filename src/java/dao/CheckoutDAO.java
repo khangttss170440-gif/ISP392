@@ -32,8 +32,7 @@ public class CheckoutDAO {
     public int createCodOrder(int customerID, Cart cart, String shippingAddress,
                               String notes, String promotionCode, BigDecimal shippingFee) throws SQLException {
 
-        if (shippingFee == null || (shippingFee.compareTo(BigDecimal.ZERO) != 0
-                && shippingFee.compareTo(service.ShippingService.NATIONAL_FEE) != 0)) {
+        if (!service.ShippingService.isValidEstimatedFee(shippingFee, cart == null ? 1 : cart.getTotalQuantity())) {
             throw new IllegalArgumentException("Phí giao hàng không hợp lệ.");
         }
 

@@ -72,6 +72,10 @@ public class ProductDetailController extends HttpServlet {
                         "averageRating",
                         productReviewDAO.getAverageRating(productID)
                 );
+                request.setAttribute(
+                        "reviewCount",
+                        productReviewDAO.getVisibleReviewCount(productID)
+                );
             } catch (SQLException e) {
                 getServletContext().log(
                         "Could not load product reviews.",
@@ -79,6 +83,7 @@ public class ProductDetailController extends HttpServlet {
                 );
                 request.setAttribute("reviews", Collections.emptyList());
                 request.setAttribute("averageRating", BigDecimal.ZERO);
+                request.setAttribute("reviewCount", 0L);
             }
 
             request.getRequestDispatcher("/product-detail.jsp")

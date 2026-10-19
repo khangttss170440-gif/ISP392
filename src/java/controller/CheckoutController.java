@@ -6,6 +6,7 @@ import dao.PromotionDAO;
 import java.math.BigDecimal;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpSession;
 import model.Cart;
 import model.Customer;
 import model.CustomerAddress;
+import model.Promotion;
 import service.ShippingService;
 
 @WebServlet("/checkout")
@@ -79,6 +81,15 @@ public class CheckoutController extends HttpServlet {
         request.setAttribute("promotionCode", promotionCode);
         request.setAttribute("discountAmount", discount);
         try {
+            request.setAttribute("availablePromotions",
+                    new PromotionDAO().getAvailablePromotions(cart.getSubtotal()));
+        } catch (SQLException e) {
+            getServletContext().log("Could not load available checkout promotions.", e);
+            request.setAttribute("availablePromotions", Collections.<Promotion>emptyList());
+            request.setAttribute("promotionListError",
+                    "Chưa tải được danh sách ưu đãi. Bạn vẫn có thể nhập mã trực tiếp.");
+        }
+        try {
             List<CustomerAddress> addresses = addressDAO.findByCustomer(
                     customer.getCustomerID()
             );
@@ -90,7 +101,8 @@ public class CheckoutController extends HttpServlet {
             else if (selectedId != null) {
                 selected = addresses.stream().filter(a -> Integer.toString(a.getAddressID()).equals(selectedId)).findFirst().orElse(null);
             }
-            ShippingService.Quote quote = shipping.quote(selected == null ? "" : selected.locationAddress());
+            ShippingService.Quote quote = shipping.quote(selected == null ? "" : selected.locationAddress(),
+                    selected == null ? "" : selected.getProvince(), cart.getSubtotal(), cart.getTotalQuantity());
             request.setAttribute("selectedAddressId", selected == null ? "new" : Integer.toString(selected.getAddressID()));
             request.setAttribute("shippingQuote", quote);
             request.setAttribute("shippingFee", quote.fee);
@@ -211,7 +223,13 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
-        ShippingService.Quote shippingQuote = shipping.quote(deliveryAddress.locationAddress());
+        ShippingService.Quote shippingQuote = shipping.quote(deliveryAddress.locationAddress(),
+                deliveryAddress.getProvince(), cart.getSubtotal(), cart.getTotalQuantity());
+        if (!shippingQuote.isCheckoutAllowed()) {
+            session.setAttribute(ERROR_KEY, shippingQuote.message + " Đơn hàng chưa được tạo và chưa bị tính phí giao hàng.");
+            response.sendRedirect(request.getContextPath() + "/checkout?addressId=" + deliveryAddress.getAddressID());
+            return;
+        }
         String previewFee = request.getParameter("shippingFeePreview");
         if (previewFee != null) {
             try {

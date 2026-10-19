@@ -1,23 +1,14 @@
-<%@page pageEncoding="UTF-8" import="service.ShippingService,java.net.URLEncoder,java.nio.charset.StandardCharsets"%>
+<%@page pageEncoding="UTF-8" import="service.ShippingService"%>
 <%
-    ShippingService.Quote mapQuote = (ShippingService.Quote) request.getAttribute("shippingQuote");
-    String shopQuery = URLEncoder.encode(ShippingService.SHOP_ADDRESS, StandardCharsets.UTF_8);
+    ShippingService.Quote shippingQuote = (ShippingService.Quote) request.getAttribute("shippingQuote");
 %>
 <section class="shipping-widget" data-shipping-widget data-endpoint="<%=request.getContextPath()%>/customer/shipping-quote"
-         data-map-key="<%=ShippingService.browserKey()%>" data-shop-address="<%=navEscape(ShippingService.SHOP_ADDRESS)%>"
-         data-initial-message="<%=mapQuote == null ? "Nhập địa chỉ rồi bấm tìm kiếm để kiểm tra phí giao hàng." : navEscape(mapQuote.message)%>"
-         data-initial-distance="<%=mapQuote == null || mapQuote.distanceKm == null ? "" : mapQuote.distanceKm%>"
-         <% if (mapQuote != null && mapQuote.isVerified()) { %>data-shop-lat="<%=mapQuote.shop.latitude%>" data-shop-lng="<%=mapQuote.shop.longitude%>" data-lat="<%=mapQuote.destination.latitude%>" data-lng="<%=mapQuote.destination.longitude%>"<% } %>>
-    <h3>Vị trí &amp; phí giao hàng</h3>
+         data-initial-message="<%=shippingQuote == null ? "Nhập địa chỉ rồi bấm tính phí theo khu vực." : navEscape(shippingQuote.message)%>"
+         data-initial-allowed="<%=shippingQuote != null && shippingQuote.isCheckoutAllowed()%>"
+         data-initial-free-by-value="<%=shippingQuote != null && shippingQuote.freeByOrderValue%>">
+    <h3>Phí giao hàng theo khu vực</h3>
     <p><b>Shop MENSFORM:</b> <%=navEscape(ShippingService.SHOP_ADDRESS)%></p>
-    <p>Trong bán kính 5 km: <strong>miễn phí</strong>. Ngoài 5 km: <strong>45.000₫ toàn quốc</strong>.</p>
-    <div class="shipping-map-actions">
-        <button type="button" class="button line small" data-shipping-search>Tìm địa chỉ &amp; tính phí</button>
-        <a href="https://www.google.com/maps/search/?api=1&amp;query=<%=shopQuery%>" data-address-map target="_blank" rel="noopener">Mở địa chỉ trên Google Maps ↗</a>
-        <a href="https://www.google.com/maps/search/?api=1&amp;query=<%=shopQuery%>" target="_blank" rel="noopener">Vị trí shop ↗</a>
-    </div>
+    <p>Đơn từ <strong>799.000₫</strong> miễn phí toàn quốc. Đơn dưới mức này áp dụng phí vùng tham khảo theo bảng giá J&amp;T, ước tính mỗi sản phẩm nặng 0,5 kg.</p>
+    <button type="button" class="button line small" data-shipping-search>Tính phí theo khu vực</button>
     <p data-shipping-status role="status"></p>
-    <div data-shipping-google-map class="shipping-map" hidden aria-label="Vùng miễn phí giao hàng bán kính 5 km"></div>
-    <iframe data-shipping-frame class="shipping-map" title="Bản đồ địa chỉ giao hàng trên Google Maps" src="https://maps.google.com/maps?q=<%=shopQuery%>&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-    <p class="shipping-map-caption">Khoảng cách được tính theo đường thẳng từ shop. Chỉ xác nhận miễn phí khi đã xác định được vị trí.</p>
 </section>

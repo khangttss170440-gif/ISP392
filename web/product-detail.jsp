@@ -68,10 +68,10 @@
                 <p id="variantStock" class="product-meta" role="status"><%=variants == null || variants.isEmpty() ? "Sản phẩm hiện chưa có phiên bản bán hàng." : "Chọn phiên bản để xem tình trạng còn hàng."%></p>
                 <div class="inline-form"><div class="grow"><label class="form-label" for="quantity">Số lượng</label><input class="field" id="quantity" name="quantity" type="number" min="1" max="99" value="1" required></div><button class="button" id="addVariantToCart" type="submit" <%=variants == null || variants.isEmpty() ? "disabled" : ""%>>Thêm vào giỏ　↗</button></div>
             </form>
-            <p class="product-meta" style="margin-top:15px">Miễn phí trong bán kính 5 km từ shop Hóc Môn · Ngoài 5 km: 45.000₫ toàn quốc · Thanh toán khi nhận hàng</p>
+            <p class="product-meta" style="margin-top:15px">Đơn từ 799.000₫ miễn phí giao hàng toàn quốc · Đơn dưới mức này tính phí tham khảo theo khu vực J&amp;T và số lượng sản phẩm</p>
         </div>
     </div>
-    <section class="section"><div class="section-head"><div><span class="eyebrow">Khách hàng chia sẻ</span><h2>Đánh giá sản phẩm</h2></div><div class="stars">★ <%=request.getAttribute("averageRating") == null ? "—" : request.getAttribute("averageRating")%> / 5</div></div><div class="review-list">
+    <section class="section"><div class="section-head"><div><span class="eyebrow">Khách hàng chia sẻ</span><h2>Đánh giá sản phẩm</h2></div><div class="stars">★ <%=request.getAttribute("averageRating") == null ? "0" : request.getAttribute("averageRating")%> / 5 · <%=request.getAttribute("reviewCount") == null ? "0" : request.getAttribute("reviewCount")%> đánh giá</div></div><div class="review-list">
         <% if (reviews == null || reviews.isEmpty()) { %><div class="review"><p>Chưa có đánh giá cho sản phẩm này. Hãy là người đầu tiên chia sẻ cảm nhận của bạn.</p></div>
         <% } else { for (ProductReview review : reviews) { %><article class="review"><div class="stars"><%="★".repeat(Math.max(0, Math.min(5, review.getRating())))%><%="☆".repeat(Math.max(0, 5 - review.getRating()))%></div><b><%=navEscape(review.getCustomerName() == null ? "Khách hàng MENSFORM" : review.getCustomerName())%></b><p><%=navEscape(review.getComment())%></p></article><% } } %>
     </div></section>
