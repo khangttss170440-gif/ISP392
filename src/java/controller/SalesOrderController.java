@@ -241,6 +241,10 @@ public class SalesOrderController extends HttpServlet {
             return "Đơn đã thanh toán; cần xử lý hoàn tiền trước khi hủy.";
         }
 
+        if ("PAYMENT_NOT_CONFIRMED".equals(code)) {
+            return "Chỉ xác nhận đơn COD hoặc đơn VNPay đã thanh toán thành công.";
+        }
+
         return "Không thể xử lý đơn hàng. Vui lòng kiểm tra lại dữ liệu.";
     }
 }

@@ -39,6 +39,9 @@ public class LoginController extends HttpServlet {
         if ("1".equals(request.getParameter("registered"))) {
             request.setAttribute("message",
                     "Đăng ký thành công. Bạn có thể đăng nhập ngay.");
+        } else if ("1".equals(request.getParameter("passwordReset"))) {
+            request.setAttribute("message",
+                    "Mật khẩu đã được đặt lại. Vui lòng đăng nhập bằng mật khẩu mới.");
         }
 
         request.getRequestDispatcher("/login.jsp")

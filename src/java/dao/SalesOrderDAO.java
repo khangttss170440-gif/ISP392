@@ -49,6 +49,11 @@ public class SalesOrderDAO {
                 + "    ORDER BY sh.ShipmentID DESC "
                 + ") shipment "
                 + "WHERE so.OrderStatus = 'Pending' "
+                + "AND ("
+                + "    UPPER(LTRIM(RTRIM(payment.PaymentMethod))) = 'COD' "
+                + "    OR (UPPER(LTRIM(RTRIM(payment.PaymentMethod))) = 'VNPAY' "
+                + "        AND UPPER(LTRIM(RTRIM(payment.PaymentStatus))) = 'PAID')"
+                + ") "
                 + "ORDER BY so.OrderDate ASC, so.OrderID ASC";
 
         List<SalesOrder> orders = new ArrayList<>();
@@ -118,12 +123,20 @@ public class SalesOrderDAO {
             connection.setAutoCommit(false);
 
             try {
-                String paymentStatus = lockPendingOrder(
+                OrderPayment payment = lockPendingOrder(
                         connection,
                         orderID
                 );
 
-                if (cancel && "Paid".equalsIgnoreCase(paymentStatus)) {
+                boolean eligibleForConfirmation
+                        = "COD".equalsIgnoreCase(payment.method)
+                        || ("VNPAY".equalsIgnoreCase(payment.method)
+                        && "Paid".equalsIgnoreCase(payment.status));
+                if (!cancel && !eligibleForConfirmation) {
+                    throw new SQLException("PAYMENT_NOT_CONFIRMED");
+                }
+
+                if (cancel && "Paid".equalsIgnoreCase(payment.status)) {
                     throw new SQLException(
                             "PAID_ORDER_CANNOT_BE_CANCELLED"
                     );
@@ -167,15 +180,15 @@ public class SalesOrderDAO {
         }
     }
 
-    private String lockPendingOrder(
+    private OrderPayment lockPendingOrder(
             Connection connection,
             int orderID) throws SQLException {
 
         String sql
-                = "SELECT so.OrderStatus, payment.PaymentStatus "
+                = "SELECT so.OrderStatus, payment.PaymentMethod, payment.PaymentStatus "
                 + "FROM dbo.SalesOrder so WITH (UPDLOCK, ROWLOCK) "
                 + "OUTER APPLY ( "
-                + "    SELECT TOP (1) p.PaymentStatus "
+                + "    SELECT TOP (1) p.PaymentMethod, p.PaymentStatus "
                 + "    FROM dbo.Payment p WITH (UPDLOCK, ROWLOCK) "
                 + "    WHERE p.OrderID = so.OrderID "
                 + "    ORDER BY p.PaymentID DESC "
@@ -198,8 +211,21 @@ public class SalesOrderDAO {
                     throw new SQLException("ORDER_NOT_PENDING");
                 }
 
-                return result.getString("PaymentStatus");
+                return new OrderPayment(
+                        result.getString("PaymentMethod"),
+                        result.getString("PaymentStatus")
+                );
             }
+        }
+    }
+
+    private static final class OrderPayment {
+        private final String method;
+        private final String status;
+
+        private OrderPayment(String method, String status) {
+            this.method = method;
+            this.status = status;
         }
     }
 

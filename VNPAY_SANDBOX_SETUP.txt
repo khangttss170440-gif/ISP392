@@ -1,0 +1,41 @@
+VNPAY SANDBOX SETUP
+===================
+
+The checkout supports COD and VNPAY Sandbox. VNPAY orders stay Pending until
+a signed, amount-matched callback is received. Both the browser return and IPN
+are handled by:
+  /MenWearStore/payment/vnpay-return
+  /MenWearStore/payment/vnpay-ipn
+
+1. From the VNPAY Sandbox merchant registration email, configure the merchant
+   credentials in Windows Command Prompt (do not commit these values):
+
+   setx VNPAY_TMN_CODE "your-8-character-tmn-code"
+   setx VNPAY_HASH_SECRET "your-vnpay-secret-key"
+
+   Before trying checkout, run database/migrations/20261019_allow_vnpay_payment_method.sql
+   once in SSMS against the MenWearStore database. It preserves COD, EWallet,
+   BankTransfer, and Cash, and adds VNPAY to dbo.Payment.PaymentMethod.
+
+2. Close and reopen NetBeans, then restart Tomcat. If VNPAY_RETURN_URL is not
+   configured, checkout builds a local return URL from the current request.
+   For an HTTPS tunnel, set the public return URL, for example:
+
+   setx VNPAY_RETURN_URL "https://your-tunnel-domain/MenWearStore/payment/vnpay-return"
+
+   Restart NetBeans/Tomcat again after setting it.
+
+3. Local testing of the browser return works while the same computer and
+   Tomcat remain on. VNPAY cannot reach localhost for its server-to-server IPN.
+   To test IPN, expose Tomcat port 8080 through an HTTPS tunnel such as ngrok,
+   then provide the public URL below to VNPAY when registering/configuring the
+   IPN endpoint:
+
+   https://your-tunnel-domain/MenWearStore/payment/vnpay-ipn
+
+   The IPN endpoint verifies the signature, order reference, payment method,
+   and amount before updating dbo.Payment and dbo.PaymentTransaction. Repeated
+   callbacks for the same transaction are handled idempotently.
+
+4. Use the VNPAY Sandbox payment test data provided by VNPAY. Do not use a real
+   bank card or production credentials for this integration test.

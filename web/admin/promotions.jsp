@@ -40,10 +40,10 @@
     <p class="admin-note">Mỗi đơn thành công trừ ngay 1 lượt coupon, không chờ Sales xác nhận. Mã hết lượt tự ngừng hiển thị. Thời gian theo máy chủ cơ sở dữ liệu.</p>
     <% if (request.getAttribute("message") != null) { %><div class="alert success"><%=promotionEscape(request.getAttribute("message"))%></div><% } %>
     <% if (request.getAttribute("error") != null) { %><div class="alert error"><%=promotionEscape(request.getAttribute("error"))%></div><% } %>
-    <% for (Promotion p : promotionForms) { boolean creating = p.getPromotionID() == 0; String prefix = "promo-" + p.getPromotionID() + "-"; %>
+    <% for (Promotion p : promotionForms) { boolean creating = p.getPromotionID() == 0; boolean expired = !creating && p.getEndDate() != null && p.getEndDate().getTime() < System.currentTimeMillis(); String prefix = "promo-" + p.getPromotionID() + "-"; %>
     <details class="admin-panel promotion-editor" <%=creating ? "open" : ""%>>
         <summary><b><%=creating ? "＋ Tạo khuyến mãi" : promotionEscape(p.getPromotionCode()) + " · " + promotionEscape(p.getPromotionName())%></b>
-            <% if (!creating) { %><span class="admin-badge <%= "Active".equals(p.getStatus()) ? "" : "off"%>"><%= "Active".equals(p.getStatus()) ? "Đang bật" : "Đã tắt"%></span><% } %>
+            <% if (!creating) { %><span class="admin-badge <%= !expired && "Active".equalsIgnoreCase(p.getStatus()) ? "" : "off"%>"><%= expired ? "Hết hạn" : "Active".equalsIgnoreCase(p.getStatus()) ? "Đang bật" : "Đã tắt"%></span><% } %>
         </summary>
         <form class="admin-form-grid" action="<%=request.getContextPath()%>/admin/promotions" method="post">
             <input type="hidden" name="csrfToken" value="<%=promotionEscape(request.getAttribute("csrfToken"))%>">

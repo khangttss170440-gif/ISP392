@@ -72,4 +72,19 @@ public class CustomerAccountDAO {
             return statement.executeUpdate() == 1;
         }
     }
+
+    public boolean resetPassword(int customerID, String newPasswordHash)
+            throws SQLException {
+        String sql =
+                "UPDATE dbo.Customer "
+                + "SET PasswordHash = ?, UpdatedAt = GETDATE() "
+                + "WHERE CustomerID = ? AND Status = 'Active'";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, newPasswordHash);
+            statement.setInt(2, customerID);
+            return statement.executeUpdate() == 1;
+        }
+    }
 }

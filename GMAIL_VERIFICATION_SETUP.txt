@@ -1,0 +1,22 @@
+GMAIL VERIFICATION SETUP
+========================
+
+Registration codes are sent through Gmail SMTP over SSL (smtp.gmail.com:465).
+The application creates a customer account only after the code is confirmed.
+
+1. Use a Gmail mailbox owned by the store.
+2. Enable 2-Step Verification for that Google account.
+3. Create an App Password from the Google Account Security settings.
+   Use the App Password, not the normal Gmail password.
+4. In Windows Command Prompt, configure these environment variables:
+
+   setx GMAIL_SMTP_USER "your-store@gmail.com"
+   setx GMAIL_APP_PASSWORD "your-16-character-app-password"
+
+5. Completely close and reopen NetBeans (or the process that launches Tomcat),
+   then restart Tomcat so it receives the new environment variables.
+6. Register with a real email address and enter the six-digit code received.
+
+Keep GMAIL_APP_PASSWORD private. Do not commit it to Git or put it in Java/JSP.
+The registration email is required for verification. The phone field remains an
+optional contact number and is not verified by SMS.

@@ -85,6 +85,8 @@ public class ProductImageManagementController extends HttpServlet {
             }
             id = positiveId(request.getParameter("productId"));
             if (products.getProductById(id) == null) { response.sendError(404); return; }
+            session.removeAttribute(MESSAGE);
+            session.removeAttribute(ERROR);
             String action = request.getParameter("action");
             String file = request.getParameter("file");
             if ("upload".equals(action)) {
@@ -115,9 +117,12 @@ public class ProductImageManagementController extends HttpServlet {
         } catch (SQLException e) {
             getServletContext().log("Could not look up product for image update.", e);
             session.setAttribute(ERROR, "Chưa đọc được sản phẩm. Vui lòng thử lại sau.");
-        } catch (IOException | ServletException e) {
-            getServletContext().log("Could not update product images.", e);
-            session.setAttribute(ERROR, "Chưa cập nhật được ảnh. Vui lòng kiểm tra ảnh hiện tại rồi thử lại.");
+        } catch (ServletException e) {
+            getServletContext().log("Could not read product image upload request.", e);
+            session.setAttribute(ERROR, "Không đọc được dữ liệu ảnh tải lên. Hãy tải lại trang và chọn ảnh lại.");
+        } catch (IOException e) {
+            getServletContext().log("Could not store product image.", e);
+            session.setAttribute(ERROR, "Không lưu được ảnh vào thư mục dữ liệu Tomcat. Vui lòng kiểm tra quyền ghi rồi thử lại.");
         }
         response.sendRedirect(request.getContextPath() + route(staff) + (id > 0 ? "?productId=" + id : ""));
     }

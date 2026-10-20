@@ -31,6 +31,22 @@ public final class VnPayService {
     private VnPayService() {
     }
 
+    public static void validateConfiguration() {
+        String tmnCode = requiredEnvironmentValue("VNPAY_TMN_CODE");
+        requiredEnvironmentValue("VNPAY_HASH_SECRET");
+        if (!tmnCode.matches("[A-Za-z0-9]{8}")) {
+            throw new IllegalStateException(
+                    "VNPAY_TMN_CODE must contain 8 letters or digits."
+            );
+        }
+    }
+
+    public static String resolveReturnUrl(String localDefault) {
+        String configured = System.getenv("VNPAY_RETURN_URL");
+        return configured == null || configured.trim().isEmpty()
+                ? localDefault : configured.trim();
+    }
+
     public static String createPaymentUrl(
             int orderID,
             BigDecimal amountVnd,
@@ -140,6 +156,7 @@ public final class VnPayService {
             if (key != null
                     && key.startsWith("vnp_")
                     && value != null
+                    && !value.isEmpty()
                     && !"vnp_SecureHash".equals(key)
                     && !"vnp_SecureHashType".equals(key)) {
                 signedParams.put(key, value);

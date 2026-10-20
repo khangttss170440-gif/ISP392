@@ -18,6 +18,7 @@
             <input class="field" id="email" name="email" type="email" autocomplete="username" placeholder="Địa chỉ email của bạn" required>
             <label class="form-label" for="password">Mật khẩu</label>
             <input class="field" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required>
+            <div style="text-align:right;margin:8px 0 16px"><a class="text-link" href="<%=request.getContextPath()%>/password/forgot">Quên mật khẩu khách hàng?</a></div>
             <button class="button" type="submit">Đăng nhập <span aria-hidden="true">→</span></button>
         </form>
         <div class="login-register">Chưa có tài khoản? <a href="<%=request.getContextPath()%>/register">Đăng ký ngay</a></div>

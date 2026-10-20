@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -31,6 +33,17 @@ public class CheckoutDAO {
 
     public int createCodOrder(int customerID, Cart cart, String shippingAddress,
                               String notes, String promotionCode, BigDecimal shippingFee) throws SQLException {
+        return createOrder(customerID, cart, shippingAddress, notes,
+                promotionCode, shippingFee, "COD");
+    }
+
+    public int createOrder(int customerID, Cart cart, String shippingAddress,
+                           String notes, String promotionCode,
+                           BigDecimal shippingFee, String paymentMethod) throws SQLException {
+
+        if (!"COD".equals(paymentMethod) && !"VNPAY".equals(paymentMethod)) {
+            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
+        }
 
         if (!service.ShippingService.isValidEstimatedFee(shippingFee, cart == null ? 1 : cart.getTotalQuantity())) {
             throw new IllegalArgumentException("Phí giao hàng không hợp lệ.");
@@ -110,7 +123,8 @@ public class CheckoutDAO {
                     );
                 }
 
-                insertCodPayment(connection, orderID, subtotal.subtract(discount).add(shippingFee));
+                insertPayment(connection, orderID,
+                        subtotal.subtract(discount).add(shippingFee), paymentMethod);
                 insertShipment(
                         connection,
                         orderID,
@@ -127,6 +141,113 @@ public class CheckoutDAO {
                     e.addSuppressed(rollbackError);
                 }
 
+                throw e;
+            }
+        }
+    }
+
+    public BigDecimal findPendingVnPayAmount(int orderID) throws SQLException {
+        String sql = "SELECT Amount FROM dbo.Payment "
+                + "WHERE OrderID = ? AND PaymentMethod = 'VNPAY' "
+                + "AND PaymentStatus = 'Pending'";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, orderID);
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next()) throw new SQLException("PENDING_VNPAY_PAYMENT_NOT_FOUND");
+                return result.getBigDecimal("Amount");
+            }
+        }
+    }
+
+    /** Applies a verified VNPAY callback and records the transaction idempotently. */
+    public boolean recordVnPayResult(int orderID, String transactionCode,
+            String responseCode, String transactionStatus, BigDecimal amount,
+            String responseMessage) throws SQLException {
+        if (orderID <= 0 || amount == null || amount.signum() <= 0
+                || transactionCode == null || transactionCode.trim().isEmpty()) {
+            return false;
+        }
+        String paymentMethod;
+        String paymentStatus;
+        BigDecimal expectedAmount;
+        int paymentID;
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                String select = "SELECT TOP (1) PaymentID, PaymentMethod, PaymentStatus, Amount "
+                        + "FROM dbo.Payment WITH (UPDLOCK, ROWLOCK) WHERE OrderID = ? ORDER BY PaymentID DESC";
+                try (PreparedStatement statement = connection.prepareStatement(select)) {
+                    statement.setInt(1, orderID);
+                    try (ResultSet result = statement.executeQuery()) {
+                        if (!result.next()) { connection.rollback(); return false; }
+                        paymentID = result.getInt("PaymentID");
+                        paymentMethod = result.getString("PaymentMethod");
+                        paymentStatus = result.getString("PaymentStatus");
+                        expectedAmount = result.getBigDecimal("Amount");
+                    }
+                }
+                if (!"VNPAY".equalsIgnoreCase(paymentMethod)
+                        || expectedAmount == null
+                        || expectedAmount.compareTo(amount) != 0) {
+                    connection.rollback();
+                    return false;
+                }
+
+                boolean successful = "00".equals(responseCode)
+                        && "00".equals(transactionStatus);
+                if ("Pending".equalsIgnoreCase(paymentStatus)) {
+                    String update = "UPDATE dbo.Payment SET PaymentStatus = ? WHERE PaymentID = ? AND PaymentStatus = 'Pending'";
+                    try (PreparedStatement statement = connection.prepareStatement(update)) {
+                        statement.setString(1, successful ? "Paid" : "Failed");
+                        statement.setInt(2, paymentID);
+                        statement.executeUpdate();
+                    }
+                } else if (!((successful && "Paid".equalsIgnoreCase(paymentStatus))
+                        || (!successful && "Failed".equalsIgnoreCase(paymentStatus)))) {
+                    connection.rollback();
+                    return false;
+                }
+
+                // Keep the transaction status within CK_PaymentTransaction_Status.
+                String statusText = successful ? "Success" : "Failed";
+                String statusDetails = "VNPAY response=" + responseCode
+                        + "; transaction=" + transactionStatus;
+                if (responseMessage != null && !responseMessage.trim().isEmpty()) {
+                    statusDetails += "; " + responseMessage.trim();
+                }
+                String updateTransaction = "UPDATE dbo.PaymentTransaction SET "
+                        + "TransactionStatus = ?, TransactionAmount = ?, TransactionDate = ?, "
+                        + "Gateway = 'VNPAY', ResponseMessage = ? "
+                        + "WHERE PaymentID = ? AND TransactionCode = ?";
+                int updated;
+                try (PreparedStatement statement = connection.prepareStatement(updateTransaction)) {
+                    statement.setString(1, statusText);
+                    statement.setBigDecimal(2, amount);
+                    statement.setTimestamp(3, Timestamp.from(Instant.now()));
+                    statement.setString(4, safeMessage(statusDetails));
+                    statement.setInt(5, paymentID);
+                    statement.setString(6, transactionCode);
+                    updated = statement.executeUpdate();
+                }
+                if (updated == 0) {
+                    String insertTransaction = "INSERT INTO dbo.PaymentTransaction "
+                            + "(PaymentID, TransactionCode, TransactionStatus, TransactionAmount, TransactionDate, Gateway, ResponseMessage) "
+                            + "VALUES (?, ?, ?, ?, ?, 'VNPAY', ?)";
+                    try (PreparedStatement statement = connection.prepareStatement(insertTransaction)) {
+                        statement.setInt(1, paymentID);
+                        statement.setString(2, transactionCode);
+                        statement.setString(3, statusText);
+                        statement.setBigDecimal(4, amount);
+                        statement.setTimestamp(5, Timestamp.from(Instant.now()));
+                        statement.setString(6, safeMessage(statusDetails));
+                        statement.executeUpdate();
+                    }
+                }
+                connection.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                try { connection.rollback(); } catch (SQLException rollbackError) { e.addSuppressed(rollbackError); }
                 throw e;
             }
         }
@@ -260,23 +381,31 @@ public class CheckoutDAO {
         }
     }
 
-    private void insertCodPayment(
+    private void insertPayment(
             Connection connection,
             int orderID,
-            BigDecimal amount) throws SQLException {
+            BigDecimal amount,
+            String paymentMethod) throws SQLException {
 
         String sql =
                 "INSERT INTO dbo.Payment "
                 + "(OrderID, PaymentMethod, PaymentStatus, Amount) "
-                + "VALUES (?, 'COD', 'Pending', ?)";
+                + "VALUES (?, ?, 'Pending', ?)";
 
         try (PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
             statement.setInt(1, orderID);
-            statement.setBigDecimal(2, amount);
+            statement.setString(2, paymentMethod);
+            statement.setBigDecimal(3, amount);
             statement.executeUpdate();
         }
+    }
+
+    private String safeMessage(String message) {
+        if (message == null) return "";
+        String clean = message.replace('\r', ' ').replace('\n', ' ').trim();
+        return clean.length() > 500 ? clean.substring(0, 500) : clean;
     }
 
     private void insertShipment(

@@ -109,6 +109,7 @@
                 <label class="form-label" for="paymentMethod">Phương thức thanh toán</label>
                 <select class="select" id="paymentMethod" name="paymentMethod">
                     <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="VNPAY">Thanh toán trực tuyến qua VNPay Sandbox</option>
                 </select>
                 <button class="button" id="checkoutSubmit" style="margin-top:20px" type="submit" <%=shippingAllowed ? "" : "disabled"%>>Xác nhận đặt hàng ↗</button>
             </form>
@@ -148,7 +149,7 @@
                 <div class="summary-row total"><span>Tổng thanh toán</span><span id="checkoutTotalLabel" data-subtotal="<%=cart.getSubtotal().toPlainString()%>" data-discount="<%=request.getAttribute("discountAmount")%>"><%=money.format(request.getAttribute("checkoutTotal"))%>₫</span></div>
                 <% service.ShippingService.Quote summaryQuote = currentShippingQuote; %>
                 <p class="notice"><%=checkoutEscape(summaryQuote.message)%></p>
-                <p class="notice">Bạn thanh toán khi nhận hàng.</p>
+                <p class="notice">Chọn COD để trả khi nhận hàng hoặc VNPay Sandbox để thử thanh toán trực tuyến.</p>
                 <p class="notice">Mã được kiểm tra và trừ 1 lượt ngay khi đặt hàng thành công. Áp dụng thử mã không trừ lượt.</p>
             </aside>
         </div>

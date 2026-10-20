@@ -19,6 +19,7 @@ import model.Customer;
 import model.CustomerAddress;
 import model.Promotion;
 import service.ShippingService;
+import util.VnPayService;
 
 @WebServlet("/checkout")
 public class CheckoutController extends HttpServlet {
@@ -140,15 +141,23 @@ public class CheckoutController extends HttpServlet {
 
         String paymentMethod = value(request.getParameter("paymentMethod"));
 
-        // VNPAY will be enabled when its signed payment request and callback
-        // are implemented. Do not create a VNPAY order as if it were paid.
-        if (!"COD".equals(paymentMethod)) {
+        if (!"COD".equals(paymentMethod) && !"VNPAY".equals(paymentMethod)) {
             session.setAttribute(
                     ERROR_KEY,
-                    "COD checkout is currently available."
+                    "Vui lòng chọn phương thức thanh toán hợp lệ."
             );
             response.sendRedirect(request.getContextPath() + "/checkout");
             return;
+        }
+        if ("VNPAY".equals(paymentMethod)) {
+            try {
+                VnPayService.validateConfiguration();
+            } catch (IllegalStateException e) {
+                session.setAttribute(ERROR_KEY,
+                        "Chưa cấu hình kết nối VNPay Sandbox. Hãy thiết lập VNPAY_TMN_CODE và VNPAY_HASH_SECRET rồi khởi động lại Tomcat.");
+                response.sendRedirect(request.getContextPath() + "/checkout");
+                return;
+            }
         }
 
         String submittedAddressId = value(request.getParameter("addressId"));
@@ -245,14 +254,32 @@ public class CheckoutController extends HttpServlet {
             }
         }
         try {
-            int orderID = checkoutDAO.createCodOrder(
+            int orderID = checkoutDAO.createOrder(
                     customer.getCustomerID(),
                     cart,
                     shippingAddress,
                     notes,
                     promotionCode,
-                    shippingQuote.fee
+                    shippingQuote.fee,
+                    paymentMethod
             );
+
+            if ("VNPAY".equals(paymentMethod)) {
+                BigDecimal amount = checkoutDAO.findPendingVnPayAmount(orderID);
+                String localReturnUrl = request.getScheme() + "://"
+                        + request.getServerName()
+                        + ((request.getServerPort() == 80 && "http".equalsIgnoreCase(request.getScheme()))
+                           || (request.getServerPort() == 443 && "https".equalsIgnoreCase(request.getScheme()))
+                           ? "" : ":" + request.getServerPort())
+                        + request.getContextPath() + "/payment/vnpay-return";
+                String returnUrl = VnPayService.resolveReturnUrl(localReturnUrl);
+                String paymentUrl = VnPayService.createPaymentUrl(
+                        orderID, amount, request.getRemoteAddr(), returnUrl);
+                cart.clear();
+                session.removeAttribute("CHECKOUT_PROMOTION_CODE");
+                response.sendRedirect(paymentUrl);
+                return;
+            }
 
             cart.clear();
             session.removeAttribute("CHECKOUT_PROMOTION_CODE");

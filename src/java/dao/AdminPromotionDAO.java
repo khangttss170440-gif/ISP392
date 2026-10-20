@@ -21,6 +21,7 @@ public class AdminPromotionDAO {
             + "MaxDiscount, Status, Quantity";
 
     public List<Promotion> getAllPromotions() throws SQLException {
+        deactivateExpiredPromotions();
         String sql =
                 "SELECT " + COLUMNS
                 + " FROM dbo.Promotion "
@@ -114,18 +115,45 @@ public class AdminPromotionDAO {
             );
         }
 
-        String sql =
-                "UPDATE dbo.Promotion SET Status = ? "
-                + "WHERE PromotionID = ?";
+        String normalizedStatus = validateStatus(status);
+        String sql = "UPDATE dbo.Promotion SET Status = ? "
+                + "WHERE PromotionID = ? "
+                + "AND (? = 'Inactive' OR EndDate >= CURRENT_TIMESTAMP)";
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setString(1, validateStatus(status));
+            statement.setString(1, normalizedStatus);
             statement.setInt(2, promotionID);
+            statement.setString(3, normalizedStatus);
 
             if (statement.executeUpdate() != 1) {
+                if (normalizedStatus.equals("Active")
+                        && promotionExists(connection, promotionID)) {
+                    throw new IllegalArgumentException(
+                            "Không thể bật khuyến mãi đã hết hạn. Hãy sửa ngày kết thúc trước.");
+                }
                 throw new SQLException("PROMOTION_NOT_FOUND");
+            }
+        }
+    }
+
+    private void deactivateExpiredPromotions() throws SQLException {
+        String sql = "UPDATE dbo.Promotion SET Status = 'Inactive' "
+                + "WHERE Status = 'Active' AND EndDate < CURRENT_TIMESTAMP";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        }
+    }
+
+    private boolean promotionExists(Connection connection, int promotionID)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT 1 FROM dbo.Promotion WHERE PromotionID = ?")) {
+            statement.setInt(1, promotionID);
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next();
             }
         }
     }
@@ -229,6 +257,12 @@ public class AdminPromotionDAO {
             throw new IllegalArgumentException(
                     "Thời gian kết thúc phải sau thời gian bắt đầu."
             );
+        }
+
+        if ("Active".equalsIgnoreCase(promotion.getStatus())
+                && promotion.getEndDate().getTime() < System.currentTimeMillis()) {
+            throw new IllegalArgumentException(
+                    "Không thể bật khuyến mãi đã hết hạn. Hãy sửa ngày kết thúc trước.");
         }
 
         validateOptionalAmount(
