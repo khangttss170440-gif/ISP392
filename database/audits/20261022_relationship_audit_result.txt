@@ -1,0 +1,87 @@
+KẾT QUẢ RÀ SOÁT LIÊN KẾT DATABASE MENWEARSTORE
+Ngày kiểm tra: 22/10/2026
+Nguồn: database SQL Server đang chạy trên máy, kết hợp đối chiếu DAO hiện tại.
+Phạm vi: chỉ đọc dữ liệu và cấu trúc; không sửa/xóa dữ liệu hoặc thay đổi khóa.
+
+1. CẤU TRÚC LIÊN KẾT
+
+- Có 20 bảng nghiệp vụ và 35 khóa ngoại.
+- Cả 35 khóa ngoại đều đang bật và được SQL Server đánh dấu trusted.
+- Không có bảng nghiệp vụ đứng riêng: 20 bảng nằm trong cùng một nhóm liên kết.
+- Không tìm thấy cột có tên kết thúc bằng ID mà vừa không phải khóa chính,
+  vừa chưa có khóa ngoại. Đây là kiểm tra theo tên cột, không thay thế phân tích
+  nghiệp vụ đối với các trường văn bản hoặc mã tự do.
+- dbo.sysdiagrams là bảng phục vụ sơ đồ SSMS, hiện không có bản ghi;
+  bảng này không phải bảng nghiệp vụ và không cần nối vào các bảng bán hàng.
+
+2. DỮ LIỆU THAM CHIẾU
+
+- Đã kiểm tra dữ liệu theo toàn bộ 35 khóa ngoại.
+- Không có bản ghi con có ID tham chiếu khác NULL nhưng bản ghi cha không tồn tại.
+- Không coi các tham chiếu NULL hợp lệ là dữ liệu mồ côi.
+- Không có đơn thiếu OrderDetail, Payment hoặc Shipment.
+- Không có sản phẩm thiếu ProductVariant.
+- Không có phiếu hỗ trợ thiếu SupportMessage.
+
+3. ĐỐI CHIẾU LIÊN KẾT NGHIỆP VỤ NHIỀU BẢNG
+
+Không tìm thấy bản ghi sai trong các kiểm tra sau:
+- Khách của CustomerOrderRequest phải là khách của SalesOrder được yêu cầu.
+- OrderDetail trong CustomerOrderRequestDetail phải thuộc đơn của yêu cầu.
+- Khách đánh giá ProductReview phải là người sở hữu đơn hàng đó.
+- Sản phẩm đánh giá phải xuất hiện trong các biến thể của chi tiết đơn hàng.
+- Khách nhận CustomerNotification phải sở hữu đơn được thông báo nếu có OrderID.
+- Khách tạo SupportTicket phải sở hữu đơn được liên kết nếu có OrderID.
+- Khách gửi SupportMessage phải là khách của SupportTicket.
+- Biến thể trong WarehouseIssue có OrderID phải xuất hiện trong chi tiết đơn đó.
+
+Các kiểm tra này bổ sung cho khóa ngoại: từng ID tồn tại riêng lẻ chưa đủ để
+khẳng định hai ID cùng thuộc một đơn hàng hoặc cùng một khách hàng.
+
+4. CÁC BẢN GHI CHƯA ĐƯỢC SỬ DỤNG / CHƯA CÓ BẢN GHI CON
+
+- 1 danh mục chưa có sản phẩm: CategoryID = 8, tên "dây chuyền", Status = Active.
+- 4 khách hàng chưa có địa chỉ và chưa có đơn: CustomerID = 1, 2, 3, 5.
+- 1 khuyến mãi chưa được gắn vào đơn hàng; cả 20 SalesOrder có PromotionID NULL.
+
+Đây là dữ liệu cha chưa được tham chiếu, không phải liên kết bị hỏng. Một danh
+mục mới, tài khoản mới hoặc khuyến mãi chưa dùng có thể tồn tại độc lập với dữ
+liệu giao dịch, nên không nên tự động xóa các bản ghi này.
+
+5. PAYMENT / PAYMENTTRANSACTION
+
+Có 18 Payment chưa có PaymentTransaction:
+- COD / Pending: 7.
+- COD / Failed: 2.
+- COD / Paid: 1.
+- VNPAY / Pending: 8.
+
+PaymentID = 8, OrderID = 8 là COD đã Paid, đơn Delivered, chưa có transaction.
+Đối chiếu code hiện tại:
+- CheckoutDAO.recordVnPayResult(...) ghi lịch sử PaymentTransaction cho VNPay.
+- WarehouseOrderDAO.completeCodPayment(...) chỉ cập nhật trạng thái/ngày thanh
+  toán trong Payment, chưa chèn lịch sử thu COD vào PaymentTransaction.
+
+Vì vậy bản ghi COD này không bị mất liên kết khóa ngoại. Đây là phần lịch sử
+thu tiền chưa được ghi nếu nghiệp vụ yêu cầu theo dõi cả giao dịch COD.
+Các VNPAY còn Pending chưa có transaction cũng không tự chứng minh bị lỗi;
+cần có kết quả thanh toán được xác minh thì code mới ghi nhận giao dịch.
+
+6. CÁC THAM CHIẾU TÙY CHỌN
+
+- 4 SalesOrder có StaffID NULL.
+- 20 SalesOrder có PromotionID NULL.
+- Không có WarehouseIssue hoặc CustomerNotification có OrderID NULL tại thời
+  điểm kiểm tra, dù liên kết này có thể được thiết kế là tùy chọn.
+
+StaffID/PromotionID NULL được schema cho phép, không phải ID tham chiếu đến
+một nhân viên/khuyến mãi không tồn tại.
+
+CHẠY LẠI KIỂM TRA
+
+Mở database/audits/20261022_relationship_audit.sql bằng SSMS, chọn database
+MenWearStore rồi Execute. Script chỉ truy vấn dữ liệu; không chứa thao tác
+thêm, sửa, xóa dữ liệu nghiệp vụ hay thay đổi bảng/ràng buộc.
+
+Kết quả phản ánh dữ liệu tại thời điểm kiểm tra. Chưa thực hiện sửa lỗi,
+bổ sung lịch sử COD hoặc thêm ràng buộc mới.

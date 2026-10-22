@@ -1,0 +1,6 @@
+[data-order-tracking] [hidden] { display: none !important; }
+.order-tracking-box { border-left: 3px solid #295b47; padding: 12px 16px; background: #f4f7f3; margin: 16px 0; }
+.order-tracking-box p { margin: 6px 0; }
+.order-tracking-meta { color: #6f766f; font-size: 13px; }
+[data-tracking-notice] { min-height: 1.5em; }
+.order-shipping-notice { border: 1px solid #b9770e; background: #fff8e9; color: #704600; padding: 10px 14px; margin: 10px 0; font-family: Arial, sans-serif; }

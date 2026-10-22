@@ -10,7 +10,7 @@
     justify-content: flex-end;
     gap: 28px;
     padding: 44px;
-    background: linear-gradient(0deg, #161310fa, #211810b0 48%, #21181010 85%), url('images/login-accessories.png') center top / cover;
+    background: linear-gradient(0deg, #161310fa, #211810b0 48%, #21181010 85%), url('images/login-accessories.webp') center top / cover;
     border-right: 1px solid #d5b57a30;
 }
 .register-theme .auth-aside .eyebrow { color: var(--login-gold); font-size: 10px; letter-spacing: .18em; }

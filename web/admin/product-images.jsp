@@ -42,7 +42,8 @@
     <% if (selectedProduct != null) { int imageProductId = selectedProduct.getProductID(); %>
     <section class="admin-panel">
         <h2>#<%=imageProductId%> · <%=imageEscape(selectedProduct.getProductName())%></h2>
-        <p class="admin-note"><%=currentImages == null ? 0 : currentImages.size()%>/6 ảnh. JPG/PNG, tối đa 5 MB và 12 megapixel mỗi ảnh.</p>
+        <p class="admin-note"><%=currentImages == null ? 0 : currentImages.size()%>/6 ảnh. JPG/PNG, tối đa 10 MB và 12 megapixel mỗi ảnh. Giữ nguyên kích thước ảnh; JPG được lưu chất lượng cao, PNG không nén mất chi tiết.</p>
+        <p class="admin-note">Nên dùng ảnh gốc từ 1200 × 1500 px (tốt hơn: 1600 × 2000 px). Ảnh nhỏ hoặc mờ cần được thay bằng nguồn rõ hơn; bấm ảnh để xem kích thước đầy đủ.</p>
         <% if (currentImages == null || currentImages.isEmpty()) { %>
         <p class="admin-empty">Sản phẩm chưa có ảnh. Bạn có thể tải ảnh đầu tiên bên dưới.</p>
         <% } else { %><div class="image-management-grid">
@@ -51,7 +52,7 @@
             String imageUrl = request.getContextPath() + "/product-image?productId=" + imageProductId + "&amp;file=" + filename;
         %>
         <article class="image-management-card">
-            <a href="<%=imageUrl%>" target="_blank" rel="noopener"><img src="<%=imageUrl%>" alt="Ảnh sản phẩm <%=index + 1%>"></a>
+            <a href="<%=imageUrl%>" target="_blank" rel="noopener"><img src="<%=imageUrl%>" alt="Ảnh sản phẩm <%=index + 1%>" data-image-resolution decoding="async"></a>
             <p class="admin-note"><%=index == 0 ? "Ảnh đại diện" : "Ảnh " + (index + 1)%></p>
             <form action="<%=imageAction%>" method="post">
                 <input type="hidden" name="csrfToken" value="<%=imageToken%>">

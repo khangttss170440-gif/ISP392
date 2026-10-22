@@ -26,7 +26,7 @@
 .home-theme .editorial-offer .home-offer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 30px; align-items: stretch; }
 .home-offer-card { display: flex; flex-direction: column; padding: 28px; background: #33271f; border: 1px solid #b99a6060; color: #faf6ee; min-width: 0; }
 .home-offer-card .eyebrow { color: #d5b57a; font-size: 9px; }
-.home-offer-card h3 { margin: 14px 0 10px; font: 400 36px "Times New Roman", serif; color: #e0c38e; }
+.home-offer-card h3 { margin: 14px 0 10px; font: 400 36px Arial,sans-serif; color: #e0c38e; }
 .home-offer-card h4 { font-size: 15px; font-weight: 500; margin: 0 0 14px; overflow-wrap: anywhere; }
 .home-theme .home-offer-card p { color: #dfd2bf; font-size: 12px; margin: 4px 0; }
 .home-offer-code { display: flex; flex-direction: column; gap: 5px; border-block: 1px solid #b99a6050; padding: 15px 0; margin: 18px 0; }

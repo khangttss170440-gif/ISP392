@@ -18,6 +18,34 @@ public class CustomerOrder {
     private String trackingNumber;
     private String carrier;
     private String shippingAddress;
+    private String carrierStatus;
+    private Timestamp lastCarrierSync;
+
+    public String getCarrierStatus() { return carrierStatus; }
+    public void setCarrierStatus(String status) { carrierStatus=status; }
+    public Timestamp getLastCarrierSync() { return lastCarrierSync; }
+    public void setLastCarrierSync(Timestamp time) { lastCarrierSync=time; }
+    public String getOrderStatusLabel() {
+        if("cancel".equals(carrierStatus) && !"Cancelled".equalsIgnoreCase(orderStatus))
+            return "Vận đơn đã hủy — Chờ cửa hàng xử lý";
+        return service.GhnTrackingStatus.orderLabel(orderStatus);
+    }
+    public String getShippingNotice() {
+        if(!"cancel".equals(carrierStatus) || "Cancelled".equalsIgnoreCase(orderStatus)) return "";
+        return "Vận đơn GHN đã bị hủy. Cửa hàng cần xử lý giao lại hoặc hủy đơn mua hàng."
+                +("Paid".equalsIgnoreCase(paymentStatus)
+                ?" Đơn đã thanh toán; hủy vận đơn chưa đồng nghĩa đã hoàn tiền."
+                :" Đơn mua hàng chưa tự động bị hủy.");
+    }
+    public String getPaymentStatusLabel() { return service.GhnTrackingStatus.paymentLabel(paymentStatus); }
+    public String getShippingStatusLabel() {
+        if("Cancelled".equalsIgnoreCase(orderStatus)) return "Đơn hàng đã hủy";
+        if(carrierStatus!=null && !carrierStatus.isBlank()) return service.GhnTrackingStatus.label(carrierStatus);
+        if("Delivered".equalsIgnoreCase(shipmentStatus)) return "Đã giao hàng";
+        if("Shipped".equalsIgnoreCase(shipmentStatus)) return "Đang giao hàng";
+        if("Preparing".equalsIgnoreCase(shipmentStatus) || "Confirmed".equalsIgnoreCase(orderStatus)) return "Đang chuẩn bị giao hàng";
+        return "Chờ xác nhận giao hàng";
+    }
 
     public int getOrderID() {
         return orderID;

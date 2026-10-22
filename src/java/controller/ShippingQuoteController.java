@@ -50,7 +50,7 @@ public class ShippingQuoteController extends HttpServlet {
             Object cartValue = session.getAttribute("CART");
             BigDecimal subtotal = cartValue instanceof Cart ? ((Cart) cartValue).getSubtotal() : BigDecimal.ZERO;
             int quantity = cartValue instanceof Cart ? ((Cart) cartValue).getTotalQuantity() : 0;
-            ShippingService.Quote quote = shipping.quote(address.locationAddress(), address.getProvince(), subtotal, quantity);
+            ShippingService.Quote quote = shipping.quote(address, subtotal, quantity);
             response.getWriter().write("{\"fee\":" + quote.fee.toPlainString() + ",\"priced\":" + quote.isPriced()
                     + ",\"freeByOrderValue\":" + quote.freeByOrderValue
                     + ",\"zone\":" + json(quote.zone == null ? "" : quote.zone)

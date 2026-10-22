@@ -4,8 +4,27 @@ import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.Locale;
 
-/** Estimated shipping based on J&T's published zone tariff; no map/API key required. */
+/** Checkout uses GHN staging; string-based overloads retain the legacy estimated tariff. */
 public class ShippingService {
+    /** Real GHN staging quote for the checkout's structured address. Never falls back to an estimated tariff. */
+    public Quote quote(model.CustomerAddress address, BigDecimal subtotal, int quantity) {
+        boolean free = subtotal != null && subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0;
+        try {
+            GhnShippingService.weight(quantity);
+            GhnShippingService ghn = new GhnShippingService();
+            java.util.Map<String,Object> destination = ghn.destination(address);
+            BigDecimal fee = free ? BigDecimal.ZERO : ghn.fee(destination, quantity);
+            Quote quote = Quote.priced(fee, "GHN_TEST", quantity,
+                    free ? "Đơn từ 799.000₫ được miễn phí giao hàng. Địa chỉ đã đối chiếu với GHN test."
+                    : "Phí từ API GHN test: " + fee.toPlainString() + "₫. Kiện ước tính " + (quantity * 500)
+                    + " g, 30 × 20 × 10 cm; kho cần cân đo lại trước khi tạo vận đơn.", free);
+            quote.destinationJson = util.ShippingJson.write(destination);
+            return quote;
+        } catch (IllegalArgumentException e) {
+            // Even a free order needs a valid carrier destination before booking.
+            return Quote.unavailable(e.getMessage(), false);
+        }
+    }
     public static final String SHOP_ADDRESS = "138 Quang Trung, khu phố 7, thị trấn Hóc Môn, TP. Hồ Chí Minh, Việt Nam";
     /** Kept for legacy callers; current quotes use the destination zone tariff. */
     public static final BigDecimal NATIONAL_FEE = new BigDecimal("45000");
@@ -127,6 +146,7 @@ public class ShippingService {
         public final String message;
         public final boolean freeByOrderValue;
         private final boolean priced;
+        public String destinationJson;
 
         private Quote(BigDecimal fee, String zone, int estimatedHalfKilogramUnits,
                       String message, boolean freeByOrderValue, boolean priced) {

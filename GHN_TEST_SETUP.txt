@@ -1,0 +1,128 @@
+MENSFORM - TICH HOP GHN STAGING (KHONG PHAI GIAO HANG THAT)
+
+1. TAI KHOAN VA CAU HINH
+- Dang ky tai https://5sao.ghn.dev
+- Lay Token test tai https://developer.ghn.dev -> Dang nhap -> Quan ly token.
+- Luu rieng tren may chay Tomcat (khong dua Token vao source/GitHub):
+  setx GHN_TOKEN "TOKEN_TEST_CUA_BAN"
+  setx GHN_SHOP_ID "SHOP_ID_TEST_CUA_BAN"
+- Shop ID hien tren anh dang ky cua ban la 232262; doi chieu lai thong tin shop.
+- Tat va mo lai NetBeans, sau do khoi dong lai Tomcat de nhan bien moi.
+- Java cung nhan system properties -DGHN_TOKEN=... va -DGHN_SHOP_ID=...
+  neu may chu duoc khoi dong theo cach khac. Khong commit thong tin nay.
+- Danh sach IP tin cay co the de trong khi thu nghiem theo tai lieu GHN.
+  Neu da them IP, chi IP Internet cong khai cua may chay Tomcat duoc phep goi API.
+  Khong nhap localhost, IP LAN hoac ten mien ngrok vao danh sach IP.
+
+2. CO SO DU LIEU
+- Chay database/migrations/20261022_ghn_delivery.sql tren database MenWearStore.
+- Sau do chay database/migrations/20261022_ghn_auto_sync.sql de them moc dong bo va khoa chong trung.
+- Neu dung webhook, chay them database/migrations/20261022_ghn_webhook.sql.
+- Script them dbo.GhnDelivery va trigger chan huy don noi bo khi van don GHN con hoat dong.
+- Khong doi cac bang cu, khong tao van don cho cac don da ton tai.
+- GhnDelivery.OrderID lien ket SalesOrder.OrderID. Dia chi nguoi nhan duoc chup lai
+  luc checkout de sua So dia chi sau nay khong lam sai noi giao cua don da dat.
+
+TAO DIEM LAY HANG TEST BANG API (KHI SHOP CU THIEU DIA CHI)
+- Tai thu muc project, chay:
+  powershell -ExecutionPolicy Bypass -File scripts/create-ghn-test-shop.ps1 -Create
+- Cong cu doc Token tu bien tren may (khong hien Token), kiem tra shop hien tai
+  thuoc tai khoan va dang hoat dong, de ban chon dia chi lay hang tu danh muc GHN.
+- Nhap ten, SDT cua hang va so nha/ten duong. Ma quan/phuong lay tu API, khong dung ma vi du.
+- Tao shop test moi (khong tao van don), luu Shop ID GHN tra ve vao GHN_SHOP_ID cua User.
+- Co kiem tra shop trung thong tin de dung lai; khong tu retry POST neu mat ket noi.
+  Neu timeout sau POST, kiem tra Quan ly cua hang GHN truoc khi chay lai.
+- Bo -Create neu chi muon chon dia chi va xem truoc, chua tao shop/chua doi cau hinh.
+- Mo lai NetBeans/Tomcat sau khi doi Shop ID. Don da luu ShopID cu khong tu doi sang shop moi.
+- Yeu cau API: ShopId hien tai phai thuoc Token va dang active; tao shop khong vuot qua
+  dieu kien nay. SHOP_NO_ACTIVE / CLIENT_NOT_BELONG_OF_SHOP can xu ly tai khoan voi GHN.
+
+3. PHAM VI HOAT DONG
+- Checkout lay phi truc tiep tu GHN test, khong am tham dung lai bang gia J&T.
+- Lay dia chi gui tu shop thuoc Token; neu co du ma cu thi truyen ro
+  from_district_id/from_ward_code. Neu API shop khong tra du ma, bo hai truong tuy chon
+  de GHN su dung dia chi mac dinh cua ShopId (theo tai lieu tinh phi).
+  Khong tu gan ma quan/phuong hoac dung dia chi nguoi nhan lam dia chi gui.
+  Neu GHN van bao thieu dia chi gui, cap nhat dia chi lay hang trong Quan ly cua hang GHN.
+- Loi API hien thi ten buoc (tinh/quan/phuong/cua hang/tinh phi) va mo ta GHN da an Token.
+  Khong the ket luan nguyen nhan chi tu HTTP 400; can xem thong bao cu the.
+- Don tu 799000d (tien hang truoc coupon) mien phi ship, van doi chieu dia chi GHN.
+- Hien dung danh muc dia chi GHN cu co phuong/xa + quan/huyen + tinh/thanh,
+  phu hop So dia chi hien tai. Ten phai khop duy nhat; ten mo ho/khong khop bi tu choi.
+  Chua ho tro chuyen doi tu dong dia chi hanh chinh moi 2 cap sang dia chi cu.
+- Uoc tinh 500g/san pham, kich thuoc 30x20x10cm. Toi da 39 san pham/19.5kg o checkout.
+- Kho can nhap can nang, kich thuoc thuc te (kien duoi 20kg) truoc khi tao van don.
+- Sales xac nhan don nhu cu; kho vao Chi tiet don -> Tao van don GHN test.
+- COD thu dung Payment.Amount (da bao gom phi ship khach tra), VNPay Paid thu ho 0d.
+  Shop tra phi GHN (payment_type_id=1), tranh thu them phi van chuyen lan hai.
+- Phi hang o kho co the khac checkout do can nang/kich thuoc thuc; shop chiu chenh lech.
+- Tao van don xong: Shipment Preparing, SalesOrder van Confirmed.
+- Nut Cap nhat trang thai tu GHN doi soat bang API. Khong tu danh dau giao thanh cong
+  chi vi tao van don thanh cong. Khi picked/di chuyen -> Shipped; delivered -> Delivered
+  va Payment COD Pending -> Paid. Trang thai tra hang/that lac khong bi doi thanh Delivered.
+- Dong bo phi bang API /shipping-order/soc cua van don da ton tai; neu API phi gap loi,
+  van giu trang thai da dong bo va phi da luu. Chua co phi se hien thong bao ro, khong coi la 0d.
+- Co dong bo chay nen khi Tomcat hoat dong: moi van don dang xu ly duoc tra cuu GHN
+  khoang 60 giay/lan, khong can kho bam nut va khong can ngrok cho viec tra cuu.
+- Tien trinh quet hang doi nhe moi 5 giay, nhung moi don chi duoc goi GHN theo moc NextSyncAt
+  cach lan bat dau truoc 60 giay. Co 4 worker va hang doi gioi han de khong lam cham frontend.
+- Khoa SyncLeaseToken/SyncLeaseUntil tren SQL Server ngan nhieu Tomcat/nhieu nut bam dong bo
+  cung mot don. Khi loi giu du lieu cu, ghi so lan loi va thu lai sau 60 giay; khong tao van don moi.
+- Dung dong bo tu dong cho delivered/cancel/returned/exception/lost/damage/scrap va don noi bo da huy.
+  Nut cap nhat thu cong van dung duoc khi can doi soat phi/trang thai.
+- LastSyncedAt luu UTC. Trang khach hien thoi gian theo Viet Nam.
+- Don hang cua toi va Chi tiet don hang tu cap nhat moi phut khi tab dang mo. Khi quay lai tab,
+  web doc lai ngay tu database; khong goi GHN bang trinh duyet. Endpoint kiem tra quyen so huu
+  tren moi lan doc, khong tra Token/phi hang/noi dung noi bo cua shop.
+- Dong bo khong tu tao trang thai mo phong: GHN test van ready_to_pick thi web van cho lay hang.
+- Tomcat phai duoc khoi dong lai sau khi deploy ban moi de bat listener chay nen.
+- Huy: huy van don tren GHN test, dong bo ve status cancel, roi Sales huy don tai shop
+  de luong hoan ton kho/thanh toan hien co xu ly. Khong co nut huy GHN API trong ban nay.
+- Khi API tra cancel, Shipment Pending/Preparing chuyen Cancelled.
+  Trang khach hien Van don da huy - Cho cua hang xu ly. SalesOrder va Payment khong bi
+  tu dong huy/hoan tien: don VNPay Paid can cua hang doi soat va xu ly hoan tien rieng.
+- Doi soat van don da luu yeu cau order_code + shop_id phai khop. Neu detail bo trong
+  client_order_code, cap ma van don/shop da luu van du de nhan dang. Phuc hoi khi chua co
+  ma van don van phai khop client_order_code; ma noi bo khac (khong rong) luon bi tu choi.
+- Don cu khong co GhnDelivery tiep tuc dung giao hang thu cong.
+- Neu gui API mat ket noi: trang thai Unknown. Dung nut cap nhat de tim theo ma don shop.
+  Neu can gui lai, yeu cau dung ClientOrderCode va noi dung da luu; khong tao ma moi.
+  Unknown giu nguyen goi da gui, khong cho sua phi/COD/nguoi nhan trong lan thu lai.
+  Loi du lieu bi GHN tu choi can doi soat voi GHN truoc khi dieu chinh ban ghi booking.
+
+4. GIOI HAN VA TOC DO
+- Chi endpoint staging https://dev-online-gateway.ghn.vn, khong tu chuyen production.
+- Ket noi cho toi da 4s, moi request toi da 8s; khong tu dong retry tao don.
+- Danh muc dia chi cache 1 gio, phi cache 2 phut; toi da 256 muc/cache.
+- Token chi nam o server, khong tra ra HTML/JavaScript/log.
+- De kiem tra cau hinh (khong hien Token), chay:
+  powershell -ExecutionPolicy Bypass -File scripts/check-ghn-config.ps1
+
+5. WEBHOOK GHN TEST (TUY CHON, VAN GIU DONG BO MOI PHUT)
+- Endpoint da duoc them: POST /MenWearStore/webhooks/ghn
+- Dung URL HTTPS cua ngrok dang online + duong dan tren, khong nhap localhost tren GHN.
+- Chay scripts/configure-ghn-webhook.ps1 tren may chay Tomcat.
+  Script sinh/giu lai GHN_WEBHOOK_SECRET, luu vao User environment va copy secret vao clipboard;
+  khong hien secret, khong dung GHN_TOKEN lam webhook secret, khong ghi vao Git.
+- Dong/mo lai NetBeans va Tomcat de nhan GHN_WEBHOOK_SECRET.
+- Tai developer.ghn.dev -> Cau hinh webhook -> Order:
+  URL Endpoint: https://TEN_MIEN_NGROK_DANG_CHAY/MenWearStore/webhooks/ghn
+  Giu header Content-Type = application/json.
+  Them header X-GHN-Webhook-Secret = gia tri clipboard (Ctrl+V).
+  Chon create, switch_status, update_fee (co the giu cac su kien Order mac dinh).
+  Timeout 10 giay, retry 3. Bam Tao webhook/Luu tren GHN.
+- Theo tai lieu GHN, cau hinh thay doi co the can khoang 15 phut de co hieu luc.
+- GET URL chi xac nhan route co ton tai; POST phai co header secret moi duoc nhan.
+- Chi nhan dung ShopID test, OrderCode + ClientOrderCode cua don thuoc ung dung.
+  Callback khong dung pham vi duoc acknowledge va bo qua; Token/API secret khong duoc ghi log.
+- Khu trung lap ben vung bang SHA-256(OrderCode|Type|Time), luu GhnWebhookReceipt (khong luu payload).
+- Webhook chi danh dau don can dong bo; worker thuong tra cuu lai trong vai giay. Trang thai,
+  COD va phi duoc doc lai tu API GHN, khong lay truc tiep tu payload callback.
+- Neu API/website loi, dong bo moi phut van la du phong. Webhook khong mo phong giao hang thanh cong.
+
+TAI LIEU CHINH THUC
+https://developer.ghn.dev/vi/docs/token/get-token
+https://developer.ghn.dev/vi/docs/order/calculate-fee
+https://developer.ghn.dev/vi/docs/order/create
+https://developer.ghn.dev/vi/docs/order/info
+https://developer.ghn.dev/vi/docs/order/info-by-client-code

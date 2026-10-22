@@ -84,7 +84,7 @@
                     </div>
                     <div class="product-upload">
                         <label class="form-label" for="productImages">Ảnh sản phẩm</label>
-                        <p class="admin-note" id="imageHelp">Chọn tối đa 6 ảnh JPG/PNG, mỗi ảnh tối đa 5 MB và 12 megapixel. Ảnh đầu tiên là ảnh đại diện; ảnh tải thêm không thay ảnh cũ.</p>
+                        <p class="admin-note" id="imageHelp">Chọn tối đa 6 ảnh JPG/PNG, mỗi ảnh tối đa 10 MB và 12 megapixel. Giữ nguyên kích thước ảnh, lưu JPG chất lượng cao. Nên chọn ảnh gốc từ 1200 × 1500 px để xem rõ chi tiết. Ảnh đầu tiên là ảnh đại diện.</p>
                         <input class="field" id="productImages" name="images" type="file" accept="image/jpeg,image/png" multiple aria-describedby="imageHelp imageUploadError">
                         <p id="imageUploadError" role="alert" class="product-upload-error"></p>
                         <div class="product-image-thumbs" id="uploadPreview" aria-label="Ảnh vừa chọn"></div>

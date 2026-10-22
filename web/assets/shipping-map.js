@@ -17,7 +17,7 @@
         const feeLabel = document.getElementById('shippingFeeLabel');
         const total = document.getElementById('checkoutTotalLabel');
         const preview = form.querySelector('[name="shippingFeePreview"]');
-        const canCheckout = priced || freeByOrderValue;
+        const canCheckout = priced;
         if (feeLabel) feeLabel.textContent = !canCheckout ? 'Chưa tính' : fee === 0 ? 'Miễn phí' : `${money.format(fee)}₫`;
         if (preview) preview.value = canCheckout ? String(fee) : '';
         if (total) total.textContent = `${money.format(Number(total.dataset.subtotal) - Number(total.dataset.discount) + fee)}₫`;
@@ -27,7 +27,7 @@
         sequence++;
         abort?.abort();
         button.disabled = false;
-        status.textContent = 'Địa chỉ đã thay đổi. Bấm tính phí theo khu vực để cập nhật.';
+        status.textContent = 'Địa chỉ đã thay đổi. Bấm tính phí GHN để cập nhật.';
         showFee(0, false, qualifiesByAmount());
         const promotionAddress = document.getElementById('promotionAddressId');
         if (promotionAddress && addressSelect) promotionAddress.value = addressSelect.value;
@@ -40,7 +40,7 @@
         if (isSaved()) params.set('addressId', addressSelect.value);
         else ['addressLine', 'ward', 'district', 'province'].forEach((name) => params.set(name, input(name)?.value.trim() || ''));
         button.disabled = true;
-        status.textContent = 'Đang tính phí giao hàng theo khu vực…';
+        status.textContent = 'Đang đối chiếu địa chỉ và tính phí GHN test…';
         try {
             const response = await fetch(widget.dataset.endpoint, {
                 method: 'POST', credentials: 'same-origin', body: params, signal: abort.signal

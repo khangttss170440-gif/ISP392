@@ -188,6 +188,8 @@ public class WarehouseOrderDAO {
                         orderID
                 );
 
+                GhnDeliveryDAO.guardManual(connection, orderID);
+
                 if ("ship".equals(normalizedAction)) {
                     shipOrder(
                             connection,

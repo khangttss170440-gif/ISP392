@@ -68,7 +68,7 @@ body.login-theme {
 .login-theme .login-register a:hover, .login-theme .login-home:hover { color: #fff2d6; }
 .login-theme .login-image {
     border-left: 1px solid #d5b57a30;
-    background: linear-gradient(0deg, #161310fa, #21181060 42%, #21181008 75%), url('images/login-accessories.png') center top / cover;
+    background: linear-gradient(0deg, #161310fa, #21181060 42%, #21181008 75%), url('images/login-accessories.webp') center top / cover;
     padding: 54px clamp(30px, 4vw, 65px);
 }
 .login-theme .login-image .eyebrow { color: #e7c68b; }

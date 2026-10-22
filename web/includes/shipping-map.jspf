@@ -3,12 +3,13 @@
     ShippingService.Quote shippingQuote = (ShippingService.Quote) request.getAttribute("shippingQuote");
 %>
 <section class="shipping-widget" data-shipping-widget data-endpoint="<%=request.getContextPath()%>/customer/shipping-quote"
-         data-initial-message="<%=shippingQuote == null ? "Nhập địa chỉ rồi bấm tính phí theo khu vực." : navEscape(shippingQuote.message)%>"
+         data-initial-message="<%=shippingQuote == null ? "Nhập địa chỉ rồi bấm tính phí GHN." : navEscape(shippingQuote.message)%>"
          data-initial-allowed="<%=shippingQuote != null && shippingQuote.isCheckoutAllowed()%>"
          data-initial-free-by-value="<%=shippingQuote != null && shippingQuote.freeByOrderValue%>">
-    <h3>Phí giao hàng theo khu vực</h3>
+    <h3>Phí giao hàng GHN — môi trường test</h3>
     <p><b>Shop MENSFORM:</b> <%=navEscape(ShippingService.SHOP_ADDRESS)%></p>
-    <p>Đơn từ <strong>799.000₫</strong> miễn phí toàn quốc. Đơn dưới mức này áp dụng phí vùng tham khảo theo bảng giá J&amp;T, ước tính mỗi sản phẩm nặng 0,5 kg.</p>
-    <button type="button" class="button line small" data-shipping-search>Tính phí theo khu vực</button>
+    <p>Đơn từ <strong>799.000₫</strong> miễn phí toàn quốc. Phí đơn dưới mức này được lấy từ API GHN test. Kiện ước tính mỗi sản phẩm 0,5 kg, kích thước 30 × 20 × 10 cm.</p>
+    <p>Nhập đủ phường/xã, quận/huyện, tỉnh/thành theo địa chỉ đang dùng trong Sổ địa chỉ. Nếu GHN không nhận diện được, hãy sửa địa chỉ trước khi đặt hàng.</p>
+    <button type="button" class="button line small" data-shipping-search>Tính phí GHN</button>
     <p data-shipping-status role="status"></p>
 </section>

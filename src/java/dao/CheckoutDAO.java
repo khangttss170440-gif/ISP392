@@ -40,12 +40,27 @@ public class CheckoutDAO {
     public int createOrder(int customerID, Cart cart, String shippingAddress,
                            String notes, String promotionCode,
                            BigDecimal shippingFee, String paymentMethod) throws SQLException {
+        return createOrderInternal(customerID, cart, shippingAddress, notes, promotionCode, shippingFee, paymentMethod, null);
+    }
+
+    public int createOrder(int customerID, Cart cart, String shippingAddress,
+                           String notes, String promotionCode,
+                           service.ShippingService.Quote quote, String paymentMethod) throws SQLException {
+        if (quote == null || !quote.isPriced() || quote.destinationJson == null)
+            throw new IllegalArgumentException("Vui lòng tính lại phí GHN trước khi đặt hàng.");
+        return createOrderInternal(customerID, cart, shippingAddress, notes, promotionCode, quote.fee, paymentMethod, quote);
+    }
+
+    private int createOrderInternal(int customerID, Cart cart, String shippingAddress,
+                           String notes, String promotionCode, BigDecimal shippingFee,
+                           String paymentMethod, service.ShippingService.Quote quote) throws SQLException {
 
         if (!"COD".equals(paymentMethod) && !"VNPAY".equals(paymentMethod)) {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
         }
 
-        if (!service.ShippingService.isValidEstimatedFee(shippingFee, cart == null ? 1 : cart.getTotalQuantity())) {
+        if (shippingFee == null || shippingFee.signum() < 0 || shippingFee.compareTo(new BigDecimal("5000000")) > 0
+                || (quote == null && !service.ShippingService.isValidEstimatedFee(shippingFee, cart == null ? 1 : cart.getTotalQuantity()))) {
             throw new IllegalArgumentException("Phí giao hàng không hợp lệ.");
         }
 
@@ -89,6 +104,8 @@ public class CheckoutDAO {
                     );
                 }
 
+                if (quote != null && (subtotal.compareTo(service.ShippingService.FREE_SHIPPING_THRESHOLD) >= 0) != quote.freeByOrderValue)
+                    throw new IllegalArgumentException("Giá sản phẩm đã thay đổi. Vui lòng kiểm tra lại phí giao hàng.");
                 BigDecimal discount = BigDecimal.ZERO;
                 if (promotionCode != null && !promotionCode.trim().isEmpty()) {
                     PromotionDAO promotions = new PromotionDAO();
@@ -130,6 +147,8 @@ public class CheckoutDAO {
                         orderID,
                         shippingAddress.trim()
                 );
+
+                if (quote != null) GhnDeliveryDAO.insert(connection, orderID, quote.destinationJson);
 
                 connection.commit();
                 return orderID;

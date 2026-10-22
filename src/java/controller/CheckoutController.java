@@ -102,8 +102,7 @@ public class CheckoutController extends HttpServlet {
             else if (selectedId != null) {
                 selected = addresses.stream().filter(a -> Integer.toString(a.getAddressID()).equals(selectedId)).findFirst().orElse(null);
             }
-            ShippingService.Quote quote = shipping.quote(selected == null ? "" : selected.locationAddress(),
-                    selected == null ? "" : selected.getProvince(), cart.getSubtotal(), cart.getTotalQuantity());
+            ShippingService.Quote quote = shipping.quote(selected, cart.getSubtotal(), cart.getTotalQuantity());
             request.setAttribute("selectedAddressId", selected == null ? "new" : Integer.toString(selected.getAddressID()));
             request.setAttribute("shippingQuote", quote);
             request.setAttribute("shippingFee", quote.fee);
@@ -232,8 +231,7 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
-        ShippingService.Quote shippingQuote = shipping.quote(deliveryAddress.locationAddress(),
-                deliveryAddress.getProvince(), cart.getSubtotal(), cart.getTotalQuantity());
+        ShippingService.Quote shippingQuote = shipping.quote(deliveryAddress, cart.getSubtotal(), cart.getTotalQuantity());
         if (!shippingQuote.isCheckoutAllowed()) {
             session.setAttribute(ERROR_KEY, shippingQuote.message + " Đơn hàng chưa được tạo và chưa bị tính phí giao hàng.");
             response.sendRedirect(request.getContextPath() + "/checkout?addressId=" + deliveryAddress.getAddressID());
@@ -260,7 +258,7 @@ public class CheckoutController extends HttpServlet {
                     shippingAddress,
                     notes,
                     promotionCode,
-                    shippingQuote.fee,
+                    shippingQuote,
                     paymentMethod
             );
 

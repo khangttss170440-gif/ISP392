@@ -147,6 +147,11 @@ public class WarehouseOrderController extends HttpServlet {
             }
 
             request.setAttribute("order", order);
+            HttpSession session = request.getSession(false);
+            if (session.getAttribute("ghn.csrf") == null) session.setAttribute("ghn.csrf", java.util.UUID.randomUUID().toString());
+            request.setAttribute("ghnCsrf", session.getAttribute("ghn.csrf"));
+            request.setAttribute("ghnDelivery", new dao.GhnDeliveryDAO().find(orderID));
+            request.setAttribute("ghnConfigured", service.GhnClient.configured());
             request.setAttribute(
                     "orderLines",
                     warehouseOrderDAO.getOrderLines(orderID)

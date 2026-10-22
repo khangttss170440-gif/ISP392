@@ -16,14 +16,25 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
+import javax.imageio.ImageWriter;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.IIOImage;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 import javax.servlet.ServletContext;
 import javax.servlet.http.Part;
 
 /** Persistent product photos, independent of the deployed WAR directory. */
 public class ProductImageStore {
     public static final int MAX_IMAGES = 6;
-    public static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+    public static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    public static final long MAX_REQUEST_SIZE = 62 * 1024 * 1024;
+    public static final long MAX_PIXELS = 12_000_000L;
+    private static final int MAX_ENCODED_SIZE = 20 * 1024 * 1024;
+    private static final float JPEG_QUALITY = 0.98f;
     private final Path root;
 
     public ProductImageStore(Path root) { this.root = root.toAbsolutePath().normalize(); }
@@ -79,15 +90,16 @@ public class ProductImageStore {
     /** Validate every photo before changing product records. Do not trust MIME or filename. */
     public List<Upload> readUploads(Collection<Part> parts) throws IOException {
         List<Upload> uploads = new ArrayList<>();
+        long encodedTotal = 0;
         for (Part part : parts) {
             if (!"images".equals(part.getName()) || part.getSize() == 0) continue;
             if (uploads.size() >= MAX_IMAGES) throw new IllegalArgumentException("Mỗi sản phẩm tối đa 6 ảnh.");
-            if (part.getSize() > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa 5 MB.");
+            if (part.getSize() > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa 10 MB.");
             byte[] bytes;
             try (java.io.InputStream input = part.getInputStream()) {
                 bytes = input.readNBytes((int) MAX_FILE_SIZE + 1);
             }
-            if (bytes.length > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa 5 MB.");
+            if (bytes.length > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa 10 MB.");
             try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
                 Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
                 if (!readers.hasNext()) throw invalidImage();
@@ -97,17 +109,63 @@ public class ProductImageStore {
                     if (!format.equals("jpeg") && !format.equals("png")) throw invalidImage();
                     reader.setInput(input);
                     int width = reader.getWidth(0), height = reader.getHeight(0);
-                    if (width <= 0 || height <= 0 || (long) width * height > 12_000_000L) {
+                    if (width <= 0 || height <= 0 || (long) width * height > MAX_PIXELS) {
                         throw new IllegalArgumentException("Ảnh tối đa 12 megapixel.");
                     }
                     java.awt.image.BufferedImage decoded = reader.read(0);
-                    java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
-                    if (decoded == null || !ImageIO.write(decoded, format, output)) throw invalidImage();
-                    uploads.add(new Upload(output.toByteArray(), format.equals("jpeg") ? "jpg" : "png"));
+                    if (decoded == null) throw invalidImage();
+                    try {
+                        byte[] encoded = encode(decoded, format);
+                        encodedTotal += encoded.length;
+                        if (encodedTotal > MAX_IMAGES * MAX_FILE_SIZE)
+                            throw new IllegalArgumentException("Tổng ảnh sau xử lý vượt 60 MB. Vui lòng tải ít ảnh hơn mỗi lần.");
+                        uploads.add(new Upload(encoded, format.equals("jpeg") ? "jpg" : "png"));
+                    } finally { decoded.flush(); }
                 } finally { reader.dispose(); }
             } catch (javax.imageio.IIOException e) { throw invalidImage(); }
         }
         return uploads;
+    }
+
+    /** Keep the original pixel dimensions. PNG stays lossless; JPEG avoids default low quality/chroma subsampling. */
+    private byte[] encode(java.awt.image.BufferedImage image, String format) throws IOException {
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(format);
+        if (!writers.hasNext()) throw invalidImage();
+        ImageWriter writer = writers.next();
+        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream() {
+            private void checkSize(int extra) {
+                if (extra < 0 || (long) count + extra > MAX_ENCODED_SIZE)
+                    throw new IllegalArgumentException("Ảnh sau xử lý vượt 20 MB. Hãy chọn ảnh có dung lượng hoặc độ phân giải nhỏ hơn.");
+            }
+            @Override public synchronized void write(int value) { checkSize(1); super.write(value); }
+            @Override public synchronized void write(byte[] data, int offset, int length) {
+                checkSize(length); super.write(data, offset, length);
+            }
+        };
+        try (MemoryCacheImageOutputStream output = new MemoryCacheImageOutputStream(bytes)) {
+            writer.setOutput(output);
+            ImageWriteParam options = writer.getDefaultWriteParam();
+            IIOMetadata metadata = null;
+            if ("jpeg".equals(format)) {
+                options.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                options.setCompressionQuality(JPEG_QUALITY);
+                if (options.canWriteProgressive()) options.setProgressiveMode(ImageWriteParam.MODE_DEFAULT);
+                metadata = writer.getDefaultImageMetadata(ImageTypeSpecifier.createFromRenderedImage(image), options);
+                String treeName = "javax_imageio_jpeg_image_1.0";
+                IIOMetadataNode tree = (IIOMetadataNode) metadata.getAsTree(treeName);
+                org.w3c.dom.NodeList components = tree.getElementsByTagName("componentSpec");
+                for (int index = 0; index < components.getLength(); index++) {
+                    IIOMetadataNode component = (IIOMetadataNode) components.item(index);
+                    component.setAttribute("HsamplingFactor", "1");
+                    component.setAttribute("VsamplingFactor", "1");
+                }
+                metadata.setFromTree(treeName, tree);
+            }
+            // Use fresh metadata: retain image pixels without publishing source EXIF/GPS data.
+            writer.write(null, new IIOImage(image, null, metadata), options);
+            output.flush();
+            return bytes.toByteArray();
+        } finally { writer.dispose(); }
     }
 
     private IllegalArgumentException invalidImage() {

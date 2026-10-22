@@ -1,0 +1,73 @@
+<%@page pageEncoding="UTF-8"%>
+<%!
+private String ghnEscape(Object value) {
+    return value == null ? "" : value.toString().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;").replace("'","&#39;");
+}
+private String ghnStatus(Object value) {
+    if(value==null) return "Chưa tạo vận đơn";
+    switch(value.toString()) {
+        case "ready_to_pick": return "Chờ lấy hàng";
+        case "picking": return "Đang đến lấy hàng";
+        case "money_collect_picking": return "Thu tiền khi lấy hàng";
+        case "picked": return "Đã lấy hàng";
+        case "storing": return "Đang ở kho GHN";
+        case "sorting": return "Đang phân loại";
+        case "transporting": return "Đang vận chuyển";
+        case "delivering": return "Đang giao hàng";
+        case "money_collect_delivering": return "Thu tiền khi giao hàng";
+        case "delivered": return "Giao thành công";
+        case "delivery_fail": return "Giao thất bại";
+        case "waiting_to_return": return "Chờ trả về shop";
+        case "return": return "Đã yêu cầu trả hàng";
+        case "return_transporting": case "return_sorting": case "returning": return "Đang chuyển trả hàng";
+        case "return_fail": return "Trả hàng thất bại";
+        case "returned": return "Đã trả về shop";
+        case "cancel": return "Đã hủy vận đơn";
+        case "lost": return "Thất lạc";
+        case "damage": return "Hư hỏng";
+        case "scrap": return "Đã tiêu hủy";
+        default: return "Cần kiểm tra trên GHN";
+    }
+}
+%>
+<% java.util.Map<?,?> ghn = (java.util.Map<?,?>)request.getAttribute("ghnDelivery"); %>
+<section class="portal-panel">
+    <h2>Vận chuyển GHN — Test</h2>
+    <p>Hệ thống tự đồng bộ trạng thái từ API GHN Test khoảng mỗi phút khi website hoạt động. Khách hàng có thể theo dõi cập nhật trong Đơn hàng của tôi.</p>
+    <% if (ghn == null) { %>
+    <p>Đơn này chưa lưu địa chỉ GHN. Các đơn đặt mới sau khi bật kết nối sẽ có nút tạo vận đơn. Với đơn cũ, tiếp tục dùng phần giao hàng thủ công bên dưới.</p>
+    <% } else { %>
+    <p>Mã vận đơn: <b><%=ghnEscape(ghn.get("TrackingNumber"))%></b> · Trạng thái GHN: <b><%=ghnEscape(ghnStatus(ghn.get("CarrierStatus")))%></b> <%=ghn.get("CarrierStatus")==null ? "" : "("+ghnEscape(ghn.get("CarrierStatus"))+")"%></p>
+    <p>Phí hãng: <%=ghn.get("CarrierFee")==null ? "Chưa nhận được phí từ GHN" : java.text.NumberFormat.getInstance(new java.util.Locale("vi","VN")).format(ghn.get("CarrierFee"))+"₫"%>. Shop trả phí cho GHN; tiền COD đã gồm phí khách trả tại bước đặt hàng.</p>
+    <% if ("cancel".equals(ghn.get("CarrierStatus"))) { %>
+    <div class="alert error">GHN đã hủy vận đơn này. Website đã dừng giao theo vận đơn. Đơn mua hàng và khoản thanh toán cần được cửa hàng xử lý riêng; hủy vận đơn chưa phải xác nhận hoàn tiền.</div>
+    <% } %>
+    <% if (!Boolean.TRUE.equals(request.getAttribute("ghnConfigured"))) { %>
+    <div class="alert error">Chưa đọc được GHN_TOKEN/GHN_SHOP_ID. Mở lại NetBeans và Tomcat sau khi lưu cấu hình.</div>
+    <% } %>
+    <% if (!"Ready".equals(ghn.get("BookingState"))) { %>
+    <form action="<%=request.getContextPath()%>/staff/warehouse/ghn" method="post">
+        <input type="hidden" name="csrfToken" value="<%=ghnEscape(request.getAttribute("ghnCsrf"))%>">
+        <input type="hidden" name="orderId" value="<%=o.getOrderID()%>">
+        <input type="hidden" name="action" value="sync">
+        <button class="button">Cập nhật trạng thái từ GHN</button>
+    </form>
+    <p>Khi GHN báo giao thành công, đơn và thanh toán COD sẽ được cập nhật. Nếu cần hủy, hủy vận đơn trên GHN test, cập nhật trạng thái ở đây rồi nhờ Sales hủy đơn.</p>
+    <% } %>
+    <% if ("Confirmed".equalsIgnoreCase(o.getOrderStatus()) && !"Booked".equals(ghn.get("BookingState"))) { %>
+    <form action="<%=request.getContextPath()%>/staff/warehouse/ghn" method="post" class="portal-form-grid">
+        <input type="hidden" name="csrfToken" value="<%=ghnEscape(request.getAttribute("ghnCsrf"))%>">
+        <input type="hidden" name="orderId" value="<%=o.getOrderID()%>">
+        <input type="hidden" name="action" value="create">
+        <div><label class="form-label">Cân nặng thực tế (g)</label><input class="field" type="number" name="weight" min="1" max="19999" value="<%=lines==null?500:lines.stream().mapToInt(model.OrderLine::getQuantity).sum()*500%>" required></div>
+        <div><label class="form-label">Dài (cm)</label><input class="field" type="number" name="length" min="1" max="200" value="30" required></div>
+        <div><label class="form-label">Rộng (cm)</label><input class="field" type="number" name="width" min="1" max="200" value="20" required></div>
+        <div><label class="form-label">Cao (cm)</label><input class="field" type="number" name="height" min="1" max="200" value="10" required></div>
+        <p class="span-all">Cân đo kiện trước khi gửi. Phí hãng có thể khác phí checkout; phần chênh lệch do shop thanh toán.</p>
+        <% if (!"Ready".equals(ghn.get("BookingState"))) { %>
+        <p class="span-all">Lần gửi trước chưa rõ kết quả. Bấm cập nhật trạng thái trước. Gửi lại sử dụng nguyên nội dung và mã đã lưu để tránh tạo trùng; các số đo nhập lại sẽ không thay đổi yêu cầu trước.</p>
+        <% } %>
+        <div class="span-all"><button class="button"><%="Ready".equals(ghn.get("BookingState")) ? "Tạo vận đơn GHN test" : "Gửi lại cùng mã đơn GHN"%></button></div>
+    </form>
+    <% } } %>
+</section>

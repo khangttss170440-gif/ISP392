@@ -22,7 +22,8 @@
     <div class="breadcrumb"><a href="<%=request.getContextPath()%>/products">Sản phẩm</a>　/　<%=navEscape(product.getCategoryName())%>　/　<%=navEscape(product.getProductName())%></div>
     <div class="detail-layout">
         <div class="product-gallery">
-            <div class="detail-art product-photo"><img id="mainProductImage" src="<%=request.getContextPath()%>/product-image?productId=<%=product.getProductID()%>" alt="<%=navEscape(product.getProductName())%>"></div>
+            <a id="fullProductImage" class="detail-art product-photo" href="<%=request.getContextPath()%>/product-image?productId=<%=product.getProductID()%>" target="_blank" rel="noopener" aria-label="Mở ảnh sản phẩm kích thước đầy đủ"><img id="mainProductImage" src="<%=request.getContextPath()%>/product-image?productId=<%=product.getProductID()%>" alt="<%=navEscape(product.getProductName())%>" decoding="async" fetchpriority="high"></a>
+            <p class="product-meta">Bấm vào ảnh để xem kích thước đầy đủ.</p>
             <% if (productImages != null && !productImages.isEmpty()) { %>
             <div class="product-image-thumbs" aria-label="Chọn ảnh sản phẩm">
                 <% for (int i = 0; i < productImages.size(); i++) {

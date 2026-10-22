@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <style>
         .password-card{max-width:620px;margin:42px auto;padding:clamp(24px,5vw,46px);background:#fff;border:1px solid #e6e1d8;border-radius:16px;box-shadow:0 12px 34px #192b2110}
-        .password-card h1{font:700 clamp(30px,4vw,40px)/1.15 Manrope,sans-serif;margin:8px 0}
+        .password-card h1{font:700 clamp(30px,4vw,40px)/1.15 Arial,sans-serif;margin:8px 0}
         .password-card>p{color:var(--muted);margin:0 0 20px}
         .password-card .button{margin-top:22px}
         .password-card .form-label{margin-top:16px}

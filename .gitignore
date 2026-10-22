@@ -4,3 +4,5 @@
 *.class
 /product-images/*/
 /test/.scratch/
+/database/supabase/private/
+/database/supabase/.validation/

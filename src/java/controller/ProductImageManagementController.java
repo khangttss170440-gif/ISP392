@@ -19,7 +19,7 @@ import model.Staff;
 import service.ProductImageStore;
 
 @WebServlet(urlPatterns = {"/staff/warehouse/product-images", "/admin/product-images"})
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 32 * 1024 * 1024)
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = ProductImageStore.MAX_FILE_SIZE, maxRequestSize = ProductImageStore.MAX_REQUEST_SIZE)
 public class ProductImageManagementController extends HttpServlet {
     private static final String TOKEN = "productImages.csrf";
     private static final String MESSAGE = "productImages.message";
@@ -111,7 +111,7 @@ public class ProductImageManagementController extends HttpServlet {
             }
             session.setAttribute(MESSAGE, "Đã cập nhật ảnh sản phẩm #" + id + ".");
         } catch (IllegalStateException e) {
-            session.setAttribute(ERROR, "Ảnh vượt giới hạn tải lên. Tối đa 6 ảnh, mỗi ảnh 5 MB.");
+            session.setAttribute(ERROR, "Ảnh vượt giới hạn tải lên. Tối đa 6 ảnh, mỗi ảnh 10 MB.");
         } catch (IllegalArgumentException e) {
             session.setAttribute(ERROR, e.getMessage());
         } catch (SQLException e) {

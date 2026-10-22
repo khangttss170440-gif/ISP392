@@ -67,7 +67,7 @@
             <form class="cart-list" action="<%=request.getContextPath()%>/checkout" method="post">
                 <input type="hidden" name="shippingFeePreview" value="<%=request.getAttribute("shippingFee")%>">
                 <input type="hidden" name="promotionCode" value="<%=checkoutEscape(request.getAttribute("promotionCode"))%>">
-                <h2 style="font:700 20px Manrope;margin:0 0 15px">Người nhận hàng</h2>
+                <h2 style="font:700 20px Arial,sans-serif;margin:0 0 15px">Người nhận hàng</h2>
                 <label class="form-label" for="recipientName">Họ và tên tài khoản</label>
                 <input class="field" id="recipientName" value="<%=checkoutEscape(customer.getFullName())%>" readonly>
 

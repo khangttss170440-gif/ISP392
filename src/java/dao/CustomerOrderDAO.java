@@ -123,8 +123,9 @@ public class CustomerOrderDAO {
                 + " - so.DiscountAmount + so.ShippingFee) AS TotalAmount, "
                 + "payment.PaymentMethod, payment.PaymentStatus, "
                 + "shipment.ShipmentStatus, shipment.TrackingNumber, "
-                + "shipment.Carrier, shipment.ShippingAddress "
+                + "shipment.Carrier, shipment.ShippingAddress, ghn.CarrierStatus, ghn.LastSyncedAt "
                 + "FROM dbo.SalesOrder so "
+                + "LEFT JOIN dbo.GhnDelivery ghn ON ghn.OrderID=so.OrderID "
                 + "OUTER APPLY ( "
                 + "    SELECT SUM(od.Quantity * od.UnitPrice) AS Subtotal "
                 + "    FROM dbo.OrderDetail od "
@@ -162,7 +163,23 @@ public class CustomerOrderDAO {
         order.setTrackingNumber(result.getString("TrackingNumber"));
         order.setCarrier(result.getString("Carrier"));
         order.setShippingAddress(result.getString("ShippingAddress"));
+        order.setCarrierStatus(result.getString("CarrierStatus"));
+        order.setLastCarrierSync(result.getTimestamp("LastSyncedAt"));
 
         return order;
+    }
+
+    public List<CustomerOrder> getTrackingOrders(int customerID,List<Integer> orderIDs) throws SQLException {
+        if(customerID<=0 || orderIDs==null || orderIDs.isEmpty() || orderIDs.size()>100)
+            throw new IllegalArgumentException("Invalid tracking selection.");
+        String placeholders=String.join(",",java.util.Collections.nCopies(orderIDs.size(),"?"));
+        String sql=orderSelect()+" WHERE so.CustomerID=? AND so.OrderID IN ("+placeholders+")";
+        List<CustomerOrder> orders=new ArrayList<>();
+        try(Connection connection=DBConnection.getConnection();PreparedStatement s=connection.prepareStatement(sql)) {
+            s.setQueryTimeout(5);s.setInt(1,customerID);
+            for(int i=0;i<orderIDs.size();i++) s.setInt(i+2,orderIDs.get(i));
+            try(ResultSet r=s.executeQuery()){while(r.next()) orders.add(mapOrder(r));}
+        }
+        return orders;
     }
 }

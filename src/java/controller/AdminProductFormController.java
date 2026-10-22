@@ -18,7 +18,7 @@ import service.ProductImageStore;
 import service.ProductImageStore.Upload;
 
 @WebServlet(urlPatterns = {"/admin/product-form", "/staff/warehouse/product-form"})
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 32 * 1024 * 1024)
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = ProductImageStore.MAX_FILE_SIZE, maxRequestSize = ProductImageStore.MAX_REQUEST_SIZE)
 public class AdminProductFormController extends HttpServlet {
 
     private static final String PAGE = "/admin/product-form.jsp";
@@ -79,7 +79,7 @@ public class AdminProductFormController extends HttpServlet {
             saveProduct(request, response);
         } catch (IllegalStateException e) {
             response.sendError(413,
-                    "Ảnh tải lên vượt giới hạn. Tối đa 6 ảnh, mỗi ảnh 5 MB. Vui lòng quay lại và chọn lại ảnh.");
+                    "Ảnh tải lên vượt giới hạn. Tối đa 6 ảnh, mỗi ảnh 10 MB. Vui lòng quay lại và chọn lại ảnh.");
         }
     }
 

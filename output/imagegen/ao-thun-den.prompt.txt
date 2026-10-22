@@ -1,0 +1,9 @@
+Method: built-in image_gen (generation, then a higher-resolution edit request).
+Actual delivered source: 1122 x 1402 px, PNG. Target requested in prompt: 1600 x 2000 px.
+No local resampling applied yet.
+
+Generation prompt:
+Use case: product-mockup. Asset type: a single high-resolution clothing product photograph for an online menswear store. Generate exactly one plain black men's short-sleeve crew-neck T-shirt, front view, entire shirt visible, centered and neatly shaped using an invisible mannequin effect, no human or mannequin visible. Premium realistic black cotton jersey, sharply resolved fine fabric weave, accurate ribbed collar, natural subtle folds, clean double-stitched hems. Deep neutral black material with soft directional studio lighting that reveals texture and separates the edges without making the shirt look gray. Seamless warm-white/light-gray studio background, subtle soft shadow, uncluttered catalog composition, shirt occupies about 80 percent of frame with comfortable margins around sleeves and hem. Photorealistic, crisp edges, consistent fabric details, no artificial sharpening halos, no blur. Portrait aspect ratio 4:5, target output 1600 pixels wide by 2000 pixels high, at least 1200 pixels on the short side. No text, no logos, no graphics, no watermark, no labels in the picture, no props, no collage, one shirt only.
+
+Edit prompt summary:
+Preserve the same shirt, framing, black cotton texture, stitching, background and lighting; upscale to exactly 1600 x 2000 px, at least 1200 px on the short side, without added text, logos, borders or watermark. The tool still delivered 1122 x 1402 px.

@@ -1,5 +1,5 @@
 .shipping-widget { margin: 22px 0; padding: 20px; background: #f6f3ed; border: 1px solid #ded7cc; min-width: 0; }
-.shipping-widget h3 { margin: 0 0 12px; font: 400 25px "Times New Roman", serif; color: #33271f; }
+.shipping-widget h3 { margin: 0 0 12px; font: 400 25px Arial,sans-serif; color: #33271f; }
 .shipping-widget p { font-size: 13px; line-height: 1.7; color: #665745; overflow-wrap: anywhere; }
 .shipping-widget strong { color: #76552e; }
 .shipping-widget [data-shipping-search] { margin: 6px 0 8px; }
