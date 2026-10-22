@@ -1,0 +1,3 @@
+Generated with the built-in image_gen tool.
+
+Use case: product-mockup. Create a photorealistic premium menswear ecommerce editorial photograph for a square homepage category card. Subject: a single handsome dark cognac brown men's leather belt neatly coiled with an elegant brushed silver rectangular buckle clearly visible, realistic leather grain and stitching. Still life on a warm charcoal brown matte studio surface, soft directional light, refined understated luxury. Compose belt and buckle mainly in the upper two thirds, leave darker quiet background in bottom third for white website text overlay. Entire belt readable in square crop, no people, no mannequin, no wallet, no watch, no text, no branding, no watermark. Output one square photograph.

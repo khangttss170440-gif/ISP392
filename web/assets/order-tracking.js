@@ -22,7 +22,10 @@
         text(row, '[data-tracking-number]', item.trackingNumber || 'Chưa có mã vận đơn');
         text(row, '[data-tracking-carrier]', item.carrier || 'Shop đang chuẩn bị giao hàng');
         text(row, '[data-carrier-last-sync]', item.lastSyncAt ? `Đồng bộ vận chuyển: ${clock.format(new Date(item.lastSyncAt))}` : 'Chưa có lần đồng bộ từ hãng vận chuyển.');
-        row.querySelectorAll('[data-order-request]').forEach(el => { el.hidden = !item.requestAllowed; });
+        row.querySelectorAll('[data-order-request]').forEach(el => {
+            el.hidden = !item.requestAllowed;
+            el.textContent = item.orderStatus === 'Delivered' ? 'Gửi yêu cầu' : 'Hủy đơn';
+        });
         if (!wasDelivered && item.orderStatus === 'Delivered') {
             const review = row.querySelector('[data-review-refresh]');
             if (review) review.hidden = false;

@@ -48,7 +48,7 @@ NumberFormat money=NumberFormat.getInstance(new Locale("vi","VN"));
                 <span data-payment-status><%=ordersEscape(o.getPaymentStatusLabel())%></span></div>
             <div class="portal-actions">
                 <a class="button line small" href="<%=request.getContextPath()%>/customer/order-detail?orderId=<%=o.getOrderID()%>">Chi tiết</a>
-                <a data-order-request <%=requestAllowed?"":"hidden"%> class="button line small" href="<%=request.getContextPath()%>/customer/order-request?orderId=<%=o.getOrderID()%>">Gửi yêu cầu</a>
+                <a data-order-request <%=requestAllowed?"":"hidden"%> class="button line small" href="<%=request.getContextPath()%>/customer/order-request?orderId=<%=o.getOrderID()%>"><%="Delivered".equalsIgnoreCase(status)?"Gửi yêu cầu":"Hủy đơn"%></a>
             </div>
         </article>
     <% } %>

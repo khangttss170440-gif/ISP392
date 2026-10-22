@@ -1,0 +1,31 @@
+<%@page pageEncoding="UTF-8" import="java.util.List,model.Product"%>
+<section class="home-products" aria-labelledby="homeProductsTitle">
+    <div class="shell">
+        <div class="editorial-intro">
+            <span class="eyebrow">MENSFORM SELECTION</span>
+            <h2 id="homeProductsTitle">Khám phá sản phẩm</h2>
+            <p>Những lựa chọn mới nhất dành cho phong cách của bạn.</p>
+        </div>
+        <% List<Product> homeProducts = (List<Product>) request.getAttribute("homeProducts");
+           if (homeProducts != null && !homeProducts.isEmpty()) { %>
+        <div class="home-carousel" data-product-carousel>
+            <button class="home-carousel-arrow" type="button" data-carousel-prev aria-label="Xem sản phẩm trước" aria-controls="homeProductTrack" hidden><span aria-hidden="true">&#8592;</span></button>
+            <div class="home-product-track" id="homeProductTrack" tabindex="0" role="region" aria-label="Danh sách sản phẩm, dùng mũi tên để xem thêm">
+                <% for (Product homeProduct : homeProducts) { %>
+                <a class="home-product-card" href="<%=request.getContextPath()%>/product-detail?productId=<%=homeProduct.getProductID()%>">
+                    <div class="home-product-image"><img src="<%=request.getContextPath()%>/product-image?productId=<%=homeProduct.getProductID()%>" alt="<%=navEscape(homeProduct.getProductName())%>" loading="lazy" width="600" height="750"></div>
+                    <div class="home-product-copy">
+                        <span><%=navEscape(homeProduct.getCategoryName())%></span>
+                        <h3><%=navEscape(homeProduct.getProductName())%></h3>
+                        <p>Xem chi tiết <span aria-hidden="true">&#8599;</span></p>
+                    </div>
+                </a>
+                <% } %>
+            </div>
+            <button class="home-carousel-arrow" type="button" data-carousel-next aria-label="Xem sản phẩm tiếp theo" aria-controls="homeProductTrack" hidden><span aria-hidden="true">&#8594;</span></button>
+        </div>
+        <% } else { %>
+        <p class="home-products-empty"><%=Boolean.TRUE.equals(request.getAttribute("homeProductsUnavailable")) ? "Chưa tải được sản phẩm. Bạn vui lòng thử lại sau." : "Sản phẩm mới sẽ sớm được cập nhật."%></p>
+        <% } %>
+    </div>
+</section>

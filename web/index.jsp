@@ -18,6 +18,7 @@
         </div>
         <div class="hero-index" aria-hidden="true">MENSFORM <span></span> THE EVERYDAY EDIT</div>
     </section>
+    <%@include file="/includes/home-products.jspf"%>
     <section class="wardrobe-section" id="discover" aria-labelledby="discoverTitle">
         <div class="shell">
             <div class="editorial-intro"><span class="eyebrow">THE WARDROBE</span><h2 id="discoverTitle">Định hình phong cách riêng.</h2><p>Từ ngày làm việc đến những cuộc hẹn cuối tuần. Luôn là chính bạn.</p></div>
@@ -29,7 +30,7 @@
         </div>
     </section>
     <section class="editorial-offer" aria-labelledby="offerTitle"><div class="shell">
-        <div><span class="eyebrow">A LITTLE SOMETHING FOR YOU</span><h2 id="offerTitle">Lựa chọn có gu. Ưu đãi xứng tầm.</h2><p>Khám phá các mã khuyến mãi và điều kiện áp dụng cho đơn hàng của bạn.</p></div>
+        <div><span class="eyebrow">A LITTLE SOMETHING FOR YOU</span><h2 id="offerTitle">Lựa chọn có gu. Ưu đãi xứng tầm.</h2><p class="home-offer-description">Khám phá các mã khuyến mãi và điều kiện áp dụng cho đơn hàng của bạn.</p></div>
         <a class="button" href="<%=request.getContextPath()%>/promotions">Xem ưu đãi <span aria-hidden="true">→</span></a>
     </div>
     <%@include file="/includes/home-promotions.jspf"%>
@@ -38,9 +39,9 @@
         <div class="collection-image" role="img" aria-label="Phong cách thời trang nam tinh giản"></div>
         <div class="collection-copy"><span class="eyebrow">MENSFORM COLLECTION</span><h2 id="collectionTitle">Tối giản.<br>Tinh tế. Khác biệt.</h2><p>Không cần quá nhiều chi tiết để tạo nên dấu ấn. Chọn những thiết kế phù hợp, phối theo cách của bạn và tự tin trong từng khoảnh khắc.</p><a class="button" href="<%=request.getContextPath()%>/products">Xem bộ sưu tập <span aria-hidden="true">→</span></a></div>
     </section>
-    <div class="store-values-band"><div class="shell store-values"><div><b>THIẾT KẾ TINH GIẢN</b><p>Phom dáng hiện đại, dễ dàng kết hợp.</p></div><div><b>PHONG CÁCH CỦA BẠN</b><p>Chọn đúng thiết kế, thể hiện chất riêng.</p></div><div><b>MUA SẮM AN TÂM</b><p>Thanh toán khi nhận hàng tiện lợi.</p></div></div></div>
 </main>
 <%@include file="/includes/footer.jspf"%>
 <%@include file="/includes/chatbot.jspf"%>
 <script src="<%=request.getContextPath()%>/assets/chatbot.js" defer></script>
+<script src="<%=request.getContextPath()%>/assets/home-products.js" defer></script>
 </body></html>
