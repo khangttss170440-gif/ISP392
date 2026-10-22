@@ -15,7 +15,10 @@ public class ProductCatalogDAO {
 
     private static final String PRODUCT_SELECT
             = "SELECT p.ProductID, p.CategoryID, c.CategoryName, "
-            + "p.ProductName, p.Description, p.Brand, p.Material, p.Status "
+            + "p.ProductName, p.Description, p.Brand, p.Material, p.Status, "
+            + "CASE WHEN EXISTS (SELECT 1 FROM dbo.ProductVariant pv "
+            + "WHERE pv.ProductID = p.ProductID AND pv.Status = 'Active' "
+            + "AND pv.Quantity > 0) THEN 1 ELSE 0 END AS InStock "
             + "FROM dbo.Product p "
             + "INNER JOIN dbo.ProductCategory c "
             + "ON c.CategoryID = p.CategoryID ";
@@ -149,6 +152,7 @@ public class ProductCatalogDAO {
         product.setBrand(result.getString("Brand"));
         product.setMaterial(result.getString("Material"));
         product.setStatus(result.getString("Status"));
+        product.setInStock(result.getBoolean("InStock"));
         return product;
     }
 

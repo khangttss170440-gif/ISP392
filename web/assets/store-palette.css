@@ -1,0 +1,61 @@
+/* Shared storefront palette, matching the home page's cream, brown and gold. */
+:root {
+    --paper: #fffcf7;
+    --line: #ded3c3;
+    --muted: #746858;
+}
+
+body { background: var(--cream); }
+
+.topbar {
+    background: var(--brown);
+    border-bottom-color: #b99a6040;
+    color: #faf6ee;
+}
+.topbar .brand, .topbar .navlinks, .topbar .nav-actions { color: #faf6ee; }
+.topbar .brand-caption { color: #d5b57a; }
+.topbar .navlinks { border-color: #b99a6040; }
+.topbar .nav a:hover { color: #e5c994; }
+.topbar .avatar-icon { background: #453429; border-color: #8f7550; }
+.topbar .account-panel { background: var(--brown); color: #faf6ee; border-color: #8f7550; }
+.topbar .account-panel-title, .topbar .account-panel form { border-color: #b99a6040; }
+.topbar .account-panel-title small { color: #d5b57a; }
+.topbar .account-panel > a, .topbar .account-panel button { color: #faf6ee; }
+.topbar .account-panel > a:hover, .topbar .account-panel button:hover {
+    background: #453429;
+    color: #e5c994;
+}
+
+.page { background: var(--cream); }
+.filter-box, .cart-list, .summary, .review, .empty-state,
+.promotion-card, .auth-wrap, .account-shortcut, .password-card {
+    background: var(--paper);
+    border-color: var(--line);
+}
+.filter-box h3 { color: var(--brown); }
+.filter-link { color: #746858; }
+.filter-link:hover { background: #efe6d8; color: #654b2b; }
+.filter-link.active { background: var(--brown); color: #f0dbb2; }
+.product-grid .product-card { background: var(--paper); border: 1px solid #bca98e; padding: 8px; }
+.product-grid .product-card:hover { background: var(--paper); border-color: #98733e; }
+.product-grid .product-card > a { display: block; height: 100%; }
+.product-grid .product-info { padding: 18px 12px; }
+.product-stock { position: absolute; bottom: 12px; left: 12px; z-index: 1; display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border: 1px solid; font: 600 13px/1.4 "Segoe UI", Arial, sans-serif; }
+.product-stock::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.product-stock.in-stock { color: #21633b; background: #f0faf2; border-color: #a4c8ae; }
+.product-stock.out-of-stock { color: #a12c2c; background: #fff3f1; border-color: #dfb0a9; }
+.product-tag { background: var(--brown); color: #f0dbb2; }
+.product-category, .product-meta, .catalog-top, .page-intro, .breadcrumb { color: var(--muted); }
+.product-bottom { border-color: var(--line); }
+.product-bottom .text-link, .product-bottom > span { color: #76552d; }
+.field, .select, .textarea, .qty { background: var(--paper); color: var(--ink); }
+.field::placeholder, .textarea::placeholder { color: var(--muted); }
+.button { background: var(--brown); border-color: var(--brown); color: #faf6ee; }
+.button:hover { background: #7b5a35; border-color: #7b5a35; }
+.button.line { background: transparent; border-color: #ac9471; color: var(--brown); }
+.button.line:hover { background: #eae0d0; }
+.button.light { background: var(--gold); border-color: var(--gold); color: #211b17; }
+.button.light:hover { background: #cdb786; border-color: #7b5a35; }
+.promotion-banner { background: #eae3d7; border-color: var(--line); border-radius: 0; }
+.promotion-code, .account-cell { background: #efe7da; }
+.account-shortcut:hover { background: #efe7da; }

@@ -10,6 +10,15 @@ public class Product {
     private String brand;
     private String material;
     private String status;
+    private boolean inStock;
+
+    public boolean isInStock() {
+        return inStock;
+    }
+
+    public void setInStock(boolean inStock) {
+        this.inStock = inStock;
+    }
 
     public int getProductID() {
         return productID;

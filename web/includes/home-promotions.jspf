@@ -19,5 +19,7 @@
     <% } %>
 </div>
 <% } else { %>
-<p class="shell home-offer-empty"><%=Boolean.TRUE.equals(request.getAttribute("homePromotionsUnavailable")) ? "Chưa tải được ưu đãi. Bạn vui lòng thử lại sau." : "Chưa có khuyến mãi đang diễn ra. Ghé lại để khám phá những ưu đãi mới."%></p>
+<div class="shell home-offer-empty">
+    <p><%=Boolean.TRUE.equals(request.getAttribute("homePromotionsUnavailable")) ? "Chưa tải được ưu đãi. Bạn vui lòng thử lại sau." : "Chưa có khuyến mãi đang diễn ra. Ghé lại để khám phá những ưu đãi mới."%></p>
+</div>
 <% } %>
