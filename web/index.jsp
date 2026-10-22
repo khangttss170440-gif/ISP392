@@ -37,7 +37,7 @@
     </section>
     <section class="collection-story" id="collection" aria-labelledby="collectionTitle">
         <div class="collection-image" role="img" aria-label="Phong cách thời trang nam tinh giản"></div>
-        <div class="collection-copy"><span class="eyebrow">MENSFORM COLLECTION</span><h2 id="collectionTitle">Tối giản.<br>Tinh tế. Khác biệt.</h2><p>Không cần quá nhiều chi tiết để tạo nên dấu ấn. Chọn những thiết kế phù hợp, phối theo cách của bạn và tự tin trong từng khoảnh khắc.</p><a class="button" href="<%=request.getContextPath()%>/products">Xem bộ sưu tập <span aria-hidden="true">→</span></a></div>
+        <div class="collection-copy"><span class="eyebrow">MENSFORM COLLECTION</span><h2 id="collectionTitle">Phối hợp đẹp.<br>Chọn đồ dễ hơn.</h2><p>Khám phá cách phối áo, quần và phụ kiện theo dịp sử dụng, màu sắc và ngân sách. Chọn một set gợi ý rồi tìm size phù hợp cho từng món.</p><a class="button" href="<%=request.getContextPath()%>/collections">Xem bộ sưu tập <span aria-hidden="true">→</span></a></div>
     </section>
 </main>
 <%@include file="/includes/footer.jspf"%>

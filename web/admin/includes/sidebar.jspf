@@ -8,6 +8,7 @@
     <div>
         <div class="admin-caption">Qu&#7843;n l&#253; c&#7917;a h&#224;ng</div>
         <nav class="admin-nav">
+            <a class="admin-link <%=adminSection.contains("collection") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/collections"><span>◇</span>Bộ sưu tập</a>
             <a class="admin-link <%=adminSection.contains("products") || adminSection.contains("product-form") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/products"><span>&#9638;</span>S&#7843;n ph&#7849;m</a>
             <a class="admin-link <%=adminSection.contains("categories") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/categories"><span>&#9672;</span>Danh m&#7909;c</a>
             <a class="admin-link <%=adminSection.contains("product-images") ? "active" : ""%>" href="<%=request.getContextPath()%>/admin/product-images"><span>▧</span>Ảnh sản phẩm</a>

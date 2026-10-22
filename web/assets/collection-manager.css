@@ -1,0 +1,9 @@
+.collection-piece-list{display:grid;gap:16px;margin-top:20px}
+.collection-piece-row{display:grid;grid-template-columns:80px minmax(0,1fr) 160px;gap:16px;align-items:center;border-top:1px solid var(--line);padding-top:16px}
+.collection-piece-photo{width:80px;height:100px;background:#f4f3ee;border-radius:6px;overflow:hidden}
+.collection-piece-photo img{display:block;width:100%;height:100%;object-fit:contain}
+.collection-piece-photo img[hidden]{display:none}
+.collection-piece-row .select{width:100%;min-width:0}
+.collection-stock-warning{font-size:12px;color:#994b13;max-width:210px}
+.admin-form-grid textarea{resize:vertical}
+@media(max-width:700px){.collection-piece-row{grid-template-columns:64px minmax(0,1fr);gap:12px}.collection-piece-photo{width:64px;height:80px;grid-row:span 2}.collection-piece-row>div:last-child{grid-column:2}.admin-form-grid{grid-template-columns:1fr}.admin-topline{align-items:flex-start;flex-wrap:wrap}}

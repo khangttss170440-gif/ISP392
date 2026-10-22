@@ -17,6 +17,7 @@
                 <a class="portal-link <%=sp.contains("inventory-issues") ? "active" : ""%>" href="<%=request.getContextPath()%>/staff/sales/inventory-issues">&#9888; S&#7921; c&#7889; kho</a>
                 <a class="portal-link <%=sp.contains("support") ? "active" : ""%>" href="<%=request.getContextPath()%>/staff/sales/support">&#9993; H&#7895; tr&#7907;</a>
             <% } else { %>
+                <a class="portal-link <%=sp.contains("collection") ? "active" : ""%>" href="<%=request.getContextPath()%>/staff/warehouse/collections">◇ Bộ sưu tập</a>
                 <a class="portal-link <%=sp.endsWith("/orders") || sp.endsWith("/order-detail") ? "active" : ""%>" href="<%=request.getContextPath()%>/staff/warehouse/orders">&#9638; &#272;&#417;n xu&#7845;t kho</a>
                 <a class="portal-link <%=sp.contains("stocktaking") ? "active" : ""%>" href="<%=request.getContextPath()%>/staff/warehouse/stocktaking">&#9783; Ki&#7875;m k&#234; t&#7891;n kho</a>
                 <a class="portal-link <%=sp.contains("inventory-issues") ? "active" : ""%>" href="<%=request.getContextPath()%>/staff/warehouse/inventory-issues">&#9888; B&#225;o c&#225;o s&#7921; c&#7889;</a>

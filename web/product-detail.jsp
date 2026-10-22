@@ -70,6 +70,7 @@
                 <div class="inline-form"><div class="grow"><label class="form-label" for="quantity">Số lượng</label><input class="field" id="quantity" name="quantity" type="number" min="1" max="99" value="1" required></div><button class="button" id="addVariantToCart" type="submit" <%=variants == null || variants.isEmpty() ? "disabled" : ""%>>Thêm vào giỏ　↗</button></div>
             </form>
             <p class="product-meta" style="margin-top:15px">Đơn từ 799.000₫ miễn phí giao hàng toàn quốc · Đơn dưới mức này tính phí tham khảo theo khu vực J&amp;T và số lượng sản phẩm</p>
+            <p><a class="button line small" href="<%=request.getContextPath()%>/collections?productId=<%=product.getProductID()%>">Gợi ý phối cùng sản phẩm này ↗</a></p>
         </div>
     </div>
     <section class="section"><div class="section-head"><div><span class="eyebrow">Khách hàng chia sẻ</span><h2>Đánh giá sản phẩm</h2></div><div class="stars">★ <%=request.getAttribute("averageRating") == null ? "0" : request.getAttribute("averageRating")%> / 5 · <%=request.getAttribute("reviewCount") == null ? "0" : request.getAttribute("reviewCount")%> đánh giá</div></div><div class="review-list">

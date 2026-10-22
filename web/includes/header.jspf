@@ -34,7 +34,7 @@
     <nav class="navlinks" aria-label="Điều hướng chính">
         <a href="<%=request.getContextPath()%>/index.jsp">Trang chủ</a>
         <a href="<%=request.getContextPath()%>/products">Sản phẩm</a>
-        <a href="<%=request.getContextPath()%>/index.jsp#collection">Bộ sưu tập</a>
+        <a href="<%=request.getContextPath()%>/collections" <%=Boolean.TRUE.equals(request.getAttribute("collectionPage"))?"aria-current=\"page\"":""%>>Bộ sưu tập</a>
         <a href="<%=request.getContextPath()%>/promotions">Khuyến mãi</a>
     </nav>
     <div class="nav-actions">

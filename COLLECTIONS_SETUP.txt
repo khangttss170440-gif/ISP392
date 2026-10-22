@@ -1,0 +1,42 @@
+MENSFORM - BO SUU TAP PHOI DO
+
+QUAN LY BO SUU TAP
+- Admin: /MenWearStore/admin/collections
+- Nhan vien Kho: /MenWearStore/staff/warehouse/collections
+- Menu Bo suu tap da duoc them vao ca hai khu vuc.
+- Chi tai khoan Staff Active co Role Admin hoac Warehouse duoc truy cap.
+  Quyen duoc doc lai tu database tren moi request va khi luu.
+- Chon Tao bo suu tap, nhap ten, dip su dung, mo ta va huong dan phoi.
+- Chon toi da 6 san pham/mau, moi san pham xuat hien mot lan.
+- Vai tro: Ao, Quan, Ao khoac, Giay, Phu kien. Co anh xem truoc theo mau.
+- Ban nhap: cho phep chua chon du mon, hoac mon hien da het hang.
+- Cong khai: can it nhat Ao va Quan; tat ca san pham/mau dang ban va con hang.
+- An: doi trang thai thanh An khoi trang khach hang roi luu.
+- Admin va Kho cung xem/sua cac bo; luu nguoi tao, nguoi sua va thoi diem.
+- CSRF token bao ve POST; revision ngan ghi de phien ban nguoi khac vua sua.
+- Cac mon duoc luu cung bo trong mot transaction.
+
+TRANG KHACH HANG
+- /MenWearStore/collections mac dinh hien cac bo cua cua hang da Cong khai.
+- Ban nhap va bo Da an khong hien cho khach.
+- Neu bat ky mon/mau nao het hang, ngung ban hoac khong con bien the,
+  toan bo bo phoi tam an. Tu hien lai khi cac mon kha dung tro lai.
+- Loc theo dip, ngan sach toi da va san pham muon phoi cung.
+- Gia tu = tong gia thap nhat cua tung mau theo cac size con hang hien tai.
+- Khach xem tung san pham, chon size va them vao gio nhu luong hien co.
+- Hinh uu tien mau da chon; thieu anh mau thi dung anh dai dien.
+- Tab Goi y phoi tu dong van co tai /collections?source=suggested.
+  Tab nay ghep ao/quan theo danh muc, kieu dang, mau va hang con san,
+  co the bo sung giay/phu kien phu hop. Khong tu luu bo thanh ban Cong khai.
+- Khong dung API AI ben ngoai, khong tao gia/ton kho/anh gia lap.
+
+DATABASE VA TRIEN KHAI
+- Da ap dung migration tren SQL Server MenWearStore cuc bo cua project nay.
+- Khi trien khai sang database khac, chay file SQL Server:
+  database/migrations/20261022_outfit_collections.sql
+- Migration tao dbo.OutfitCollection va dbo.OutfitCollectionItem, co FK den
+  Staff va Product. Script co the chay lai, khong chen bo mau, khong xoa du lieu.
+- Build WAR, Stop/Start Tomcat hoac redeploy de dang ky servlet moi.
+- Tai lai trinh duyet bang Ctrl+F5, dang nhap Admin/Kho va vao Bo suu tap.
+- DBConnection.java khong bi thay doi boi chuc nang nay.
+- Java, JSP da bien dich; JavaScript da kiem tra cu phap. Chua chay test giao dien.

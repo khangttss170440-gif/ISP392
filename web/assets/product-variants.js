@@ -88,4 +88,9 @@
     document.getElementById('legacyVariantPicker').hidden = true;
     document.getElementById('variantPicker').hidden = false;
     updateSelection();
+    const suggestedColor = new URLSearchParams(window.location.search).get('color');
+    if (suggestedColor) {
+        const suggestedButton = colorButtons.find(button => colorKey(button.dataset.variantColor) === colorKey(suggestedColor));
+        if (suggestedButton) suggestedButton.click();
+    }
 })();
