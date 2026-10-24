@@ -1,0 +1,63 @@
+MENSFORM homepage images - photo credits
+All photos from Unsplash under the Unsplash License (https://unsplash.com/license).
+Images were resized (max 1800px) and product shots cropped to square.
+
+hero.jpg
+  Photographer: Praja Nugraha
+  Source: https://unsplash.com/photos/bXsENzFhuOM
+  License: Unsplash License (free)
+
+story.jpg
+  Photographer: Brice Cooper
+  Source: https://unsplash.com/photos/GOxU-AFYx2k
+  License: Unsplash License (free)
+
+band.jpg
+  Photographer: Nguyen Mazic
+  Source: https://unsplash.com/photos/7vi9-MUtxvA
+  License: Unsplash License (free)
+
+cat-jackets.jpg
+  Photographer: Alexander Mass
+  Source: https://unsplash.com/photos/OvmDPGFZYHE
+  License: Unsplash License (free)
+
+cat-shirts.jpg
+  Photographer: Pew Nguyen
+  Source: https://unsplash.com/photos/qX_i3s5QsXQ
+  License: Unsplash License (free)
+
+cat-trousers.jpg
+  Photographer: Jackson Morgan
+  Source: https://unsplash.com/photos/vulvUnamEDw
+  License: Unsplash License (free)
+
+cat-accessories.jpg
+  Photographer: Luwadlin Bosman
+  Source: https://unsplash.com/photos/KfzMv6eLQt4
+  License: Unsplash License (free)
+
+prod-1.jpg
+  Photographer: Noman Khan
+  Source: https://unsplash.com/photos/itFRLpHGWFY
+  License: Unsplash License (free)
+
+prod-2.jpg
+  Photographer: Tanya Trukyr
+  Source: https://unsplash.com/photos/1UFTd1eRamE
+  License: Unsplash License (free)
+
+prod-3.jpg
+  Photographer: Faizan Bhadarka
+  Source: https://unsplash.com/photos/9GqMLuNFWCw
+  License: Unsplash License (free)
+
+prod-4.jpg
+  Photographer: Collab Media
+  Source: https://unsplash.com/photos/dYgEvR2gdgk
+  License: Unsplash License (free)
+
+detail.jpg
+  Photographer: Peter Barrett Bryan
+  Source: https://unsplash.com/photos/WpB9L4n9gks
+  License: Unsplash License (free)

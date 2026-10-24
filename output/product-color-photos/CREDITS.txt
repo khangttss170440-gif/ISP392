@@ -1,0 +1,16 @@
+MENSFORM product colour-variant photos - real photos, free licence (no Unsplash+).
+Each Unsplash page shows "Free to use under the Unsplash License"; each Pexels page shows "Free to use" (Pexels License).
+Product | installed file | photographer | source page | licence
+
+23 watch (Den)        | 23/01-den.jpg  | Faraz Fayaz          | https://unsplash.com/photos/a-black-minimalist-watch-with-a-leather-strap-3weffxf3mdk | Unsplash License (https://unsplash.com/license)
+24 belt (Den)         | 24/01-den.jpg  | Sincerely Media      | https://unsplash.com/photos/person-wearing-black-and-silver-belt-with-buckle-black-bottoms-and-gray-top-xmXWuC6nKKI | Unsplash License
+25 wallet (Nau)       | 25/01-nau.jpg  | Josh Withers         | https://unsplash.com/photos/a-brown-wallet-sitting-on-top-of-a-white-table-FzDLlzYCQlk | Unsplash License
+26 bag (Den)          | 26/01-den.jpg  | cottonbro studio     | https://www.pexels.com/photo/black-leather-handbag-on-the-table-6538433/ | Pexels License (https://www.pexels.com/license/)
+27 sunglasses (Vang)  | 27/01-vang.jpg | charlesdeluvio       | https://unsplash.com/photos/gold-colored-framed-hippie-sunglasses-on-white-surface-1-nx1QR5dTE | Unsplash License
+28 tie (Nau cham bi)  | 28/01-nau.jpg  | Muhammad Shamaoon Malik | https://www.pexels.com/photo/close-up-of-red-polka-dot-tie-on-white-shirt-35331033/ | Pexels License
+28 tie (Navy, cover)  | 28/00-cover.jpg kept as-is (already the real navy polka-dot photo: Benjamin R., https://unsplash.com/photos/WdhmRPvMn7A)
+29 jacket (Den)       | 29/01-den.jpg  | Lea Ochel            | https://unsplash.com/photos/black-leather-zip-up-jacket-on-white-textile-nsRBbE6-YLs | Unsplash License
+30 sweater (Be)       | 30/01-be.jpg   | Ernest Flowers       | https://unsplash.com/photos/a-young-man-is-posing-for-a-photo--R5I7uB456Q | Unsplash License
+31 trousers (Xam)     | 31/01-xam.jpg  | Tom Pumford          | https://unsplash.com/photos/man-standing-and-leaning-by-wall-while-holding-camera-W7nuExeOcyI | Unsplash License
+
+Originals (full-size downloads, incl. rejected alternates) are in _dl/.
