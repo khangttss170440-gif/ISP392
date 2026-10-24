@@ -168,7 +168,7 @@ section.block{padding-block:96px 0}
 .ix-row .arrow{grid-area:arrow;opacity:0;transform:translateX(-6px);transition:opacity .25s,transform .25s}
 .ix-row.on,.ix-row:hover,.ix-row:focus-visible{color:var(--ink);padding-left:38px}
 .ix-row.on::before,.ix-row:hover::before,.ix-row:focus-visible::before{transform:scaleX(1)}
-.ix-row.on .ix-sub{max-height:24px;opacity:1}
+.ix-row.on .ix-sub{max-height:72px;opacity:1}
 .ix-row.on .arrow{opacity:1;transform:none}
 .ix-thumb{display:none}
 .ix-stage{position:relative;border-radius:var(--r);overflow:hidden;background:#d9d2c6;min-height:520px}

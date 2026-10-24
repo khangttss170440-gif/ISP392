@@ -50,6 +50,33 @@ public class ProductCatalogDAO {
         return categories;
     }
 
+    /** Active categories that have active products, with a representative product for homepage imagery. */
+    public List<ProductCategory> getHomepageCategories() throws SQLException {
+        String sql = "SELECT c.CategoryID, c.CategoryName, c.Description, c.Status, "
+                + "COUNT(p.ProductID) AS ActiveProductCount, MIN(p.ProductID) AS FeaturedProductID "
+                + "FROM dbo.ProductCategory c "
+                + "JOIN dbo.Product p ON p.CategoryID=c.CategoryID AND p.Status='Active' "
+                + "WHERE c.Status='Active' "
+                + "GROUP BY c.CategoryID, c.CategoryName, c.Description, c.Status "
+                + "ORDER BY c.CategoryName";
+        List<ProductCategory> categories = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+                ProductCategory category = new ProductCategory();
+                category.setCategoryID(result.getInt("CategoryID"));
+                category.setCategoryName(result.getString("CategoryName"));
+                category.setDescription(result.getString("Description"));
+                category.setStatus(result.getString("Status"));
+                category.setActiveProductCount(result.getInt("ActiveProductCount"));
+                category.setFeaturedProductID(result.getInt("FeaturedProductID"));
+                categories.add(category);
+            }
+        }
+        return categories;
+    }
+
     public List<Product> getActiveProducts(Integer categoryID)
             throws SQLException {
 

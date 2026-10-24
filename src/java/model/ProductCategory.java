@@ -6,6 +6,8 @@ public class ProductCategory {
     private String categoryName;
     private String description;
     private String status;
+    private int activeProductCount;
+    private int featuredProductID;
 
     public int getCategoryID() {
         return categoryID;
@@ -37,5 +39,21 @@ public class ProductCategory {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int getActiveProductCount() {
+        return activeProductCount;
+    }
+
+    public void setActiveProductCount(int activeProductCount) {
+        this.activeProductCount = activeProductCount;
+    }
+
+    public int getFeaturedProductID() {
+        return featuredProductID;
+    }
+
+    public void setFeaturedProductID(int featuredProductID) {
+        this.featuredProductID = featuredProductID;
     }
 }

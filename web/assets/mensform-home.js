@@ -50,53 +50,60 @@
   $('hIn').addEventListener('input',suggest);$('wIn').addEventListener('input',suggest);
   suggest();setForm('regular');
 
-  /* ---- accessory hotspots: each point links to its product (IDs 41-45) ---- */
-  var LK = [['Đồng hồ mặt gỗ dây da', 'Mặt gỗ mun, dây da đen. Hợp sơ mi sáng màu và bộ vest tối.', '1.290.000₫'],
-            ['Khuy măng sét bạc', 'Điểm nhấn kim loại nhỏ cho sơ mi cổ tay gập.', '350.000₫'],
-            ['Kính mát gọng gỗ', 'Gọng gỗ vuông, tròng tráng gương phân cực. Nhẹ và ấm tay.', '690.000₫'],
-            ['Kính mát clubmaster', 'Viền trên đậm, gọng kim loại dưới. Kiểu cổ điển không lỗi thời.', '650.000₫'],
-            ['Cà vạt hoa văn kèm ghim cài', 'Lụa hoa văn tông hồng khói, kèm ghim cài ve áo hình hoa hồng.', '420.000₫']];
+  /* ---- product hotspots are rendered from active database products ---- */
   var hots = document.querySelectorAll('.hot');
+  var LK = Array.prototype.map.call(hots, function (b) {
+    return [b.dataset.name, b.dataset.description, b.dataset.meta];
+  });
   function lk(i) {
     var it = LK[i];
     $('spNum').textContent = '0' + (i + 1);
     var sw = $('spWrap'); sw.classList.remove('pop'); void sw.offsetWidth; sw.classList.add('pop');
-    $('spName').textContent = it[0]; $('spDesc').textContent = it[1]; $('spPrice').textContent = 'Giá ' + it[2];
+    $('spName').textContent = it[0]; $('spDesc').textContent = it[1]; $('spPrice').textContent = it[2];
     if (hots[i]) $('spGo').href = hots[i].href;
     hots.forEach(function (b) { b.classList.toggle('is-on', +b.dataset.k === i); });
     document.querySelectorAll('#spList button').forEach(function (b, k) { b.setAttribute('aria-current', k === i); });
   }
   if ($('spList')) {
-    $('spList').innerHTML = LK.map(function (it, k) { return '<li><button type="button"><span>0' + (k + 1) + ' · ' + it[0] + '</span><span>' + it[2] + '</span></button></li>'; }).join('');
-    document.querySelectorAll('#spList button').forEach(function (b, k) { b.addEventListener('click', function () { lk(k); }); });
+    LK.forEach(function (it, k) {
+      var li = document.createElement('li');
+      var button = document.createElement('button');
+      var name = document.createElement('span');
+      var meta = document.createElement('span');
+      button.type = 'button';
+      name.textContent = String(k + 1).padStart(2, '0') + ' · ' + it[0];
+      meta.textContent = it[2];
+      button.appendChild(name);
+      button.appendChild(meta);
+      button.addEventListener('click', function () { lk(k); });
+      li.appendChild(button);
+      $('spList').appendChild(li);
+    });
     /* hover or keyboard focus previews the piece; a click opens its product page */
     hots.forEach(function (b) { var k = +b.dataset.k; b.addEventListener('mouseenter', function () { lk(k); }); b.addEventListener('focus', function () { lk(k); }); });
     lk(0);
   }
 
-  /* ---- outfit by occasion ---- */
-  var sets = {
-    work: {img: 'look-work.webp', alt: 'Bộ phối đi làm: áo khoác sáng màu và quần be', desc: 'Áo khoác nhẹ, quần be và thắt lưng da. Gọn gàng từ cuộc họp sáng đến bữa tối với đối tác.',
-      items: ['Sơ mi kẻ sọc cổ đức', 'Quần kaki form slim', 'Thắt lưng da bò', 'Áo blazer nâu']},
-    date: {img: 'look-date.webp', alt: 'Bộ phối hẹn hò: sơ mi linen trắng và kính râm', desc: 'Sơ mi linen trắng, quần sáng màu và kính râm. Lịch sự nhưng không quá trang trọng.',
-      items: ['Sơ mi linen trắng', 'Quần tây đen', 'Đồng hồ dây da', 'Kính mát gọng tròn']},
-    week: {img: 'look-weekend.webp', alt: 'Bộ phối cuối tuần: áo khoác nhung tăm và áo thun trắng', desc: 'Áo khoác nhung tăm ngoài áo thun trắng, quần form relaxed. Thoải mái đi cà phê, dạo phố.',
-      items: ['Áo thun cotton trắng', 'Quần tây be form regular', 'Áo khoác nhung tăm', 'Túi da đeo chéo']}
-  };
-  var curO = 'work', panel = $('outfitPanel'), img = $('outfitImg');
-  function pick(k) {
-    curO = k; var s = sets[k];
-    document.querySelectorAll('.tabs button').forEach(function (t) { var a = t.dataset.k === k; t.setAttribute('aria-selected', a); t.tabIndex = a ? 0 : -1; if (a) panel.setAttribute('aria-labelledby', t.id); });
-    img.style.opacity = 0;
-    setTimeout(function () { img.src = IMG + s.img; img.alt = s.alt; img.style.opacity = 1; }, motionOK ? 200 : 0);
-    $('outfitDesc').textContent = s.desc;
-    $('outfitItems').innerHTML = s.items.map(function (n) { return '<li>' + n + '</li>'; }).join('');
+  /* ---- staff-published outfit styles and products ---- */
+  var outfitTabs = Array.prototype.slice.call(document.querySelectorAll('[data-outfit-tab]'));
+  var outfitPanels = Array.prototype.slice.call(document.querySelectorAll('[data-outfit-panel]'));
+  function selectOutfit(index) {
+    outfitTabs.forEach(function (tab, i) {
+      var active = i === index;
+      tab.setAttribute('aria-selected', active);
+      tab.tabIndex = active ? 0 : -1;
+      outfitPanels[i].hidden = !active;
+    });
   }
-  if (panel) document.querySelectorAll('.tabs button').forEach(function (t) {
-    t.addEventListener('click', function () { pick(t.dataset.k); });
-    t.addEventListener('keydown', function (e) {
-      var ks = ['work', 'date', 'week'], i = ks.indexOf(curO);
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); i = (i + (e.key === 'ArrowRight' ? 1 : 2)) % 3; pick(ks[i]); $('t-' + ks[i]).focus(); }
+  outfitTabs.forEach(function (tab, index) {
+    tab.addEventListener('click', function () { selectOutfit(index); });
+    tab.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var next = (index + (e.key === 'ArrowRight' ? 1 : outfitTabs.length - 1)) % outfitTabs.length;
+        selectOutfit(next);
+        outfitTabs[next].focus();
+      }
     });
   });
 

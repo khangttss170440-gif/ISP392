@@ -4,8 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import model.ProductCategory;
 import util.DBConnection;
 
@@ -103,6 +109,78 @@ public class AdminCategoryDAO {
 
             if (statement.executeUpdate() != 1) {
                 throw new SQLException("CATEGORY_NOT_FOUND");
+            }
+        }
+    }
+
+    /** Saves the complete category form atomically so one invalid row cannot leave partial changes. */
+    public void updateCategories(List<ProductCategory> categories) throws SQLException {
+        if (categories == null || categories.isEmpty()) {
+            throw new IllegalArgumentException("Không có danh mục nào để lưu.");
+        }
+
+        Map<Integer, ProductCategory> submitted = new HashMap<>();
+        Set<String> names = new HashSet<>();
+        for (ProductCategory category : categories) {
+            if (category == null || category.getCategoryID() <= 0) {
+                throw new IllegalArgumentException("Mã danh mục không hợp lệ.");
+            }
+            String name = validateName(category.getCategoryName());
+            validateDescription(category.getDescription());
+            validateStatus(category.getStatus());
+            if (!submitted.containsKey(category.getCategoryID())) {
+                category.setCategoryName(name);
+                submitted.put(category.getCategoryID(), category);
+            } else {
+                throw new IllegalArgumentException("Danh sách danh mục không hợp lệ.");
+            }
+            if (!names.add(name.toLowerCase(Locale.ROOT))) {
+                throw new IllegalArgumentException("CATEGORY_NAME_EXISTS");
+            }
+        }
+
+        String lockSql = "SELECT CategoryID, CategoryName FROM dbo.ProductCategory WITH (UPDLOCK, HOLDLOCK)";
+        String updateSql = "UPDATE dbo.ProductCategory SET CategoryName=?, Description=?, Status=? WHERE CategoryID=?";
+        try (Connection connection = DBConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                Map<Integer, String> finalNames = new HashMap<>();
+                try (PreparedStatement statement = connection.prepareStatement(lockSql);
+                     ResultSet result = statement.executeQuery()) {
+                    while (result.next()) finalNames.put(result.getInt("CategoryID"), result.getString("CategoryName"));
+                }
+                if (!finalNames.keySet().equals(submitted.keySet())) {
+                    throw new SQLException("CATEGORY_NOT_FOUND");
+                }
+                for (ProductCategory category : submitted.values()) {
+                    finalNames.put(category.getCategoryID(), category.getCategoryName());
+                }
+                Set<String> finalNameSet = new HashSet<>();
+                for (String name : finalNames.values()) {
+                    if (name == null || !finalNameSet.add(name.trim().toLowerCase(Locale.ROOT))) {
+                        throw new IllegalArgumentException("CATEGORY_NAME_EXISTS");
+                    }
+                }
+
+                try (PreparedStatement statement = connection.prepareStatement(updateSql)) {
+                    for (ProductCategory category : categories) {
+                        statement.setString(1, category.getCategoryName());
+                        statement.setString(2, validateDescription(category.getDescription()));
+                        statement.setString(3, validateStatus(category.getStatus()));
+                        statement.setInt(4, category.getCategoryID());
+                        statement.addBatch();
+                    }
+                    int[] results = statement.executeBatch();
+                    for (int result : results) {
+                        if (result == 0 || result == Statement.EXECUTE_FAILED) {
+                            throw new SQLException("CATEGORY_NOT_FOUND");
+                        }
+                    }
+                }
+                connection.commit();
+            } catch (SQLException | RuntimeException error) {
+                connection.rollback();
+                throw error;
             }
         }
     }

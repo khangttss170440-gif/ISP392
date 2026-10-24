@@ -2,11 +2,17 @@ package filter;
 
 import dao.PromotionDAO;
 import dao.ProductCatalogDAO;
+import dao.OutfitCatalogDAO;
+import dao.OutfitCollectionDAO;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Product;
+import model.ProductCategory;
+import model.OutfitSet;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -38,6 +44,24 @@ public class HomePromotionFilter implements Filter {
             request.getServletContext().log("Could not load homepage products.", e);
             request.setAttribute("homeProducts", Collections.emptyList());
             request.setAttribute("homeProductsUnavailable", Boolean.TRUE);
+        }
+        try {
+            List<ProductCategory> categories = products.getHomepageCategories();
+            request.setAttribute("homeCategories", categories);
+        } catch (SQLException e) {
+            request.getServletContext().log("Could not load homepage categories.", e);
+            request.setAttribute("homeCategories", Collections.emptyList());
+            request.setAttribute("homeCategoriesUnavailable", Boolean.TRUE);
+        }
+        try {
+            List<OutfitSet> published = new OutfitCollectionDAO().published(
+                    new OutfitCatalogDAO().availableItems(), "all", null, null);
+            Map<String, OutfitSet> byStyle = new LinkedHashMap<>();
+            for (OutfitSet outfit : published) byStyle.putIfAbsent(outfit.getStyle(), outfit);
+            request.setAttribute("homeOutfits", List.copyOf(byStyle.values()));
+        } catch (SQLException e) {
+            request.getServletContext().log("Could not load homepage outfit collections.", e);
+            request.setAttribute("homeOutfits", Collections.emptyList());
         }
         chain.doFilter(request, response);
     }

@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" import="java.util.List,model.Product,model.ProductCategory,model.OutfitSet,model.OutfitItem,service.OutfitRecommendationService.Style"%>
 <!DOCTYPE html>
 <html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/chatbot.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/home-theme.css?v=20261024e">
-    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform-home.css?v=20261024f">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform-home.css?v=20261024g">
 </head><body class="home-theme mf-home">
 <%@include file="/includes/header.jspf"%>
 <% String homeCtx = request.getContextPath(); %>
@@ -50,46 +50,62 @@
     <p class="belt-cap">Cài đúng nấc. Chuẩn phong cách.</p>
   </div>
 
+  <% List<ProductCategory> homeCategories = (List<ProductCategory>) request.getAttribute("homeCategories"); %>
   <section class="block reveal" id="cats" aria-labelledby="catTitle">
-    <div class="head"><div><span class="kicker num rise">Phụ kiện theo danh mục</span><h2 id="catTitle" class="rise" style="--i:1">Chi tiết nhỏ làm nên phong cách</h2></div><a class="link-all rise" href="<%=homeCtx%>/products">Xem tất cả sản phẩm <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div>
+    <div class="head"><div><span class="kicker num rise">Danh mục cửa hàng</span><h2 id="catTitle" class="rise" style="--i:1">Tìm món đồ đúng gu của bạn</h2></div><a class="link-all rise" href="<%=homeCtx%>/products">Xem tất cả sản phẩm <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div>
+    <% if (homeCategories != null && !homeCategories.isEmpty()) { %>
     <div class="ix rise" id="catIndex">
       <ul class="ix-list">
-                <li><a class="ix-row on" href="<%=homeCtx%>/products?categoryId=9" data-i="0"><img class="ix-thumb" src="<%=homeCtx%>/assets/images/home/watch.webp" width="640" height="800" alt="" loading="lazy"><span class="ix-name">Đồng hồ</span><span class="ix-sub">Dây da, mặt tối giản</span><span class="ix-count">Xem mẫu</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></li>
-                <li><a class="ix-row" href="<%=homeCtx%>/products?categoryId=10" data-i="1"><img class="ix-thumb" src="<%=homeCtx%>/assets/images/home/belt.webp" width="640" height="800" alt="" loading="lazy"><span class="ix-name">Thắt lưng</span><span class="ix-sub">Da trơn, da đan, khóa bạc</span><span class="ix-count">Xem mẫu</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></li>
-                <li><a class="ix-row" href="<%=homeCtx%>/products?categoryId=11" data-i="2"><img class="ix-thumb" src="<%=homeCtx%>/assets/images/home/wallet.webp" width="640" height="800" alt="" loading="lazy"><span class="ix-name">Ví &amp; bao thẻ</span><span class="ix-sub">Gọn trong túi áo</span><span class="ix-count">Xem mẫu</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></li>
-                <li><a class="ix-row" href="<%=homeCtx%>/products?categoryId=12" data-i="3"><img class="ix-thumb" src="<%=homeCtx%>/assets/images/home/bag.webp" width="640" height="800" alt="" loading="lazy"><span class="ix-name">Túi da</span><span class="ix-sub">Cặp công sở, túi đeo chéo</span><span class="ix-count">Xem mẫu</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></li>
-                <li><a class="ix-row" href="<%=homeCtx%>/products?categoryId=13" data-i="4"><img class="ix-thumb" src="<%=homeCtx%>/assets/images/home/sunglasses.webp" width="640" height="800" alt="" loading="lazy"><span class="ix-name">Kính mát</span><span class="ix-sub">Clubmaster, gọng tròn</span><span class="ix-count">Xem mẫu</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></li>
-                <li><a class="ix-row" href="<%=homeCtx%>/products?categoryId=14" data-i="5"><img class="ix-thumb" src="<%=homeCtx%>/assets/images/home/tie.webp" width="640" height="800" alt="" loading="lazy"><span class="ix-name">Cà vạt</span><span class="ix-sub">Lụa, chấm bi, trơn</span><span class="ix-count">Xem mẫu</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></li>
+        <% for (int i = 0; i < homeCategories.size(); i++) {
+             ProductCategory category = homeCategories.get(i);
+             String categoryDescription = category.getDescription();
+             if (categoryDescription == null || categoryDescription.isBlank()) categoryDescription = "Khám phá " + category.getActiveProductCount() + " sản phẩm trong danh mục này.";
+        %>
+        <li><a class="ix-row <%=i == 0 ? "on" : ""%>" href="<%=homeCtx%>/products?categoryId=<%=category.getCategoryID()%>" data-i="<%=i%>">
+          <img class="ix-thumb" src="<%=homeCtx%>/product-image?productId=<%=category.getFeaturedProductID()%>" width="640" height="800" alt="" loading="lazy">
+          <span class="ix-name"><%=navEscape(category.getCategoryName())%></span><span class="ix-sub"><%=navEscape(categoryDescription)%></span>
+          <span class="ix-count"><%=category.getActiveProductCount()%> mẫu</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+        </a></li>
+        <% } %>
       </ul>
       <div class="ix-stage" aria-hidden="true">
-                <figure class="ix-fig on"><img src="<%=homeCtx%>/assets/images/home/watch.webp" width="640" height="800" alt="Đồng hồ mặt trắng dây da nâu đặt trên gờ gỗ" loading="lazy"><figcaption><span>Đồng hồ</span><small>Dây da, mặt tối giản</small></figcaption></figure>
-                <figure class="ix-fig"><img src="<%=homeCtx%>/assets/images/home/belt.webp" width="640" height="800" alt="Thắt lưng da đan màu nâu cuộn quanh ống giấy" loading="lazy"><figcaption><span>Thắt lưng</span><small>Da trơn, da đan, khóa bạc</small></figcaption></figure>
-                <figure class="ix-fig"><img src="<%=homeCtx%>/assets/images/home/wallet.webp" width="640" height="800" alt="Bao thẻ da bò màu nâu bò đặt cạnh dụng cụ làm da" loading="lazy"><figcaption><span>Ví &amp; bao thẻ</span><small>Gọn trong túi áo</small></figcaption></figure>
-                <figure class="ix-fig"><img src="<%=homeCtx%>/assets/images/home/bag.webp" width="640" height="800" alt="Cặp da nâu sẫm có quai cầm đặt trên ghế gỗ" loading="lazy"><figcaption><span>Túi da</span><small>Cặp công sở, túi đeo chéo</small></figcaption></figure>
-                <figure class="ix-fig"><img src="<%=homeCtx%>/assets/images/home/sunglasses.webp" width="640" height="800" alt="Kính mát clubmaster gọng đen trên nền trắng" loading="lazy"><figcaption><span>Kính mát</span><small>Clubmaster, gọng tròn</small></figcaption></figure>
-                <figure class="ix-fig"><img src="<%=homeCtx%>/assets/images/home/tie.webp" width="640" height="800" alt="Cà vạt chấm bi nâu trên sơ mi trắng" loading="lazy"><figcaption><span>Cà vạt</span><small>Lụa, chấm bi, trơn</small></figcaption></figure>
-        <span class="ix-stamp">MENSFORM<br>phụ kiện</span>
+        <% for (int i = 0; i < homeCategories.size(); i++) {
+             ProductCategory category = homeCategories.get(i);
+             String categoryDescription = category.getDescription();
+             if (categoryDescription == null || categoryDescription.isBlank()) categoryDescription = category.getActiveProductCount() + " sản phẩm đang hoạt động";
+        %>
+        <figure class="ix-fig <%=i == 0 ? "on" : ""%>"><img src="<%=homeCtx%>/product-image?productId=<%=category.getFeaturedProductID()%>" width="640" height="800" alt="<%=navEscape(category.getCategoryName())%>" loading="lazy"><figcaption><span><%=navEscape(category.getCategoryName())%></span><small><%=navEscape(categoryDescription)%></small></figcaption></figure>
+        <% } %>
+        <span class="ix-stamp">MENSFORM<br>Danh mục</span>
       </div>
     </div>
-    <div class="clo rise" id="discover">
-      <p class="clo-label"><b>Quần áo</b><span>Hoàn thiện bộ trang phục</span></p>
-      <div class="clo-chips"><a class="clo-chip" href="<%=homeCtx%>/products?categoryId=15"><img src="<%=homeCtx%>/assets/images/home/cat-jackets.webp" width="640" height="800" alt="" loading="lazy"><span>Áo khoác</span></a><a class="clo-chip" href="<%=homeCtx%>/products?categoryId=16"><img src="<%=homeCtx%>/assets/images/home/cat-sweaters.webp" width="640" height="800" alt="" loading="lazy"><span>Áo len</span></a><a class="clo-chip" href="<%=homeCtx%>/products?categoryId=17"><img src="<%=homeCtx%>/assets/images/home/cat-pants.webp" width="640" height="800" alt="" loading="lazy"><span>Quần âu</span></a><a class="clo-chip" href="<%=homeCtx%>/products?categoryId=18"><img src="<%=homeCtx%>/assets/images/home/cat-shoes.webp" width="640" height="800" alt="" loading="lazy"><span>Giày</span></a></div>
-      <a class="link-all" href="<%=homeCtx%>/collections">Xem gợi ý phối đồ <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a>
-    </div>
+    <% } else { %>
+    <p class="home-products-empty"><%=Boolean.TRUE.equals(request.getAttribute("homeCategoriesUnavailable")) ? "Chưa tải được danh mục. Bạn vui lòng thử lại sau." : "Danh mục sản phẩm sẽ sớm được cập nhật."%></p>
+    <% } %>
   </section>
 
   <%@include file="/includes/home-products.jspf"%>
 
+  <%
+    List<Product> homeSpotProducts = (List<Product>) request.getAttribute("homeProducts");
+    int homeSpotCount = homeSpotProducts == null ? 0 : Math.min(5, homeSpotProducts.size());
+    String[] homeSpotPositions = {"left:10%;top:20%", "left:28%;top:9%", "left:46%;top:30%", "left:24%;top:66%", "left:72%;top:80%"};
+  %>
+  <% if (homeSpotCount > 0) { %>
   <section class="block reveal" id="look" aria-labelledby="lookTitle">
-    <div class="head"><div><span class="kicker num rise">Phối phụ kiện</span><h2 id="lookTitle" class="rise" style="--i:1">Một mặt bàn. Năm món. Một phong cách.</h2></div><p class="head-note rise" style="--i:2">Rê chuột lên từng điểm để xem gợi ý, bấm vào để tới sản phẩm.</p></div>
+    <div class="head"><div><span class="kicker num rise">Phối phụ kiện</span><h2 id="lookTitle" class="rise" style="--i:1">Một mặt bàn. <%=homeSpotCount%> món. Một phong cách.</h2></div><p class="head-note rise" style="--i:2">Rê chuột lên từng điểm để xem sản phẩm đang có trong cửa hàng.</p></div>
     <div class="spot rise">
       <div class="spot-pic">
-        <img src="<%=homeCtx%>/assets/images/home/flatlay.webp" width="1600" height="1067" alt="Đồng hồ mặt gỗ, khuy măng sét, hai kính mát, giày da và cà vạt hoa văn trên mặt bàn gỗ" loading="lazy">
-        <a class="hot" style="left:10%;top:20%" data-k="0" href="<%=homeCtx%>/product-detail?productId=41" aria-label="Đồng hồ mặt gỗ – xem sản phẩm"><span>1</span></a>
-        <a class="hot" style="left:28%;top:9%" data-k="1" href="<%=homeCtx%>/product-detail?productId=42" aria-label="Khuy măng sét – xem sản phẩm"><span>2</span></a>
-        <a class="hot" style="left:46%;top:30%" data-k="2" href="<%=homeCtx%>/product-detail?productId=43" aria-label="Kính mát gọng gỗ – xem sản phẩm"><span>3</span></a>
-        <a class="hot" style="left:24%;top:66%" data-k="3" href="<%=homeCtx%>/product-detail?productId=44" aria-label="Kính clubmaster – xem sản phẩm"><span>4</span></a>
-        <a class="hot" style="left:72%;top:80%" data-k="4" href="<%=homeCtx%>/product-detail?productId=45" aria-label="Cà vạt và ghim cài áo – xem sản phẩm"><span>5</span></a>
+        <img src="<%=homeCtx%>/assets/images/home/flatlay.webp" width="1600" height="1067" alt="Các phụ kiện nam trên mặt bàn gỗ" loading="lazy">
+        <% for (int i = 0; i < homeSpotCount; i++) {
+             Product spotProduct = homeSpotProducts.get(i);
+             String spotDescription = spotProduct.getDescription();
+             if (spotDescription == null || spotDescription.isBlank()) {
+                 spotDescription = spotProduct.getCategoryName() == null ? "Sản phẩm đang bán tại MENSFORM." : spotProduct.getCategoryName();
+             }
+        %>
+        <a class="hot" style="<%=homeSpotPositions[i]%>" data-k="<%=i%>" data-name="<%=navEscape(spotProduct.getProductName())%>" data-description="<%=navEscape(spotDescription)%>" data-meta="Mã sản phẩm #<%=spotProduct.getProductID()%>" href="<%=homeCtx%>/product-detail?productId=<%=spotProduct.getProductID()%>" aria-label="<%=navEscape(spotProduct.getProductName())%> – xem sản phẩm"><span><%=i + 1%></span></a>
+        <% } %>
       </div>
       <aside class="spot-card" aria-live="polite">
         <div class="spot-num-wrap pop" id="spWrap"><div class="spot-num" id="spNum">01</div>
@@ -108,6 +124,7 @@
       </aside>
     </div>
   </section>
+  <% } %>
 
   <section class="block reveal" id="form" aria-labelledby="formTitle">
     <div class="head"><div><span class="kicker num rise">Chọn form của bạn</span><h2 id="formTitle" class="rise" style="--i:1">Ba dáng cắt. Một chuẩn MENSFORM.</h2></div><p class="head-note rise" style="--i:2">Cùng một size, mỗi form cho cảm giác mặc khác nhau. Chọn form trước, size sau.</p></div>
@@ -153,25 +170,41 @@
     </div>
   </section>
 
+  <% List<OutfitSet> homeOutfits = (List<OutfitSet>) request.getAttribute("homeOutfits"); %>
+  <% if (homeOutfits != null && !homeOutfits.isEmpty()) { %>
   <section class="block reveal" id="outfit" aria-labelledby="outfitTitle">
     <div class="outfit">
-      <div class="outfit-pic rise"><img id="outfitImg" src="<%=homeCtx%>/assets/images/home/look-work.webp" width="640" height="800" alt="Bộ phối đi làm: áo khoác sáng màu và quần be" loading="lazy"></div>
+      <div class="outfit-pic rise"><img src="<%=homeCtx%>/assets/images/home/look-work.webp" width="640" height="800" alt="Ảnh minh họa bộ sưu tập phối đồ" loading="lazy"></div>
       <div>
         <span class="kicker num rise">Bộ sưu tập phối đồ</span>
         <div class="head" style="margin:0"><h2 id="outfitTitle" class="rise" style="--i:1">Phối đồ theo dịp, chọn đồ dễ hơn</h2></div>
         <div class="tabs rise" style="--i:2" role="tablist" aria-label="Chọn dịp">
-          <button type="button" role="tab" id="t-work" aria-selected="true" aria-controls="outfitPanel" data-k="work">Đi làm</button>
-          <button type="button" role="tab" id="t-date" aria-selected="false" aria-controls="outfitPanel" data-k="date" tabindex="-1">Hẹn hò</button>
-          <button type="button" role="tab" id="t-week" aria-selected="false" aria-controls="outfitPanel" data-k="week" tabindex="-1">Cuối tuần</button>
+          <% for (int i = 0; i < homeOutfits.size(); i++) {
+               OutfitSet homeOutfit = homeOutfits.get(i);
+               String homeStyleLabel = homeOutfit.getStyle();
+               for (Style style : Style.values()) if (style.getId().equals(homeOutfit.getStyle())) homeStyleLabel = style.getLabel();
+          %>
+          <button type="button" role="tab" id="t-outfit-<%=i%>" aria-selected="<%=i == 0%>" aria-controls="outfitPanel-<%=i%>" data-outfit-tab="<%=i%>" <%=i == 0 ? "" : "tabindex=\"-1\""%>><%=navEscape(homeStyleLabel)%></button>
+          <% } %>
         </div>
-        <div id="outfitPanel" role="tabpanel" aria-labelledby="t-work" class="rise" style="--i:3">
-          <p class="outfit-desc" id="outfitDesc">Áo khoác nhẹ, quần be và thắt lưng da. Gọn gàng từ cuộc họp sáng đến bữa tối với đối tác.</p>
-          <ul class="outfit-items" id="outfitItems"><li>Sơ mi kẻ sọc cổ đức</li><li>Quần kaki form slim</li><li>Thắt lưng da bò</li><li>Áo blazer nâu</li></ul>
-          <a class="pill" href="<%=homeCtx%>/collections">Xem bộ sưu tập phối đồ <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a>
+        <% for (int i = 0; i < homeOutfits.size(); i++) {
+             OutfitSet homeOutfit = homeOutfits.get(i);
+             int visibleItems = Math.min(4, homeOutfit.getItems().size());
+        %>
+        <div id="outfitPanel-<%=i%>" role="tabpanel" aria-labelledby="t-outfit-<%=i%>" class="rise" style="--i:3" data-outfit-panel="<%=i%>" <%=i == 0 ? "" : "hidden"%>>
+          <p class="outfit-desc"><%=navEscape(homeOutfit.getDescription())%></p>
+          <ul class="outfit-items">
+            <% for (int itemIndex = 0; itemIndex < visibleItems; itemIndex++) { %>
+            <li><%=navEscape(homeOutfit.getItems().get(itemIndex).getName())%></li>
+            <% } %>
+          </ul>
+          <a class="pill" href="<%=homeCtx%>/collections?source=curated&amp;style=<%=homeOutfit.getStyle()%>">Xem bộ sưu tập phối đồ <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a>
         </div>
+        <% } %>
       </div>
     </div>
   </section>
+  <% } %>
 
   <section class="block reveal" id="offers" aria-labelledby="offerTitle">
     <div class="head"><div><span class="kicker num rise">Ưu đãi đang diễn ra</span><h2 id="offerTitle" class="rise" style="--i:1">Lựa chọn có gu, ưu đãi xứng tầm</h2></div><a class="link-all rise" href="<%=homeCtx%>/promotions">Điều kiện áp dụng <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div>
@@ -183,7 +216,7 @@
     <div class="band-copy">
       <h2 id="bandTitle" class="rise">Phong cách tốt cho<br>một ngày tốt hơn.</h2>
       <p class="rise" style="--i:1">Một chiếc túi da đúng màu biến bộ đồ đơn giản thành lựa chọn có chủ đích. Bắt đầu từ món bạn dùng mỗi ngày.</p>
-      <a class="pill light rise" style="--i:2" href="<%=homeCtx%>/products?categoryId=12">Xem túi da <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a>
+      <a class="pill light rise" style="--i:2" href="<%=homeCtx%>/products">Xem sản phẩm <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a>
     </div>
   </section>
 </main>
@@ -191,5 +224,5 @@
 <%@include file="/includes/chatbot.jspf"%>
 <script src="<%=request.getContextPath()%>/assets/chatbot.js" defer></script>
 <script src="<%=request.getContextPath()%>/assets/home-products.js" defer></script>
-<script src="<%=request.getContextPath()%>/assets/mensform-home.js?v=20261024f" defer></script>
+<script src="<%=request.getContextPath()%>/assets/mensform-home.js?v=20261024h" defer></script>
 </body></html>
