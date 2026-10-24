@@ -1,0 +1,27 @@
+MENSFORM product photos 33-45 - all from Pexels, Pexels License (free to use, no attribution required; credited anyway).
+
+33	Áo sơ mi Oxford dài tay	00-cover.jpg	Trắng	https://www.pexels.com/photo/contemplative-man-in-casual-white-shirt-against-wall-33100646/	Abd ALrahman Tarek	Pexels License
+33	Áo sơ mi Oxford dài tay	01-xanh-nhat.jpg	Xanh nhạt	https://www.pexels.com/photo/man-wearing-blue-button-up-dress-shirt-1043148/	Rahul Shah	Pexels License
+34	Áo sơ mi linen cổ bẻ	00-cover.jpg	Be	https://www.pexels.com/photo/handsome-guy-standing-on-the-green-grass-8350318/	Mikhail Nilov	Pexels License
+34	Áo sơ mi linen cổ bẻ	01-navy.jpg	Navy	https://www.pexels.com/photo/model-in-a-navy-blue-shirt-and-gray-pants-leaning-on-the-stairs-17315606/	Amar .M	Pexels License
+35	Áo polo cotton piqué	00-cover.jpg	Navy	https://www.pexels.com/photo/man-in-blue-polo-shirt-standing-by-ornate-door-38010898/	Yusif Iskandarov	Pexels License
+35	Áo polo cotton piqué	01-trang.jpg	Trắng	https://www.pexels.com/photo/man-in-sunglasses-and-white-polo-shirt-22745628/	god picture	Pexels License
+36	Áo thun cổ tròn basic	00-cover.jpg	Trắng	https://www.pexels.com/photo/standing-man-in-jeans-and-white-t-shirt-17858295/	Estefania Milazzo	Pexels License
+36	Áo thun cổ tròn basic	01-den.jpg	Đen	https://www.pexels.com/photo/man-in-black-crew-neck-shirt-sitting-on-the-floor-10522551/	Nick Swaelen	Pexels License
+37	Quần chino dáng regular	00-cover.jpg	Be	https://www.pexels.com/photo/man-in-a-white-shirt-and-khaki-pants-8845112/	Ron Lach	Pexels License
+37	Quần chino dáng regular	01-xanh-reu.jpg	Xanh rêu	https://www.pexels.com/photo/brunette-in-shirt-and-cargo-pants-18326054/	Vincent Santamaria	Pexels License
+38	Quần jeans slim xanh đậm	00-cover.jpg	-	https://www.pexels.com/photo/casual-portrait-of-young-man-seated-in-studio-37741916/	eduardo199o9	Pexels License
+39	Áo blazer dáng suông	00-cover.jpg	Navy	https://www.pexels.com/photo/portrait-of-a-thoughtful-man-in-a-blazer-36807010/	Wolf Art	Pexels License
+39	Áo blazer dáng suông	01-be.jpg	Be	https://www.pexels.com/photo/man-wearing-a-beige-blazer-sitting-beside-a-wall-6309066/	Amusan John	Pexels License
+40	Giày loafer da bò	00-cover.jpg	Nâu	https://www.pexels.com/photo/brown-leather-shoes-on-a-brown-rattan-surface-8159478/	Nyara Aquino	Pexels License
+40	Giày loafer da bò	01-den.jpg	Đen	https://www.pexels.com/photo/hand-holding-shoes-7608463/	Harish Kiroriwal	Pexels License
+41	Đồng hồ mặt gỗ dây da	00-cover.jpg	-	https://www.pexels.com/photo/round-brown-analog-watch-3429147/	Eric Hammett	Pexels License
+42	Khuy măng sét bạc	00-cover.jpg	-	https://www.pexels.com/photo/shirt-cuff-links-in-a-silver-box-3023668/	Caleb Oquendo	Pexels License
+43	Kính mát gọng gỗ	00-cover.jpg	-	https://www.pexels.com/photo/sunglasses-with-brown-frame-1362558/	Teejay	Pexels License
+44	Kính mát clubmaster	00-cover.jpg	-	https://www.pexels.com/photo/man-in-white-t-shirt-and-clubmaster-sunglasses-18339041/	Wolf Art	Pexels License
+45	Cà vạt hoa văn kèm ghim cài	00-cover.jpg	-	https://www.pexels.com/photo/person-in-green-blazer-white-collared-top-and-floral-necktie-2799536/	Mudassir Ali	Pexels License
+41	-	01-trong-anh-phoi.jpg	-	output/flatlay-crops/watch-wood.jpg	(existing project flat-lay crop)	-
+42	-	01-trong-anh-phoi.jpg	-	output/flatlay-crops/cufflink-pin.jpg	(existing project flat-lay crop)	-
+43	-	01-trong-anh-phoi.jpg	-	output/flatlay-crops/sunglasses-wood.jpg	(existing project flat-lay crop)	-
+44	-	01-trong-anh-phoi.jpg	-	output/flatlay-crops/clubmaster.jpg	(existing project flat-lay crop)	-
+45	-	01-trong-anh-phoi.jpg	-	output/flatlay-crops/tie-floral.jpg	(existing project flat-lay crop)	-

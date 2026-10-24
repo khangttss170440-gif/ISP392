@@ -1,0 +1,109 @@
+/* MENSFORM dark mode. Active when <html data-theme="dark"> (set by mensform-theme.js).
+   Same warm palette, inverted: charcoal-olive ground, cream ink, gold and leather accents kept. */
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --mf-bg: #141511; --mf-panel: #1d1e19; --mf-card: #22241e; --mf-ink: #ece6d9;
+    --mf-soft: #a7a394; --mf-line: #383930; --mf-olive: #2a2e23; --mf-cream: #f3efe7;
+    --mf-sale: #e08d73; --mf-ok: #8fbf8f;
+    --mf-on-ink: #141511; --mf-ink-strong: #ffffff;
+}
+html[data-theme="dark"] .mf-home {
+    --bg: #141511; --panel: #1d1e19; --card: #22241e; --ink: #ece6d9; --soft: #a7a394; --line: #383930;
+    --olive: #2a2e23; --olive-2: #33372b; --cream: #f3efe7; --sale: #e08d73;
+}
+html[data-theme="dark"] body { background: var(--mf-bg); color: var(--mf-ink); }
+html[data-theme="dark"] ::selection { background: #6b5a35; color: #fff; }
+
+/* surfaces that are hard-coded light in the light theme */
+html[data-theme="dark"] .detail,
+html[data-theme="dark"] .ix-fig figcaption,
+html[data-theme="dark"] .outfit-photo > span,
+html[data-theme="dark"] .product-tag { background: rgba(30,32,26,.92); color: var(--mf-ink); }
+html[data-theme="dark"] .ix-stage { background: #1d1e19; }
+html[data-theme="dark"] .seg button:not([aria-checked="true"]):hover { background: #2e3028; }
+html[data-theme="dark"] .pill.light:hover,
+html[data-theme="dark"] .button.light:hover { background: #fff; border-color: #fff; }
+html[data-theme="dark"] .home-product-card,
+html[data-theme="dark"] .home-products-empty { background: var(--mf-card); border-color: var(--mf-line); color: var(--mf-ink); }
+html[data-theme="dark"] .home-product-image { background: #2a2c25; }
+html[data-theme="dark"] .alert.error { background: #3a211b; border-color: #6b3527; color: #f0b8a6; }
+html[data-theme="dark"] .alert.success { background: #1f2e21; border-color: #33503a; color: #b5d8b5; }
+html[data-theme="dark"] .mf-done.is-bad { background: #3a211b; }
+html[data-theme="dark"] .product-stock.in-stock,
+html[data-theme="dark"] .portal-badge,
+html[data-theme="dark"] .admin-badge { background: #1f2e21; color: #b5d8b5; }
+html[data-theme="dark"] .product-stock.out-of-stock { background: #3a211b; border-color: #6b3527; color: #f0b8a6; }
+html[data-theme="dark"] .portal-badge.warn { background: #3a2f17; color: #e9cf9b; }
+html[data-theme="dark"] .admin-table tr:hover td,
+html[data-theme="dark"] .portal-table tr:hover td { background: #272920; }
+html[data-theme="dark"] .mf-mark,
+html[data-theme="dark"] .footer { background: #0e0f0c; }
+
+/* auth pages */
+html[data-theme="dark"] body.login-theme { background: var(--mf-bg); }
+html[data-theme="dark"] .login-theme .login-layout,
+html[data-theme="dark"] .register-theme .auth-wrap { background: var(--mf-panel); }
+
+/* form controls */
+html[data-theme="dark"] .field,
+html[data-theme="dark"] .select,
+html[data-theme="dark"] .textarea,
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea { background-color: #1a1b16; color: var(--mf-ink); border-color: #45463c; }
+html[data-theme="dark"] ::placeholder { color: #7f7c70; }
+
+/* page-specific stylesheets with light surfaces */
+html[data-theme="dark"] .order-tracking-box,
+html[data-theme="dark"] .shipping-widget,
+html[data-theme="dark"] .collection-intro,
+html[data-theme="dark"] .collection-style,
+html[data-theme="dark"] .collection-filters,
+html[data-theme="dark"] .outfit-card,
+html[data-theme="dark"] .collection-empty,
+html[data-theme="dark"] .promotion-banner,
+html[data-theme="dark"] .promotion-code,
+html[data-theme="dark"] .account-cell,
+html[data-theme="dark"] .product-image-thumbs button,
+html[data-theme="dark"] .product-upload-preview figure,
+html[data-theme="dark"] .variant-color-button { background: var(--mf-card); color: var(--mf-ink); border-color: var(--mf-line); }
+html[data-theme="dark"] .order-shipping-notice { background: #2c2617; color: #e9cf9b; border-color: #4a3f22; }
+html[data-theme="dark"] .collection-style:hover,
+html[data-theme="dark"] .filter-link:hover,
+html[data-theme="dark"] .account-shortcut:hover,
+html[data-theme="dark"] .button.line:hover { background: #2a2c25; color: var(--mf-ink); }
+html[data-theme="dark"] .collection-style.is-active,
+html[data-theme="dark"] .variant-color-button[aria-pressed="true"] { background: var(--mf-ink); color: var(--mf-on-ink); border-color: var(--mf-ink); }
+html[data-theme="dark"] .outfit-visual,
+html[data-theme="dark"] .outfit-photo,
+html[data-theme="dark"] .outfit-photo img,
+html[data-theme="dark"] .detail-art.product-photo > img,
+html[data-theme="dark"] .product-image-thumbs img,
+html[data-theme="dark"] .product-upload-preview figure img,
+html[data-theme="dark"] .admin-product-thumb,
+html[data-theme="dark"] .image-management-card > a > img { background: #2a2c25; }
+
+/* style chatbot */
+html[data-theme="dark"] .chatbot-panel,
+html[data-theme="dark"] .chatbot-message.assistant,
+html[data-theme="dark"] .chatbot-product,
+html[data-theme="dark"] .chatbot-suggestions,
+html[data-theme="dark"] .chatbot-suggestions button,
+html[data-theme="dark"] .chatbot-form,
+html[data-theme="dark"] .chatbot-form input,
+html[data-theme="dark"] .chatbot-note { background: var(--mf-card); color: var(--mf-ink); border-color: var(--mf-line); }
+html[data-theme="dark"] .chatbot-messages { background: var(--mf-bg); }
+html[data-theme="dark"] .chatbot-product:hover,
+html[data-theme="dark"] .chatbot-suggestions button:hover { background: #2a2c25; }
+html[data-theme="dark"] .chatbot-message.error { background: #3a211b; color: #f0b8a6; }
+
+/* accents that sit on the dark ground */
+html[data-theme="dark"] .story-pic .pill { color: #f3efe7; }
+html[data-theme="dark"] .story-pic .pill:hover { background: rgba(0,0,0,.85); }
+html[data-theme="dark"] .chatbot-launcher,
+html[data-theme="dark"] .chatbot-head { background: #2a2c25; color: #f3efe7; }
+html[data-theme="dark"] .chatbot-launcher:hover { background: #33362d; }
+html[data-theme="dark"] .collection-hero h1 span,
+html[data-theme="dark"] .mf-accent { color: #d29a6c; }
+html[data-theme="dark"] .select,
+html[data-theme="dark"] select.select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23ece6d9' stroke-width='1.6'%3E%3Cpath d='m3 5 4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 14px; }

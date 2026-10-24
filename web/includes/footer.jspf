@@ -1,9 +1,13 @@
 <%@page pageEncoding="UTF-8"%>
+<section class="mf-mark" aria-label="MENSFORM — Đúng form, đúng bạn">
+    <div class="mf-mark-row" aria-hidden="true"><span>MENSFORM</span><i>✦</i><span class="o">Đúng form</span><i>✦</i><span>MENSFORM</span><i>✦</i><span class="o">Đúng bạn</span><i>✦</i><span>MENSFORM</span><i>✦</i><span class="o">Đúng form</span><i>✦</i><span>MENSFORM</span><i>✦</i><span class="o">Đúng bạn</span><i>✦</i></div>
+    <div class="mf-strap" aria-hidden="true"><span>MENSFORM ✦ PHỤ KIỆN NAM ✦ CÀI ĐÚNG NẤC ✦ CHUẨN PHONG CÁCH ✦ MENSFORM ✦ PHỤ KIỆN NAM ✦ CÀI ĐÚNG NẤC ✦ CHUẨN PHONG CÁCH</span></div>
+</section>
 <footer class="footer" id="contact"><div class="shell">
     <div class="footer-inner">
-        <div class="footer-intro"><a class="brand" href="<%=request.getContextPath()%>/index.jsp">MENSFORM<span class="brand-caption">THE MODERN GENTLEMAN</span></a><p>Phong cách nam hiện đại, tinh giản và chỉn chu.<br>Bắt đầu từ những lựa chọn mang dấu ấn của bạn.</p></div>
-        <div><h2>KHÁM PHÁ</h2><nav class="footer-links" aria-label="Khám phá cửa hàng"><a href="<%=request.getContextPath()%>/products">Tất cả sản phẩm</a><a href="<%=request.getContextPath()%>/collections">Bộ sưu tập</a><a href="<%=request.getContextPath()%>/promotions">Khuyến mãi</a></nav></div>
-        <div><h2>ĐỒNG HÀNH CÙNG BẠN</h2><nav class="footer-links" aria-label="Hỗ trợ tài khoản"><a href="<%=request.getContextPath()%>/customer/account.jsp">Tài khoản của tôi</a><a href="<%=request.getContextPath()%>/customer/orders">Đơn hàng</a><a href="<%=request.getContextPath()%>/customer/support">Hỗ trợ khách hàng</a></nav></div>
+        <div class="footer-intro"><a class="brand" href="<%=request.getContextPath()%>/index.jsp">MENSFORM</a><p>Phụ kiện và thời trang nam tinh giản, chỉn chu. Bắt đầu từ những chi tiết mang dấu ấn của bạn.</p></div>
+        <div><h2>Khám phá</h2><nav class="footer-links" aria-label="Khám phá cửa hàng"><a href="<%=request.getContextPath()%>/products">Tất cả sản phẩm</a><a href="<%=request.getContextPath()%>/collections">Bộ sưu tập</a><a href="<%=request.getContextPath()%>/promotions">Khuyến mãi</a></nav></div>
+        <div><h2>Đồng hành cùng bạn</h2><nav class="footer-links" aria-label="Hỗ trợ tài khoản"><a href="<%=request.getContextPath()%>/customer/account.jsp">Tài khoản của tôi</a><a href="<%=request.getContextPath()%>/customer/orders">Đơn hàng</a><a href="<%=request.getContextPath()%>/customer/support">Hỗ trợ khách hàng</a></nav></div>
     </div>
-    <div class="footer-bottom"><span>© <%=java.time.Year.now().getValue()%> MENSFORM</span><span>TIMELESS STYLE. EVERYDAY CONFIDENCE.</span></div>
+    <div class="footer-bottom"><span>© <%=java.time.Year.now().getValue()%> MENSFORM</span><span>Đúng form. Đúng bạn.</span></div>
 </div></footer>

@@ -4,6 +4,7 @@ import dao.AdminReportDAO;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -72,8 +73,42 @@ public class AdminReportController extends HttpServlet {
             request.setAttribute("dailySales", Collections.emptyList());
         }
 
+        loadDashboard(request, from, to);
+
         request.getRequestDispatcher("/admin/reports.jsp")
                 .forward(request, response);
+    }
+
+    private void loadDashboard(HttpServletRequest request,
+                               LocalDate from, LocalDate to) {
+
+        long days = ChronoUnit.DAYS.between(from, to) + 1;
+        LocalDate previousTo = from.minusDays(1);
+        LocalDate previousFrom = previousTo.minusDays(days - 1);
+
+        request.setAttribute("previousFrom", previousFrom);
+        request.setAttribute("previousTo", previousTo);
+
+        try {
+            request.setAttribute("previousReport",
+                    reportDAO.getSummary(previousFrom, previousTo));
+            request.setAttribute("customerCount",
+                    reportDAO.getCustomerCount(from, to));
+            request.setAttribute("previousCustomerCount",
+                    reportDAO.getCustomerCount(previousFrom, previousTo));
+            request.setAttribute("topProducts",
+                    reportDAO.getTopProducts(from, to, 5));
+            request.setAttribute("categorySales",
+                    reportDAO.getCategorySales(from, to));
+            request.setAttribute("statusMix",
+                    reportDAO.getOrderStatusMix(from, to));
+            request.setAttribute("paymentMix",
+                    reportDAO.getPaymentMix(from, to));
+            request.setAttribute("lowStock",
+                    reportDAO.getLowStockVariants(8));
+        } catch (SQLException e) {
+            getServletContext().log("Could not load dashboard details.", e);
+        }
     }
 
     private Staff getStaff(HttpSession session) {

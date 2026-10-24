@@ -45,7 +45,21 @@ public class ProductImageStore {
         if (configured == null || configured.isBlank()) {
             configured = Paths.get(System.getProperty("catalina.base", "."), "mensform-data", "product-images").toString();
         }
-        return new ProductImageStore(Paths.get(configured));
+        return new ProductImageStore(resolve(context, Paths.get(configured)));
+    }
+
+    /** A relative setting (e.g. "product-images") is looked up beside the deployed app and its parent
+     *  folders, so a cloned project finds its own photos without a machine-specific path. */
+    static Path resolve(ServletContext context, Path configured) {
+        if (configured.isAbsolute()) return configured;
+        String deployed = context.getRealPath("/");
+        if (deployed != null) {
+            for (Path dir = Paths.get(deployed).toAbsolutePath(); dir != null; dir = dir.getParent()) {
+                Path candidate = dir.resolve(configured);
+                if (Files.isDirectory(candidate)) return candidate;
+            }
+        }
+        return Paths.get(System.getProperty("catalina.base", ".")).resolve(configured);
     }
 
     private Path directory(int productId) {

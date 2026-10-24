@@ -23,9 +23,11 @@ roi dat anh mong muon thanh 00-cover.jpg hoac 00-cover.png.
 
 Anh luu ngoai web/ va WAR, nen khong bi xoa khi Clean and Build/deploy lai.
 Can sao luu thu muc nay cung voi du lieu san pham.
-May hien tai: web/WEB-INF/web.xml cau hinh D:/ISP392/ISP392/product-images.
-Khi chuyen may, doi productImageDirectory trong web.xml hoac dat bien moi truong
-MENSFORM_PRODUCT_IMAGE_DIR thanh duong dan tuyet doi. Bien moi truong duoc uu tien.
+Cau hinh: web/META-INF/context.xml dat productImageDirectory = product-images
+(duong dan tuong doi). App tu tim thu muc product-images canh du an, nen clone
+tu GitHub ve may khac chay duoc ngay. Anh duoc commit cung code (.gitignore
+khong con bo qua thu muc nay). Muon dung thu muc khac: dat duong dan tuyet doi
+trong context.xml hoac bien moi truong MENSFORM_PRODUCT_IMAGE_DIR (duoc uu tien).
 Tomcat can quyen doc/ghi thu muc do. Khoi dong lai Tomcat sau khi doi cau hinh.
 
 ANH THEO MAU BIEN THE
