@@ -1,10 +1,9 @@
 <%@page pageEncoding="UTF-8" import="java.util.List,model.Product"%>
-<section class="home-products" aria-labelledby="homeProductsTitle">
+<section class="home-products block" id="new" aria-labelledby="homeProductsTitle">
     <div class="shell">
-        <div class="editorial-intro">
-            <span class="eyebrow">MENSFORM SELECTION</span>
-            <h2 id="homeProductsTitle">Khám phá sản phẩm</h2>
-            <p>Những lựa chọn mới nhất dành cho phong cách của bạn.</p>
+        <div class="head">
+            <div><span class="kicker num">Hàng mới về</span><h2 id="homeProductsTitle">Lựa chọn mới nhất cho bạn</h2></div>
+            <a class="link-all" href="<%=request.getContextPath()%>/products">Xem tất cả <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a>
         </div>
         <% List<Product> homeProducts = (List<Product>) request.getAttribute("homeProducts");
            if (homeProducts != null && !homeProducts.isEmpty()) { %>

@@ -1,0 +1,36 @@
+/* MENSFORM admin and staff workspace: same palette and type as the store, kept quiet for daily work.
+   Loaded from admin/includes/sidebar.jspf and staff/includes/nav.jspf after mensform.css. */
+.admin-layout, .portal-layout { background: var(--mf-bg); font-family: var(--mf-sans); }
+.admin-sidebar, .portal-sidebar { background: var(--mf-olive); color: #d6d1c4; }
+.admin-brand, .portal-brand { font: 500 19px/1 var(--mf-sans); letter-spacing: .2em; color: var(--mf-cream); }
+.admin-brand i, .portal-brand i { color: var(--mf-gold-2); font-style: normal; }
+.admin-caption, .portal-caption { color: #a8a495; letter-spacing: .2em; }
+.admin-link, .portal-link { border-radius: 10px; color: #d6d1c4; font-weight: 500; font-size: 14px; position: relative; }
+.admin-link:hover, .portal-link:hover { background: rgba(243,239,231,.08); color: var(--mf-cream); }
+.admin-link.active, .portal-link.active { background: rgba(243,239,231,.12); color: var(--mf-cream); }
+.admin-link.active::before, .portal-link.active::before { content: ""; position: absolute; left: -16px; top: 50%; width: 18px; height: 8px; margin-top: -4px; border-radius: 0 2px 2px 0; background: var(--mf-leather); }
+.admin-side-bottom, .portal-side-bottom { color: #a8a495; border-color: #4d5045; }
+.admin-side-bottom a, .portal-side-bottom a { color: var(--mf-cream); text-decoration: underline; text-underline-offset: 4px; }
+.admin-title, .portal-head h1 { font: 400 clamp(30px, 3.2vw, 44px)/1.1 var(--mf-serif); letter-spacing: -.02em; color: var(--mf-ink); }
+.admin-subtitle, .admin-topline small, .admin-note { color: var(--mf-soft); }
+.admin-panel, .admin-stat, .portal-stat { background: var(--mf-card); border: 1px solid var(--mf-line); border-radius: var(--mf-r); box-shadow: none; }
+.admin-panel h2 { font: 400 24px/1.2 var(--mf-serif); }
+.admin-stat span, .portal-stat span { font: 600 11px/1.3 var(--mf-sans); letter-spacing: .16em; text-transform: uppercase; color: var(--mf-soft); }
+.admin-stat strong, .portal-stat strong { font: 400 32px/1.1 var(--mf-serif); letter-spacing: -.01em; }
+.admin-table-wrap, .portal-table-wrap { border-color: var(--mf-line); border-radius: 12px; background: var(--mf-card); }
+.admin-table, .portal-table { background: var(--mf-card); font-size: 14px; }
+.admin-table th, .portal-table th { background: var(--mf-panel); color: var(--mf-soft); font-weight: 700; letter-spacing: .12em; }
+.admin-table td, .portal-table td { border-color: var(--mf-line); }
+.admin-table tr:hover td, .portal-table tr:hover td { background: #fbfaf6; }
+.admin-table .field, .admin-table .select, .portal-table .field, .portal-table .select { min-height: 38px; padding: 7px 10px; border-radius: 9px; }
+.admin-table .select, .portal-table .select { padding-right: 34px; background-position: right 12px center; }
+.admin-badge { background: #e9eee3; color: #2f5235; }
+.admin-badge.off { background: var(--mf-panel); color: var(--mf-soft); }
+.admin-empty { color: var(--mf-soft); }
+.admin-filter .field, .admin-filter .select { min-height: 42px; }
+.button.small { min-height: 36px; }
+.portal-main, .admin-main { color: var(--mf-ink); }
+@media (max-width: 800px) {
+    .admin-layout > *, .admin-sidebar > div { min-width: 0; }
+    .admin-link.active::before, .portal-link.active::before { display: none; }
+}

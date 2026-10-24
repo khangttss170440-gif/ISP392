@@ -1,2 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/MenWearStore"/>
+<Context path="/MenWearStore">
+    <!-- Product photos are kept in the project (product-images\<ProductID>\) and committed with the code.
+         A relative value is found beside the deployed app (see ProductImageStore.resolve), so any clone works.
+         Use an absolute path here, or the MENSFORM_PRODUCT_IMAGE_DIR environment variable, to point elsewhere. -->
+    <Parameter name="productImageDirectory" value="product-images" override="false"/>
+</Context>

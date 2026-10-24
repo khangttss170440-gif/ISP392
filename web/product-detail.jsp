@@ -79,5 +79,5 @@
     </div></section>
 </div></main><%@include file="/includes/footer.jspf"%>
 <script src="<%=request.getContextPath()%>/assets/product-images.js" defer></script>
-<script src="<%=request.getContextPath()%>/assets/product-variants.js" defer></script>
+<script src="<%=request.getContextPath()%>/assets/product-variants.js?v=20261024f" defer></script>
 </body></html>

@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Xác thực email — MENSFORM</title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
-    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/login-theme.css">
-    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/register-theme.css">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/login-theme.css?v=20261024e">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/register-theme.css?v=20261024e">
 </head>
 <body class="login-theme register-theme">
 <%@include file="/includes/header.jspf"%>

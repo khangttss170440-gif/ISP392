@@ -71,7 +71,8 @@
         });
         size.disabled = !variants.some((variant) => variant.color === selectedColor && variant.stock > 0);
         const preserved = variants.find((variant) => variant.color === selectedColor && variant.size === oldSize && variant.stock > 0);
-        size.value = preserved ? preserved.id : '';
+        const inStock = variants.filter((variant) => variant.color === selectedColor && variant.stock > 0);
+        size.value = preserved ? preserved.id : inStock.length === 1 ? inStock[0].id : '';
         updateGallery(selectedColor);
         updateSelection();
     }));
@@ -93,4 +94,6 @@
         const suggestedButton = colorButtons.find(button => colorKey(button.dataset.variantColor) === colorKey(suggestedColor));
         if (suggestedButton) suggestedButton.click();
     }
+    // one colour only (watch, tie, sunglasses…): pick it so the size list is ready
+    if (!selectedColor && colorButtons.length === 1) colorButtons[0].click();
 })();

@@ -17,3 +17,9 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #b9
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
 </style>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store-palette.css?v=20261022">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,500;1,400&family=Manrope:wght@400;500;600;700&family=Great+Vibes&display=swap">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform.css?v=20261024e">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform-dark.css?v=20261024e">
+<script src="<%=request.getContextPath()%>/assets/mensform-theme.js?v=20261024e"></script>
