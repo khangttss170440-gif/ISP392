@@ -150,8 +150,12 @@ public class WarehouseOrderDAO {
                 ? ""
                 : action.trim().toLowerCase();
 
+        boolean simulatePickup = "simulatepickup".equals(normalizedAction);
+        boolean simulateDelivery = "simulatedelivery".equals(normalizedAction);
         if (!"ship".equals(normalizedAction)
-                && !"deliver".equals(normalizedAction)) {
+                && !"deliver".equals(normalizedAction)
+                && !simulatePickup
+                && !simulateDelivery) {
             throw new IllegalArgumentException("Invalid shipment action.");
         }
 
@@ -188,18 +192,30 @@ public class WarehouseOrderDAO {
                         orderID
                 );
 
-                GhnDeliveryDAO.guardManual(connection, orderID);
-
-                if ("ship".equals(normalizedAction)) {
+                if ("ship".equals(normalizedAction) || simulatePickup) {
+                    boolean simulatedGhn = false;
+                    if (simulatePickup) {
+                        simulatedGhn = GhnDeliveryDAO.markSimulation(
+                                connection, orderID, "simulation_picked");
+                    } else {
+                        GhnDeliveryDAO.guardManual(connection, orderID);
+                    }
                     shipOrder(
                             connection,
                             orderID,
                             currentState[0],
                             currentState[1],
-                            safeCarrier,
-                            safeTrackingNumber
+                            simulatePickup && !simulatedGhn ? "Mô phỏng" : safeCarrier,
+                            simulatePickup ? null : safeTrackingNumber,
+                            simulatedGhn
                     );
                 } else {
+                    if (simulateDelivery) {
+                        GhnDeliveryDAO.markSimulation(
+                                connection, orderID, "simulation_delivered");
+                    } else {
+                        GhnDeliveryDAO.guardManual(connection, orderID);
+                    }
                     deliverOrder(
                             connection,
                             orderID,
@@ -261,29 +277,33 @@ public class WarehouseOrderDAO {
             String orderStatus,
             String shipmentStatus,
             String carrier,
-            String trackingNumber) throws SQLException {
+            String trackingNumber,
+            boolean preserveCarrier) throws SQLException {
 
         if (!"Confirmed".equalsIgnoreCase(orderStatus)) {
             throw new SQLException("ORDER_NOT_READY_TO_SHIP");
         }
 
-        if (!"Pending".equalsIgnoreCase(shipmentStatus)) {
+        if (preserveCarrier
+                ? !"Preparing".equalsIgnoreCase(shipmentStatus)
+                : !"Pending".equalsIgnoreCase(shipmentStatus)) {
             throw new SQLException("SHIPMENT_NOT_PENDING");
         }
 
-        String shipmentSql
-                = "UPDATE dbo.Shipment "
-                + "SET Carrier = ?, TrackingNumber = ?, "
-                + "    ShipmentStatus = 'Shipped', "
-                + "    ShippedDate = SYSDATETIME() "
-                + "WHERE OrderID = ? AND ShipmentStatus = 'Pending'";
+        String shipmentSql = preserveCarrier
+                ? "UPDATE dbo.Shipment SET ShipmentStatus='Shipped', ShippedDate=SYSDATETIME() WHERE OrderID=? AND ShipmentStatus='Preparing'"
+                : "UPDATE dbo.Shipment SET Carrier=?, TrackingNumber=?, ShipmentStatus='Shipped', ShippedDate=SYSDATETIME() WHERE OrderID=? AND ShipmentStatus='Pending'";
 
         try (PreparedStatement statement
                 = connection.prepareStatement(shipmentSql)) {
 
-            statement.setString(1, carrier);
-            statement.setString(2, trackingNumber);
-            statement.setInt(3, orderID);
+            if (preserveCarrier) {
+                statement.setInt(1, orderID);
+            } else {
+                statement.setString(1, carrier);
+                statement.setString(2, trackingNumber);
+                statement.setInt(3, orderID);
+            }
 
             if (statement.executeUpdate() != 1) {
                 throw new SQLException("SHIPMENT_UPDATE_FAILED");

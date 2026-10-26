@@ -31,6 +31,8 @@ public class CustomerOrder {
         return service.GhnTrackingStatus.orderLabel(orderStatus);
     }
     public String getShippingNotice() {
+        if(carrierStatus!=null && carrierStatus.startsWith("simulation_"))
+            return "Trạng thái vận chuyển này do cửa hàng mô phỏng; không phải cập nhật trực tiếp từ GHN.";
         if(!"cancel".equals(carrierStatus) || "Cancelled".equalsIgnoreCase(orderStatus)) return "";
         return "Vận đơn GHN đã bị hủy. Cửa hàng cần xử lý giao lại hoặc hủy đơn mua hàng."
                 +("Paid".equalsIgnoreCase(paymentStatus)

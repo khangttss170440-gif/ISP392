@@ -61,6 +61,13 @@ public class WarehouseOrderController extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
+        Object csrfToken = session == null ? null : session.getAttribute("ghn.csrf");
+        if (!(csrfToken instanceof String)
+                || !csrfToken.equals(request.getParameter("csrfToken"))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
         try {
             int orderID = Integer.parseInt(
                     request.getParameter("orderId")
@@ -73,7 +80,18 @@ public class WarehouseOrderController extends HttpServlet {
                     request.getParameter("trackingNumber")
             );
 
-            if ("ship".equalsIgnoreCase(request.getParameter("action"))) {
+            String action = request.getParameter("action");
+            if ("simulatePickup".equalsIgnoreCase(action)) {
+                session.setAttribute(
+                        MESSAGE_KEY,
+                        "Đã mô phỏng đơn vị vận chuyển lấy hàng; đơn đang giao."
+                );
+            } else if ("simulateDelivery".equalsIgnoreCase(action)) {
+                session.setAttribute(
+                        MESSAGE_KEY,
+                        "Đã mô phỏng giao hàng thành công."
+                );
+            } else if ("ship".equalsIgnoreCase(action)) {
                 session.setAttribute(
                         MESSAGE_KEY,
                         "Đã cập nhật đơn hàng sang trạng thái đang giao."

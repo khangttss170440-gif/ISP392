@@ -122,6 +122,7 @@ public class GhnDeliveryDAO {
                 +"AND (g.BookingState<>'Booking' OR g.UpdatedAt<DATEADD(minute,-2,SYSDATETIME())) "
                 +"AND (g.WebhookGeneration>g.LastWebhookGenerationSynced OR ISNULL(g.CarrierStatus,'') NOT IN ('delivered','cancel','returned','exception','lost','damage','scrap')) "
                 +"AND (o.OrderStatus IN ('Confirmed','Shipped','Processing') OR (o.OrderStatus='Delivered' AND g.WebhookGeneration>g.LastWebhookGenerationSynced)) AND g.NextSyncAt<=SYSUTCDATETIME() "
+                +"AND ISNULL(g.CarrierStatus,'') NOT LIKE 'simulation_%' "
                 +"AND (g.SyncLeaseUntil IS NULL OR g.SyncLeaseUntil<SYSUTCDATETIME()) ORDER BY g.NextSyncAt,g.OrderID";
         try(Connection c=DBConnection.getConnection();PreparedStatement s=c.prepareStatement(sql)) {
             s.setQueryTimeout(5);s.setInt(1,Math.min(100,Math.max(1,limit)));s.setInt(2,GhnClient.shopId());
@@ -132,7 +133,7 @@ public class GhnDeliveryDAO {
     private String syncWithLease(int order,boolean scheduled) throws SQLException {
         UUID lease=UUID.randomUUID();
         String sql="UPDATE dbo.GhnDelivery SET SyncLeaseToken=?,SyncLeaseUntil=DATEADD(second,120,SYSUTCDATETIME()),NextSyncAt=DATEADD(second,60,SYSUTCDATETIME()) "
-                +"WHERE OrderID=? AND ShopID=? AND Environment='staging' AND BookingState<>'Ready' "
+                +"WHERE OrderID=? AND ShopID=? AND Environment='staging' AND BookingState<>'Ready' AND ISNULL(CarrierStatus,'') NOT LIKE 'simulation_%' "
                 +"AND (SyncLeaseUntil IS NULL OR SyncLeaseUntil<SYSUTCDATETIME())"
                 +(scheduled?" AND NextSyncAt<=SYSUTCDATETIME() AND (WebhookGeneration>LastWebhookGenerationSynced OR ISNULL(CarrierStatus,'') NOT IN ('delivered','cancel','returned','exception','lost','damage','scrap'))":"");
         try(Connection c=DBConnection.getConnection();PreparedStatement s=c.prepareStatement(sql)) {
@@ -264,5 +265,31 @@ public class GhnDeliveryDAO {
                 if(r.next() && !"Ready".equals(r.getString(1))) throw new IllegalArgumentException("Đơn đã gửi GHN. Dùng nút cập nhật trạng thái GHN để đối soát.");
             }
         }
+    }
+
+    /** Mark an already booked GHN shipment as a local demo so API polling cannot overwrite it. */
+    public static boolean markSimulation(Connection c,int order,String status) throws SQLException {
+        try(PreparedStatement table=c.prepareStatement("SELECT OBJECT_ID('dbo.GhnDelivery','U')");ResultSet r=table.executeQuery()) {
+            if(!r.next() || r.getObject(1)==null) return false;
+        }
+        String state;
+        try(PreparedStatement s=c.prepareStatement("SELECT BookingState,SyncLeaseUntil FROM dbo.GhnDelivery WITH (UPDLOCK,ROWLOCK) WHERE OrderID=?")) {
+            s.setInt(1,order);
+            try(ResultSet r=s.executeQuery()) {
+                if(!r.next()) return false;
+                state=r.getString("BookingState");
+                Timestamp leaseUntil=r.getTimestamp("SyncLeaseUntil");
+                if(leaseUntil!=null && leaseUntil.getTime()>System.currentTimeMillis())
+                    throw new IllegalArgumentException("Đơn đang được đồng bộ với GHN. Vui lòng thử mô phỏng lại sau ít phút.");
+            }
+        }
+        if("Ready".equalsIgnoreCase(state)) return false;
+        if(!"Booked".equalsIgnoreCase(state))
+            throw new IllegalArgumentException("Chỉ mô phỏng được khi vận đơn GHN đã tạo xong.");
+        try(PreparedStatement s=c.prepareStatement("UPDATE dbo.GhnDelivery SET CarrierStatus=?,LastSyncedAt=SYSUTCDATETIME(),LastWebhookGenerationSynced=WebhookGeneration,NextSyncAt=DATEADD(year,1,SYSUTCDATETIME()),UpdatedAt=SYSDATETIME() WHERE OrderID=? AND BookingState='Booked' AND (SyncLeaseUntil IS NULL OR SyncLeaseUntil<=SYSUTCDATETIME())")) {
+            s.setString(1,status);s.setInt(2,order);
+            if(s.executeUpdate()!=1) throw new IllegalArgumentException("Đơn đang được đồng bộ với GHN. Vui lòng thử mô phỏng lại sau ít phút.");
+        }
+        return true;
     }
 }

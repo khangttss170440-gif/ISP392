@@ -16,6 +16,8 @@ private String ghnStatus(Object value) {
         case "delivering": return "Đang giao hàng";
         case "money_collect_delivering": return "Thu tiền khi giao hàng";
         case "delivered": return "Giao thành công";
+        case "simulation_picked": return "Đã lấy hàng (mô phỏng)";
+        case "simulation_delivered": return "Giao thành công (mô phỏng)";
         case "delivery_fail": return "Giao thất bại";
         case "waiting_to_return": return "Chờ trả về shop";
         case "return": return "Đã yêu cầu trả hàng";
@@ -33,11 +35,11 @@ private String ghnStatus(Object value) {
 <% java.util.Map<?,?> ghn = (java.util.Map<?,?>)request.getAttribute("ghnDelivery"); %>
 <section class="portal-panel">
     <h2>Vận chuyển GHN — Test</h2>
-    <p>Hệ thống tự đồng bộ trạng thái từ API GHN Test khoảng mỗi phút khi website hoạt động. Khách hàng có thể theo dõi cập nhật trong Đơn hàng của tôi.</p>
+    <% if(String.valueOf(ghn==null?"":ghn.get("CarrierStatus")).startsWith("simulation_")){ %><p>Đơn đang ở chế độ mô phỏng cục bộ. GHN thật không được cập nhật và website đã dừng đồng bộ trạng thái cho đơn này.</p><% }else{ %><p>Hệ thống tự đồng bộ trạng thái từ API GHN Test khoảng mỗi phút khi website hoạt động. Khách hàng có thể theo dõi cập nhật trong Đơn hàng của tôi.</p><% } %>
     <% if (ghn == null) { %>
     <p>Đơn này chưa lưu địa chỉ GHN. Các đơn đặt mới sau khi bật kết nối sẽ có nút tạo vận đơn. Với đơn cũ, tiếp tục dùng phần giao hàng thủ công bên dưới.</p>
     <% } else { %>
-    <p>Mã vận đơn: <b><%=ghnEscape(ghn.get("TrackingNumber"))%></b> · Trạng thái GHN: <b><%=ghnEscape(ghnStatus(ghn.get("CarrierStatus")))%></b> <%=ghn.get("CarrierStatus")==null ? "" : "("+ghnEscape(ghn.get("CarrierStatus"))+")"%></p>
+    <p>Mã vận đơn: <b><%=ghnEscape(ghn.get("TrackingNumber"))%></b> · <%=String.valueOf(ghn.get("CarrierStatus")).startsWith("simulation_") ? "Trạng thái mô phỏng" : "Trạng thái GHN"%>: <b><%=ghnEscape(ghnStatus(ghn.get("CarrierStatus")))%></b> <%=ghn.get("CarrierStatus")==null ? "" : "("+ghnEscape(ghn.get("CarrierStatus"))+")"%></p>
     <p>Phí hãng: <%=ghn.get("CarrierFee")==null ? "Chưa nhận được phí từ GHN" : java.text.NumberFormat.getInstance(new java.util.Locale("vi","VN")).format(ghn.get("CarrierFee"))+"₫"%>. Shop trả phí cho GHN; tiền COD đã gồm phí khách trả tại bước đặt hàng.</p>
     <% if ("cancel".equals(ghn.get("CarrierStatus"))) { %>
     <div class="alert error">GHN đã hủy vận đơn này. Website đã dừng giao theo vận đơn. Đơn mua hàng và khoản thanh toán cần được cửa hàng xử lý riêng; hủy vận đơn chưa phải xác nhận hoàn tiền.</div>
@@ -45,7 +47,7 @@ private String ghnStatus(Object value) {
     <% if (!Boolean.TRUE.equals(request.getAttribute("ghnConfigured"))) { %>
     <div class="alert error">Chưa đọc được GHN_TOKEN/GHN_SHOP_ID. Mở lại NetBeans và Tomcat sau khi lưu cấu hình.</div>
     <% } %>
-    <% if (!"Ready".equals(ghn.get("BookingState"))) { %>
+    <% if (!"Ready".equals(ghn.get("BookingState")) && !String.valueOf(ghn.get("CarrierStatus")).startsWith("simulation_")) { %>
     <form action="<%=request.getContextPath()%>/staff/warehouse/ghn" method="post">
         <input type="hidden" name="csrfToken" value="<%=ghnEscape(request.getAttribute("ghnCsrf"))%>">
         <input type="hidden" name="orderId" value="<%=o.getOrderID()%>">
@@ -64,7 +66,7 @@ private String ghnStatus(Object value) {
         <div><label class="form-label">Rộng (cm)</label><input class="field" type="number" name="width" min="1" max="200" value="20" required></div>
         <div><label class="form-label">Cao (cm)</label><input class="field" type="number" name="height" min="1" max="200" value="10" required></div>
         <p class="span-all">Cân đo kiện trước khi gửi. Phí hãng có thể khác phí checkout; phần chênh lệch do shop thanh toán.</p>
-        <% if (!"Ready".equals(ghn.get("BookingState"))) { %>
+        <% if (!"Ready".equals(ghn.get("BookingState")) && !String.valueOf(ghn.get("CarrierStatus")).startsWith("simulation_")) { %>
         <p class="span-all">Lần gửi trước chưa rõ kết quả. Bấm cập nhật trạng thái trước. Gửi lại sử dụng nguyên nội dung và mã đã lưu để tránh tạo trùng; các số đo nhập lại sẽ không thay đổi yêu cầu trước.</p>
         <% } %>
         <div class="span-all"><button class="button"><%="Ready".equals(ghn.get("BookingState")) ? "Tạo vận đơn GHN test" : "Gửi lại cùng mã đơn GHN"%></button></div>

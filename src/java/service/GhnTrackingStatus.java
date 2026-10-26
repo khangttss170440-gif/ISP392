@@ -6,7 +6,8 @@ import java.util.Set;
 public final class GhnTrackingStatus {
     private GhnTrackingStatus() { }
     public static boolean terminal(String status) {
-        return status!=null && Set.of("delivered","cancel","returned","exception","lost","damage","scrap").contains(status);
+        return status!=null && ("simulation_delivered".equals(status)
+                || Set.of("delivered","cancel","returned","exception","lost","damage","scrap").contains(status));
     }
     public static String label(String status) {
         if(status==null || status.isBlank()) return "Chưa có cập nhật vận chuyển";
@@ -21,6 +22,8 @@ public final class GhnTrackingStatus {
             case "delivering":return "Đang giao hàng";
             case "money_collect_delivering":return "Thu tiền khi giao hàng";
             case "delivered":return "Giao thành công";
+            case "simulation_picked":return "Đã lấy hàng (mô phỏng)";
+            case "simulation_delivered":return "Giao thành công (mô phỏng)";
             case "delivery_fail":return "Giao hàng chưa thành công";
             case "waiting_to_return":return "Chờ trả về shop";
             case "return":return "Đã yêu cầu trả hàng";
