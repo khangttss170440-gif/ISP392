@@ -7,7 +7,7 @@ import model.Staff;
 
 /** Shared session lifecycle for customer registration and account login. */
 public final class AuthSession {
-    public static final int TIMEOUT_SECONDS = 30 * 60;
+    public static final int TIMEOUT_SECONDS = AppConfig.integer("SESSION_TIMEOUT_SECONDS", 60, 86400);
 
     private AuthSession() { }
 

@@ -30,7 +30,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kiểm kê tồn kho | MENSFORM</title>
+    <title>Kiểm kê tồn kho | <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <style>
         .stocktaking-toolbar{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0}
@@ -66,7 +66,7 @@
 
         <section class="portal-panel stocktaking-panel">
             <h2>Tạo phiếu kiểm kê</h2>
-            <p class="stocktaking-note">Chỉ nhập số lượng thực tế cho những biến thể đã đếm. Khi lưu, tồn kho của các dòng đã nhập sẽ được cập nhật ngay. Mỗi phiếu tối đa 50 SKU.</p>
+            <p class="stocktaking-note">Chỉ nhập số lượng thực tế cho những biến thể đã đếm. Khi lưu, tồn kho của các dòng đã nhập sẽ được cập nhật ngay. Mỗi phiếu tối đa <%=util.AppConfig.integer("INVENTORY_MAX_BATCH_SIZE", 1, 1000)%> SKU.</p>
 
             <div class="stocktaking-toolbar">
                 <label class="form-label stocktaking-search">
@@ -116,7 +116,7 @@
                                     <td><%=stocktakingEscape(variant.getSku())%><input type="hidden" name="variantId" value="<%=variant.getVariantID()%>"></td>
                                     <td><%=stocktakingEscape(variant.getColor())%> / <%=stocktakingEscape(variant.getSize())%></td>
                                     <td><b><%=variant.getQuantity()%></b></td>
-                                    <td><input class="field stocktaking-number actual-quantity" type="number" name="actualQuantity" min="0" max="1000000" step="1" inputmode="numeric" aria-label="Số lượng thực tế: <%=stocktakingEscape(variant.getProductName())%> <%=stocktakingEscape(variant.getSku())%>" placeholder="Nhập SL"></td>
+                                    <td><input class="field stocktaking-number actual-quantity" type="number" name="actualQuantity" min="0" max="<%=util.AppConfig.integer("INVENTORY_MAX_QUANTITY", 1, Integer.MAX_VALUE)%>" step="1" inputmode="numeric" aria-label="Số lượng thực tế: <%=stocktakingEscape(variant.getProductName())%> <%=stocktakingEscape(variant.getSku())%>" placeholder="Nhập SL"></td>
                                 </tr>
                             <% }} %>
                         </tbody>
@@ -218,17 +218,17 @@
             alert('Vui lòng nhập số lượng thực tế cho ít nhất một SKU.');
             return;
         }
-        if (filled.length > 50) {
+        if (filled.length > Number(document.querySelector('[data-runtime-settings]').dataset.stockBatch)) {
             event.preventDefault();
-            alert('Mỗi lần kiểm kê tối đa 50 SKU.');
+            alert(`Mỗi lần kiểm kê tối đa ${document.querySelector('[data-runtime-settings]').dataset.stockBatch} SKU.`);
             return;
         }
         for (const input of filled) {
             const quantity = Number(input.value);
-            if (!Number.isInteger(quantity) || quantity < 0 || quantity > 1000000) {
+            if (!Number.isInteger(quantity) || quantity < 0 || quantity > Number(input.max)) {
                 event.preventDefault();
                 input.focus();
-                alert('Số lượng thực tế phải là số nguyên từ 0 đến 1.000.000.');
+                alert(`Số lượng thực tế phải là số nguyên từ 0 đến ${input.max}.`);
                 return;
             }
         }

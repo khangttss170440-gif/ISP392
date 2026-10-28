@@ -161,7 +161,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Báo cáo · MENSFORM Admin</title>
+        <title>Báo cáo · <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> Admin</title>
         <link rel="stylesheet" href="<%=ctx%>/assets/store.css">
     </head>
     <body><div class="admin-layout"><%@include file="/admin/includes/sidebar.jspf"%>

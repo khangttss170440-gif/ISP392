@@ -2,8 +2,8 @@
 <!DOCTYPE html>
 <html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MENSFORM — Phụ kiện nam. Chuẩn form. Chất riêng.</title>
-    <meta name="description" content="MENSFORM: đồng hồ, thắt lưng, ví, túi da, kính mát và cà vạt cho nam. Tinh tế trong từng chi tiết.">
+    <title><%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> — Phụ kiện nam. Chuẩn form. Chất riêng.</title>
+    <meta name="description" content="<%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%>: đồng hồ, thắt lưng, ví, túi da, kính mát và cà vạt cho nam. Tinh tế trong từng chi tiết.">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/chatbot.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/home-theme.css?v=20261024e">
@@ -40,8 +40,8 @@
   </section>
 
   <div class="belt-zone" id="beltZone" aria-hidden="true">
-    <div class="strap strap-a"><span class="deboss">MENSFORM ✦ PHỤ KIỆN NAM ✦ MENSFORM ✦ PHỤ KIỆN NAM ✦ MENSFORM ✦ PHỤ KIỆN NAM ✦ MENSFORM</span></div>
-    <div class="strap strap-b" id="strapB"><i></i><i></i><i></i><i></i><i></i><span class="deboss">MENSFORM ✦ ĐÚNG NẤC ✦ ĐÚNG BẠN ✦ MENSFORM ✦ ĐÚNG NẤC ✦ ĐÚNG BẠN</span></div>
+    <div class="strap strap-a"><span class="deboss"><%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> ✦ PHỤ KIỆN NAM ✦ <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> ✦ PHỤ KIỆN NAM ✦ <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> ✦ PHỤ KIỆN NAM ✦ <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></span></div>
+    <div class="strap strap-b" id="strapB"><i></i><i></i><i></i><i></i><i></i><span class="deboss"><%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> ✦ ĐÚNG NẤC ✦ ĐÚNG BẠN ✦ <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> ✦ ĐÚNG NẤC ✦ ĐÚNG BẠN</span></div>
     <svg class="buckle" viewBox="0 0 120 104">
       <defs><linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3efe6"/><stop offset=".35" stop-color="#b9b4aa"/><stop offset=".6" stop-color="#e9e5dc"/><stop offset="1" stop-color="#8d887e"/></linearGradient></defs>
       <path d="M14 6h92a10 10 0 0 1 10 10v72a10 10 0 0 1-10 10H14A10 10 0 0 1 4 88V16A10 10 0 0 1 14 6Zm8 14v64h76V20Z" fill="url(#metal)" fill-rule="evenodd" stroke="#6f6a61" stroke-width="1"/>
@@ -76,7 +76,7 @@
         %>
         <figure class="ix-fig <%=i == 0 ? "on" : ""%>"><img src="<%=homeCtx%>/product-image?productId=<%=category.getFeaturedProductID()%>" width="640" height="800" alt="<%=navEscape(category.getCategoryName())%>" loading="lazy"><figcaption><span><%=navEscape(category.getCategoryName())%></span><small><%=navEscape(categoryDescription)%></small></figcaption></figure>
         <% } %>
-        <span class="ix-stamp">MENSFORM<br>Danh mục</span>
+        <span class="ix-stamp"><%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%><br>Danh mục</span>
       </div>
     </div>
     <% } else { %>
@@ -101,7 +101,7 @@
              Product spotProduct = homeSpotProducts.get(i);
              String spotDescription = spotProduct.getDescription();
              if (spotDescription == null || spotDescription.isBlank()) {
-                 spotDescription = spotProduct.getCategoryName() == null ? "Sản phẩm đang bán tại MENSFORM." : spotProduct.getCategoryName();
+                 spotDescription = spotProduct.getCategoryName() == null ? "Sản phẩm đang bán tại " + util.AppConfig.require("APP_NAME") + "." : spotProduct.getCategoryName();
              }
         %>
         <a class="hot" style="<%=homeSpotPositions[i]%>" data-k="<%=i%>" data-name="<%=navEscape(spotProduct.getProductName())%>" data-description="<%=navEscape(spotDescription)%>" data-meta="Mã sản phẩm #<%=spotProduct.getProductID()%>" href="<%=homeCtx%>/product-detail?productId=<%=spotProduct.getProductID()%>" aria-label="<%=navEscape(spotProduct.getProductName())%> – xem sản phẩm"><span><%=i + 1%></span></a>
@@ -119,7 +119,7 @@
           </svg></div>
         <h3 id="spName"></h3>
         <p id="spDesc"></p>
-        <div class="spot-cta"><span id="spPrice">Có sẵn tại MENSFORM</span><a class="pill" id="spGo" href="<%=homeCtx%>/products">Xem sản phẩm <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div>
+        <div class="spot-cta"><span id="spPrice">Có sẵn tại <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></span><a class="pill" id="spGo" href="<%=homeCtx%>/products">Xem sản phẩm <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div>
         <ol class="spot-list" id="spList"></ol>
       </aside>
     </div>
@@ -127,7 +127,7 @@
   <% } %>
 
   <section class="block reveal" id="form" aria-labelledby="formTitle">
-    <div class="head"><div><span class="kicker num rise">Chọn form của bạn</span><h2 id="formTitle" class="rise" style="--i:1">Ba dáng cắt. Một chuẩn MENSFORM.</h2></div><p class="head-note rise" style="--i:2">Cùng một size, mỗi form cho cảm giác mặc khác nhau. Chọn form trước, size sau.</p></div>
+    <div class="head"><div><span class="kicker num rise">Chọn form của bạn</span><h2 id="formTitle" class="rise" style="--i:1">Ba dáng cắt. Một chuẩn <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%>.</h2></div><p class="head-note rise" style="--i:2">Cùng một size, mỗi form cho cảm giác mặc khác nhau. Chọn form trước, size sau.</p></div>
     <div class="former">
       <figure class="fig rise">
         <svg viewBox="0 0 360 640" role="img" aria-labelledby="figCap">

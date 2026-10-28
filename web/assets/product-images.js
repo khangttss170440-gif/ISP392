@@ -4,8 +4,9 @@
             if (!window.confirm('Xóa ảnh này khỏi sản phẩm?')) event.preventDefault();
         });
     });
-    const MAX_FILE_BYTES = 10 * 1024 * 1024;
-    const MAX_PIXELS = 12000000;
+    const settings = document.querySelector('[data-runtime-settings]').dataset;
+    const MAX_FILE_BYTES = Number(settings.imageMaxBytes);
+    const MAX_PIXELS = Number(settings.imageMaxPixels);
     document.querySelectorAll('input[type="file"][name="images"]').forEach(input => {
         const form = input.form;
         if (!form) return;
@@ -38,9 +39,9 @@
             pending = 0;
             error.textContent = '';
             const files = Array.from(input.files);
-            const maximum = input.multiple ? 6 : 1;
+            const maximum = input.multiple ? Number(settings.imageMaxCount) : 1;
             if (files.length > maximum || files.some(file => file.size > MAX_FILE_BYTES || !['image/jpeg', 'image/png'].includes(file.type))) {
-                reject(`Vui lòng chọn tối đa ${maximum} ảnh JPG/PNG, mỗi ảnh không quá 10 MB.`);
+                reject(`Vui lòng chọn tối đa ${maximum} ảnh JPG/PNG, mỗi ảnh không quá ${(MAX_FILE_BYTES / 1024 / 1024).toFixed(1)} MB.`);
                 return;
             }
             pending = files.length;
@@ -55,14 +56,14 @@
                     if (selection !== generation) return;
                     const width = image.naturalWidth, height = image.naturalHeight;
                     if (!width || !height || width * height > MAX_PIXELS) {
-                        reject('Ảnh tối đa 12 megapixel, ví dụ 3000 × 4000 px. Vui lòng chọn lại ảnh.');
+                        reject(`Ảnh tối đa ${MAX_PIXELS / 1000000} megapixel. Vui lòng chọn lại ảnh.`);
                         return;
                     }
                     caption.textContent = `${width} × ${height} px · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
-                    if (Math.min(width, height) < 1200) {
+                    if (Math.min(width, height) < Number(settings.imageRecommendedSide)) {
                         const warning = document.createElement('span');
                         warning.className = 'product-image-quality-note';
-                        warning.textContent = 'Ảnh nhỏ; nên chọn nguồn có cạnh ngắn từ 1200 px để xem rõ hơn.';
+                        warning.textContent = `Ảnh nhỏ; nên chọn nguồn có cạnh ngắn từ ${settings.imageRecommendedSide} px để xem rõ hơn.`;
                         caption.appendChild(warning);
                     }
                     pending--;
@@ -91,7 +92,7 @@
         const describe = () => {
             if (!image.naturalWidth || !image.naturalHeight) return;
             caption.textContent = `${image.naturalWidth} × ${image.naturalHeight} px`;
-            if (Math.min(image.naturalWidth, image.naturalHeight) < 1200)
+            if (Math.min(image.naturalWidth, image.naturalHeight) < Number(settings.imageRecommendedSide))
                 caption.textContent += ' · Ảnh nhỏ; thay bằng ảnh gốc lớn hơn để rõ hơn.';
         };
         image.addEventListener('load', describe);

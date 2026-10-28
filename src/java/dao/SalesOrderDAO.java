@@ -54,7 +54,7 @@ public class SalesOrderDAO {
                 + "    OR (UPPER(LTRIM(RTRIM(payment.PaymentMethod))) = 'VNPAY' "
                 + "        AND UPPER(LTRIM(RTRIM(payment.PaymentStatus))) = 'PAID')"
                 + ") "
-                + "ORDER BY so.OrderDate ASC, so.OrderID ASC";
+                + "ORDER BY so.OrderDate DESC, so.OrderID DESC";
 
         List<SalesOrder> orders = new ArrayList<>();
 

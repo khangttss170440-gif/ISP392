@@ -12,7 +12,7 @@ Role[] defaultRoles={Role.TOP,Role.BOTTOM,Role.SHOES,Role.ACCESSORY,Role.LAYER,R
 %>
 <!DOCTYPE html><html lang="vi"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title><%=collectionDraft.getId()>0?"Chỉnh sửa":"Tạo"%> bộ sưu tập · MENSFORM</title>
+<title><%=collectionDraft.getId()>0?"Chỉnh sửa":"Tạo"%> bộ sưu tập · <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/collection-manager.css">
 </head><body>

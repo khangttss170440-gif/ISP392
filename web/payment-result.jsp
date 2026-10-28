@@ -11,7 +11,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kết quả thanh toán — MENSFORM</title>
+    <title>Kết quả thanh toán — <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
 </head>
 <body>

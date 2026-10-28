@@ -1,6 +1,10 @@
 VNPAY SANDBOX SETUP
 ===================
 
+Shared configuration: CONFIGURATION_SETUP.txt. VNPAY_PAYMENT_URL,
+VNPAY_ORDER_TYPE, VNPAY_EXPIRY_MINUTES and VNPAY_LOCALE can be overridden
+without editing Java; the configured endpoint must remain on the Sandbox host.
+
 The checkout supports COD and VNPAY Sandbox. VNPAY orders stay Pending until
 a signed, amount-matched callback is received. Both the browser return and IPN
 are handled by:

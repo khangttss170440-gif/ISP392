@@ -42,7 +42,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Báo cáo sự cố kho | MENSFORM</title>
+    <title>Báo cáo sự cố kho | <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <style>
         .issue-status{display:inline-flex;padding:6px 10px;border-radius:999px;background:#fff3d6;color:#8a5a00;font-size:13px;font-weight:700;white-space:nowrap}

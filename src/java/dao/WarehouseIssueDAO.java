@@ -74,7 +74,8 @@ public class WarehouseIssueDAO {
                 + "wi.IssueType, wi.Description, wi.Status, wi.CreatedAt, "
                 + "wi.ResolutionNote, wi.UpdatedAt, "
                 + "p.ProductName, pv.SKU, s.FullName AS ReportedByName, "
-                + "resolver.FullName AS ResolvedByName "
+                + "resolver.FullName AS ResolvedByName, "
+                + "payment.PaymentMethod, payment.PaymentStatus "
                 + "FROM dbo.WarehouseIssue wi "
                 + "INNER JOIN dbo.ProductVariant pv "
                 + "        ON pv.VariantID = wi.VariantID "
@@ -83,8 +84,11 @@ public class WarehouseIssueDAO {
                 + "        ON s.StaffID = wi.ReportedByStaffID "
                 + "LEFT JOIN dbo.Staff resolver "
                 + "       ON resolver.StaffID = wi.ResolvedByStaffID "
+                + "OUTER APPLY (SELECT TOP (1) p.PaymentMethod, p.PaymentStatus "
+                + "    FROM dbo.Payment p WHERE p.OrderID = wi.OrderID "
+                + "    ORDER BY p.PaymentID DESC) payment "
                 + "WHERE wi.Status = 'Open' "
-                + "ORDER BY wi.CreatedAt ASC, wi.IssueID ASC";
+                + "ORDER BY wi.CreatedAt DESC, wi.IssueID DESC";
 
         List<WarehouseIssue> issues = new ArrayList<>();
 
@@ -108,6 +112,8 @@ public class WarehouseIssueDAO {
                 issue.setReportedByName(
                         result.getString("ReportedByName")
                 );
+                issue.setPaymentMethod(result.getString("PaymentMethod"));
+                issue.setPaymentStatus(result.getString("PaymentStatus"));
 
                 readResolutionDetails(result, issue);
                 issues.add(issue);
@@ -280,12 +286,14 @@ public class WarehouseIssueDAO {
                 }
                 if (!"Pending".equalsIgnoreCase(state.orderStatus)
                         && !"Confirmed".equalsIgnoreCase(state.orderStatus)
-                        && !"Processing".equalsIgnoreCase(state.orderStatus)) {
+                        && !"Processing".equalsIgnoreCase(state.orderStatus)
+                        && !"Packing".equalsIgnoreCase(state.orderStatus)) {
                     throw new SQLException("ORDER_NOT_CANCELLABLE");
                 }
                 if (state.shipmentStatus != null
                         && !"Pending".equalsIgnoreCase(state.shipmentStatus)
-                        && !"Preparing".equalsIgnoreCase(state.shipmentStatus)) {
+                        && !"Preparing".equalsIgnoreCase(state.shipmentStatus)
+                        && !"Cancelled".equalsIgnoreCase(state.shipmentStatus)) {
                     throw new SQLException("ORDER_NOT_CANCELLABLE");
                 }
 
@@ -320,13 +328,100 @@ public class WarehouseIssueDAO {
         }
     }
 
+    /** Records a refund simulation only for paid VNPAY Sandbox orders. */
+    public boolean simulateRefundForIssue(
+            int issueID,
+            int staffID,
+            String note) throws SQLException {
+        String detail = note == null ? "" : note.trim();
+        if (issueID <= 0 || staffID <= 0 || detail.isEmpty() || detail.length() > 1000) {
+            throw new IllegalArgumentException("Hãy nhập ghi chú mô phỏng hoàn tiền (tối đa 1000 ký tự).");
+        }
+
+        try (Connection connection = DBConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                IssueCancellationState state = lockIssueForCancellation(connection, issueID);
+                if (state == null || !"Open".equalsIgnoreCase(state.issueStatus)) {
+                    connection.rollback();
+                    return false;
+                }
+                if (!"VNPAY".equalsIgnoreCase(state.paymentMethod)) {
+                    throw new SQLException("REFUND_SIMULATION_VNPAY_ONLY");
+                }
+                if (!"Paid".equalsIgnoreCase(state.paymentStatus) || !state.hasPaidPayment) {
+                    throw new SQLException("NO_PAID_VNPAY_PAYMENT");
+                }
+                if ("Shipped".equalsIgnoreCase(state.orderStatus)
+                        || "Delivered".equalsIgnoreCase(state.orderStatus)
+                        || "Shipped".equalsIgnoreCase(state.shipmentStatus)
+                        || "Delivered".equalsIgnoreCase(state.shipmentStatus)) {
+                    throw new SQLException("ORDER_ALREADY_SHIPPED");
+                }
+                if (!"Pending".equalsIgnoreCase(state.orderStatus)
+                        && !"Confirmed".equalsIgnoreCase(state.orderStatus)
+                        && !"Processing".equalsIgnoreCase(state.orderStatus)
+                        && !"Packing".equalsIgnoreCase(state.orderStatus)) {
+                    throw new SQLException("ORDER_NOT_CANCELLABLE");
+                }
+                if (state.shipmentStatus != null
+                        && !"Pending".equalsIgnoreCase(state.shipmentStatus)
+                        && !"Preparing".equalsIgnoreCase(state.shipmentStatus)
+                        && !"Cancelled".equalsIgnoreCase(state.shipmentStatus)) {
+                    throw new SQLException("ORDER_NOT_CANCELLABLE");
+                }
+
+                String refundSql = "UPDATE dbo.Payment SET PaymentStatus='Refunded' "
+                        + "WHERE OrderID=? AND UPPER(LTRIM(RTRIM(PaymentMethod)))='VNPAY' "
+                        + "AND UPPER(LTRIM(RTRIM(PaymentStatus)))='PAID'";
+                try (PreparedStatement statement = connection.prepareStatement(refundSql)) {
+                    statement.setInt(1, state.orderID);
+                    if (statement.executeUpdate() < 1) {
+                        throw new SQLException("NO_PAID_VNPAY_PAYMENT");
+                    }
+                }
+
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "SELECT COUNT(*) FROM dbo.Payment WHERE OrderID=? AND UPPER(LTRIM(RTRIM(PaymentStatus)))='PAID'")) {
+                    statement.setInt(1, state.orderID);
+                    try (ResultSet result = statement.executeQuery()) {
+                        if (result.next() && result.getInt(1) > 0) {
+                            throw new SQLException("PAID_PAYMENT_REMAINS");
+                        }
+                    }
+                }
+
+                String noteSql = "UPDATE dbo.SalesOrder SET UpdatedAt=SYSDATETIME(), "
+                        + "Notes=LEFT(CONVERT(nvarchar(max),COALESCE(Notes+NCHAR(13)+NCHAR(10),N'') "
+                        + "+ N'Hoàn tiền mô phỏng VNPay Sandbox bởi nhân viên #' "
+                        + "+ CONVERT(nvarchar(20),?) + N': ' + ?),2000) "
+                        + "WHERE OrderID=? AND OrderStatus IN ('Pending','Confirmed','Processing','Packing')";
+                try (PreparedStatement statement = connection.prepareStatement(noteSql)) {
+                    statement.setInt(1, staffID);
+                    statement.setString(2, detail);
+                    statement.setInt(3, state.orderID);
+                    if (statement.executeUpdate() != 1) {
+                        throw new SQLException("ORDER_NOT_CANCELLABLE");
+                    }
+                }
+
+                connection.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                rollback(connection, e);
+                throw e;
+            }
+        }
+    }
+
     private IssueCancellationState lockIssueForCancellation(
             Connection connection,
             int issueID) throws SQLException {
         String sql =
                 "SELECT wi.OrderID, wi.Status AS IssueStatus, "
                 + "so.CustomerID, so.OrderStatus, sh.ShipmentStatus, "
-                + "payment.HasPaidPayment "
+                + "payment.HasPaidPayment, latestPayment.PaymentMethod, "
+                + "latestPayment.PaymentStatus "
                 + "FROM dbo.WarehouseIssue wi WITH (UPDLOCK, ROWLOCK) "
                 + "INNER JOIN dbo.SalesOrder so WITH (UPDLOCK, ROWLOCK) "
                 + "    ON so.OrderID = wi.OrderID "
@@ -338,6 +433,9 @@ public class WarehouseIssueDAO {
                 + "    FROM dbo.Payment p WITH (UPDLOCK, ROWLOCK) "
                 + "    WHERE p.OrderID = so.OrderID "
                 + ") payment "
+                + "OUTER APPLY (SELECT TOP (1) p.PaymentMethod, p.PaymentStatus "
+                + "    FROM dbo.Payment p WITH (UPDLOCK, ROWLOCK) "
+                + "    WHERE p.OrderID = so.OrderID ORDER BY p.PaymentID DESC) latestPayment "
                 + "WHERE wi.IssueID = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -352,6 +450,8 @@ public class WarehouseIssueDAO {
                 state.shipmentStatus = result.getString("ShipmentStatus");
                 state.hasPaidPayment =
                         result.getInt("HasPaidPayment") == 1;
+                state.paymentMethod = result.getString("PaymentMethod");
+                state.paymentStatus = result.getString("PaymentStatus");
                 return state;
             }
         }
@@ -386,7 +486,7 @@ public class WarehouseIssueDAO {
                 + "COALESCE(Notes + NCHAR(13) + NCHAR(10), N'') "
                 + "+ N'Hủy do sự cố kho: ' + ?), 2000) "
                 + "WHERE OrderID = ? AND OrderStatus IN "
-                + "('Pending', 'Confirmed', 'Processing')";
+                + "('Pending', 'Confirmed', 'Processing', 'Packing')";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, staffID);
             statement.setString(2, reason);
@@ -497,6 +597,8 @@ public class WarehouseIssueDAO {
         private String issueStatus;
         private String orderStatus;
         private String shipmentStatus;
+        private String paymentMethod;
+        private String paymentStatus;
         private boolean hasPaidPayment;
     }
 

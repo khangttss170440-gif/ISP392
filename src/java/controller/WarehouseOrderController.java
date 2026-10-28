@@ -73,12 +73,15 @@ public class WarehouseOrderController extends HttpServlet {
                     request.getParameter("orderId")
             );
 
+            boolean[] codPaid = new boolean[1];
             warehouseOrderDAO.processShipment(
                     orderID,
                     request.getParameter("action"),
                     request.getParameter("carrier"),
-                    request.getParameter("trackingNumber")
+                    request.getParameter("trackingNumber"),
+                    codPaid
             );
+            if (codPaid[0]) service.OrderPaidEmailService.notifyPaidOrder(orderID);
 
             String action = request.getParameter("action");
             if ("simulatePickup".equalsIgnoreCase(action)) {

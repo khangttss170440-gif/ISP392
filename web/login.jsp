@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html><html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Đăng nhập — MENSFORM</title><link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
+    <title>Đăng nhập — <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title><link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/login-theme.css?v=20261024e">
 </head><body class="login-theme">
 <%@include file="/includes/header.jspf"%>
@@ -24,7 +24,7 @@
         <div class="login-register">Chưa có tài khoản? <a href="<%=request.getContextPath()%>/register">Đăng ký ngay</a></div>
         <a class="login-home" href="<%=request.getContextPath()%>/index.jsp">← Trở về cửa hàng</a>
     </section>
-    <aside class="login-image"><span class="eyebrow">MENSFORM · Phụ kiện nam</span><h2>Đơn giản trong lựa chọn.<br>Khác biệt trong phong cách.</h2><p>Những thiết kế đồng hành cùng bạn, từ nhịp sống thường ngày đến khoảnh khắc đặc biệt.</p></aside>
+    <aside class="login-image"><span class="eyebrow"><%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> · Phụ kiện nam</span><h2>Đơn giản trong lựa chọn.<br>Khác biệt trong phong cách.</h2><p>Những thiết kế đồng hành cùng bạn, từ nhịp sống thường ngày đến khoảnh khắc đặc biệt.</p></aside>
 </div></main>
 <%@include file="/includes/footer.jspf"%>
 </body></html>

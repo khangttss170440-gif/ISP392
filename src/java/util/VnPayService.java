@@ -16,14 +16,18 @@ import javax.crypto.spec.SecretKeySpec;
 
 public final class VnPayService {
 
-    private static final String PAYMENT_URL
-            = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+    private static String paymentUrl() {
+        String url = AppConfig.httpsUrl("VNPAY_PAYMENT_URL");
+        if (!"sandbox.vnpayment.vn".equals(java.net.URI.create(url).getHost()))
+            throw new IllegalStateException("VNPAY_PAYMENT_URL must use the Sandbox host.");
+        return url;
+    }
 
     // Mã danh mục VNPAY: Thời trang Nam
-    private static final String ORDER_TYPE = "200003";
+    private static final String ORDER_TYPE = AppConfig.require("VNPAY_ORDER_TYPE");
 
     private static final ZoneId VIETNAM_ZONE
-            = ZoneId.of("Asia/Ho_Chi_Minh");
+            = ZoneId.of(AppConfig.require("APP_TIMEZONE"));
 
     private static final DateTimeFormatter DATE_FORMAT
             = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -42,7 +46,7 @@ public final class VnPayService {
     }
 
     public static String resolveReturnUrl(String localDefault) {
-        String configured = System.getenv("VNPAY_RETURN_URL");
+        String configured = AppConfig.get("VNPAY_RETURN_URL");
         return configured == null || configured.trim().isEmpty()
                 ? localDefault : configured.trim();
     }
@@ -112,20 +116,20 @@ public final class VnPayService {
         // Nội dung không dấu, không chứa ký tự đặc biệt.
         params.put("vnp_OrderInfo", "Thanh toan don hang " + orderID);
         params.put("vnp_OrderType", ORDER_TYPE);
-        params.put("vnp_Locale", "vn");
+        params.put("vnp_Locale", AppConfig.require("VNPAY_LOCALE"));
         params.put("vnp_ReturnUrl", returnUrl.trim());
         params.put("vnp_IpAddr", normalizeIp(clientIp));
         params.put("vnp_CreateDate", now.format(DATE_FORMAT));
         params.put(
                 "vnp_ExpireDate",
-                now.plusMinutes(15).format(DATE_FORMAT)
+                now.plusMinutes(AppConfig.integer("VNPAY_EXPIRY_MINUTES", 1, 1440)).format(DATE_FORMAT)
         );
 
         // API 2.1.0 ký dữ liệu đã URL-encode và sắp xếp theo tên tham số.
         String signedData = buildEncodedData(params);
         String secureHash = hmacSha512(hashSecret, signedData);
 
-        return PAYMENT_URL + "?"
+        return paymentUrl() + "?"
                 + buildEncodedData(params)
                 + "&vnp_SecureHash=" + secureHash;
     }
@@ -229,7 +233,7 @@ public final class VnPayService {
     }
 
     private static String requiredEnvironmentValue(String name) {
-        String value = System.getenv(name);
+        String value = AppConfig.get(name);
 
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalStateException(
@@ -241,16 +245,16 @@ public final class VnPayService {
     }
 
     private static String normalizeIp(String ip) {
-        if (ip == null || ip.trim().isEmpty()) {
-            return "127.0.0.1";
+        String value = ip == null ? "" : ip.trim();
+        boolean ipv4 = value.matches("[0-9]{1,3}(\\.[0-9]{1,3}){3}");
+        boolean ipv6 = value.contains(":") && value.matches("[0-9a-fA-F:.]+");
+        if (value.length() > 45 || (!ipv4 && !ipv6)) {
+            throw new IllegalArgumentException("A valid client IP address is required for VNPAY.");
         }
-
-        String normalized = ip.trim();
-
-        if (normalized.length() < 7 || normalized.length() > 45) {
-            return "127.0.0.1";
+        try {
+            return java.net.InetAddress.getByName(value).getHostAddress();
+        } catch (java.net.UnknownHostException error) {
+            throw new IllegalArgumentException("Invalid client IP address for VNPAY.", error);
         }
-
-        return normalized;
     }
 }

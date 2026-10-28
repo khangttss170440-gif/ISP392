@@ -39,7 +39,7 @@ public class HomePromotionFilter implements Filter {
         }
         try {
             List<Product> latestProducts = products.getActiveProducts(null);
-            request.setAttribute("homeProducts", latestProducts.subList(0, Math.min(7, latestProducts.size())));
+            request.setAttribute("homeProducts", latestProducts.subList(0, Math.min(util.AppConfig.integer("HOME_PRODUCT_LIMIT", 1, 100), latestProducts.size())));
         } catch (SQLException e) {
             request.getServletContext().log("Could not load homepage products.", e);
             request.setAttribute("homeProducts", Collections.emptyList());

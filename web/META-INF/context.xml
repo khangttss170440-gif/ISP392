@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- NetBeans uses this deployment setting to identify the application's context. -->
 <Context path="/MenWearStore">
     <!-- Product photos are kept in the project (product-images\<ProductID>\) and committed with the code.
          A relative value is found beside the deployed app (see ProductImageStore.resolve), so any clone works.

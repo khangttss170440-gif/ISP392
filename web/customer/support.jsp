@@ -17,7 +17,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hỗ trợ khách hàng | MENSFORM</title>
+    <title>Hỗ trợ khách hàng | <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
 </head>
 <body>
@@ -28,7 +28,7 @@
         <div>
             <span class="eyebrow">CHĂM SÓC KHÁCH HÀNG</span>
             <h1 class="page-title">Hỗ trợ</h1>
-            <p>Gửi câu hỏi về đơn hàng hoặc trao đổi với đội ngũ MENSFORM.</p>
+            <p>Gửi câu hỏi về đơn hàng hoặc trao đổi với đội ngũ <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%>.</p>
         </div>
         <a class="button line" href="<%=request.getContextPath()%>/customer/orders">Đơn hàng của tôi</a>
     </header>

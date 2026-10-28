@@ -11,13 +11,17 @@ import util.ShippingJson;
 
 /** GHN staging only. Production needs a separate explicit rollout. */
 public class GhnClient {
-    private static final String BASE = "https://dev-online-gateway.ghn.vn/shiip/public-api/";
+    private static String baseUrl() {
+        String url = util.AppConfig.httpsUrl("GHN_API_BASE_URL");
+        if (!"dev-online-gateway.ghn.vn".equals(URI.create(url).getHost()))
+            throw new IllegalArgumentException("GHN_API_BASE_URL must use the staging host.");
+        return url.endsWith("/") ? url : url + "/";
+    }
     private static final HttpClient HTTP = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(4)).followRedirects(HttpClient.Redirect.NEVER).build();
+            .connectTimeout(Duration.ofSeconds(util.AppConfig.integer("GHN_CONNECT_TIMEOUT_SECONDS", 1, 300))).followRedirects(HttpClient.Redirect.NEVER).build();
     private static final Map<String, Cached> CACHE = new ConcurrentHashMap<>();
     public static String config(String key) {
-        String v=System.getenv(key); if(v==null || v.isBlank()) v=System.getProperty(key, "");
-        return v.trim();
+        return util.AppConfig.get(key);
     }
     public static boolean configured() { return !config("GHN_TOKEN").isEmpty() && config("GHN_SHOP_ID").matches("[1-9][0-9]{0,9}"); }
     public static int shopId() {
@@ -30,12 +34,12 @@ public class GhnClient {
         String key=shopId()+":"+config("GHN_TOKEN")+":"+path+":"+ShippingJson.write(body);
         Cached c=CACHE.get(key); if(c!=null && c.until>System.currentTimeMillis()) return c.value;
         Object value=body==null?get(path):post(path,body);
-        if(CACHE.size()>256) CACHE.clear(); CACHE.put(key,new Cached(value,System.currentTimeMillis()+ttlMillis)); return value;
+        if(CACHE.size()>util.AppConfig.integer("GHN_CACHE_MAX_ENTRIES", 1, 10000)) CACHE.clear(); CACHE.put(key,new Cached(value,System.currentTimeMillis()+ttlMillis)); return value;
     }
     private Object call(String method,String path,Map<String,Object> body) {
         int shop=shopId();
         if(path.startsWith("/") || path.contains(":") || path.contains("..")) throw new IllegalArgumentException("Invalid GHN path.");
-        HttpRequest.Builder b=HttpRequest.newBuilder(URI.create(BASE+path)).timeout(Duration.ofSeconds(8))
+        HttpRequest.Builder b=HttpRequest.newBuilder(URI.create(baseUrl()+path)).timeout(Duration.ofSeconds(util.AppConfig.integer("GHN_REQUEST_TIMEOUT_SECONDS", 1, 300)))
                 .header("Token",config("GHN_TOKEN")).header("ShopId",Integer.toString(shop)).header("Content-Type","application/json");
         if("POST".equals(method)) b.POST(HttpRequest.BodyPublishers.ofString(ShippingJson.write(body),StandardCharsets.UTF_8)); else b.GET();
         try {

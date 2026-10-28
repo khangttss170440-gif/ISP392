@@ -18,7 +18,7 @@ public class CollectionController extends HttpServlet {
         response.setHeader("Cache-Control","no-store");
         String style=parameter(request,"style","all");
         String source=parameter(request,"source","curated");
-        BigDecimal budget=null;Integer anchor=null;
+        BigDecimal budget=null;Integer anchor=null,collectionId=null;
         try {
             if(!OutfitRecommendationService.validStyle(style))throw new IllegalArgumentException();
             if(!Set.of("curated","suggested").contains(source))throw new IllegalArgumentException();
@@ -26,7 +26,12 @@ public class CollectionController extends HttpServlet {
             if(!value.isEmpty()) {
                 if(!value.matches("[1-9][0-9]{0,8}"))throw new IllegalArgumentException();
                 budget=new BigDecimal(value);
-                if(budget.compareTo(new BigDecimal("50000000"))>0)throw new IllegalArgumentException();
+                if(budget.compareTo(util.AppConfig.decimal("COLLECTION_MAX_BUDGET"))>0)throw new IllegalArgumentException();
+            }
+            String selectedCollection=parameter(request,"collectionId","");
+            if(!selectedCollection.isEmpty()) {
+                if(!"curated".equals(source) || !selectedCollection.matches("[1-9][0-9]{0,9}"))throw new IllegalArgumentException();
+                collectionId=Integer.valueOf(selectedCollection);
             }
             String product=parameter(request,"productId","");
             if(!product.isEmpty()) {
@@ -34,7 +39,7 @@ public class CollectionController extends HttpServlet {
                 anchor=Integer.valueOf(product);
             }
         } catch(IllegalArgumentException invalid) {
-            response.sendError(400,"Bộ lọc bộ sưu tập không hợp lệ. Ngân sách tối đa 50.000.000₫.");return;
+            response.sendError(400,"Bộ lọc bộ sưu tập không hợp lệ. Ngân sách tối đa " + util.AppConfig.money(util.AppConfig.decimal("COLLECTION_MAX_BUDGET")) + ".");return;
         }
         request.setAttribute("selectedStyle",style);
         request.setAttribute("selectedSource",source);
@@ -51,7 +56,7 @@ public class CollectionController extends HttpServlet {
             boolean unavailable=anchor!=null && !products.containsKey(anchor);
             request.setAttribute("selectedProductUnavailable",unavailable);
             request.setAttribute("outfits",unavailable?Collections.emptyList():"curated".equals(source)
-                    ?new OutfitCollectionDAO().published(available,style,budget,anchor)
+                    ?new OutfitCollectionDAO().published(available,style,budget,anchor,collectionId)
                     :new OutfitRecommendationService().recommend(available,style,budget,anchor));
             request.setAttribute("availableProductCount",products.size());
             request.setAttribute("hasOutfitBasics",available.stream().anyMatch(i->i.getRole()==OutfitItem.Role.TOP)

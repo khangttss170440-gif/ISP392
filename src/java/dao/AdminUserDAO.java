@@ -72,7 +72,7 @@ public class AdminUserDAO {
         String pattern = "%" + safeKeyword + "%";
 
         String sql =
-                "SELECT TOP (500) AccountID, AccountType, FullName, "
+                "SELECT TOP (" + util.AppConfig.integer("ADMIN_USER_LIST_LIMIT", 1, 100000) + ") AccountID, AccountType, FullName, "
                 + "Email, Phone, Role, Status, CreatedAt "
                 + "FROM ( "
                 + "    SELECT CustomerID AS AccountID, "

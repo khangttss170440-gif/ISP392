@@ -17,7 +17,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Danh mục · MENSFORM Admin</title>
+        <title>Danh mục · <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> Admin</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     </head>
     <body><div class="admin-layout"><%@include file="/admin/includes/sidebar.jspf"%><main class="admin-main">

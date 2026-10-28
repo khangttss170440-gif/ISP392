@@ -1,11 +1,10 @@
+<%@include file="../../includes/runtime-settings.jspf"%>
 <%@page pageEncoding="UTF-8"%>
 <%
     String adminPath = request.getServletPath();
     String adminSection = adminPath == null ? "" : adminPath;
 %>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,500;1,400&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="<%=util.AppConfig.escapeHtml(util.AppConfig.httpsUrl("UI_FONT_STYLESHEET_URL"))%>">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform.css?v=20261024e">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform-admin.css?v=20261024e">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform-dark.css?v=20261024e">

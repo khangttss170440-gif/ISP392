@@ -24,7 +24,7 @@ public class WarehouseOrderDAO {
                 + "LEFT JOIN dbo.Shipment sh "
                 + "    ON sh.OrderID = so.OrderID "
                 + "WHERE so.OrderStatus IN ('Confirmed', 'Shipped') "
-                + "ORDER BY so.OrderDate ASC, so.OrderID ASC";
+                + "ORDER BY so.OrderDate DESC, so.OrderID DESC";
 
         List<WarehouseOrder> orders = new ArrayList<>();
 
@@ -50,7 +50,7 @@ public class WarehouseOrderDAO {
                 + "LEFT JOIN dbo.Shipment sh "
                 + "    ON sh.OrderID = so.OrderID "
                 + "WHERE UPPER(so.OrderStatus) IN ('CONFIRMED', 'PROCESSING', 'PACKING') "
-                + "ORDER BY so.OrderDate ASC, so.OrderID ASC";
+                + "ORDER BY so.OrderDate DESC, so.OrderID DESC";
 
         List<WarehouseOrder> orders = new ArrayList<>();
 
@@ -141,6 +141,17 @@ public class WarehouseOrderDAO {
             String action,
             String carrier,
             String trackingNumber) throws SQLException {
+        processShipment(orderID, action, carrier, trackingNumber, null);
+    }
+
+    public void processShipment(
+            int orderID,
+            String action,
+            String carrier,
+            String trackingNumber,
+            boolean[] codPaid) throws SQLException {
+
+        if (codPaid != null && codPaid.length > 0) codPaid[0] = false;
 
         if (orderID <= 0) {
             throw new IllegalArgumentException("Order ID must be positive.");
@@ -216,12 +227,13 @@ public class WarehouseOrderDAO {
                     } else {
                         GhnDeliveryDAO.guardManual(connection, orderID);
                     }
-                    deliverOrder(
+                    boolean paidNow = deliverOrder(
                             connection,
                             orderID,
                             currentState[0],
                             currentState[1]
                     );
+                    if (codPaid != null && codPaid.length > 0) codPaid[0] = paidNow;
                 }
 
                 connection.commit();
@@ -318,7 +330,7 @@ public class WarehouseOrderDAO {
         );
     }
 
-    private void deliverOrder(
+    private boolean deliverOrder(
             Connection connection,
             int orderID,
             String orderStatus,
@@ -345,7 +357,7 @@ public class WarehouseOrderDAO {
             }
         }
 
-        completeCodPayment(connection, orderID);
+        boolean codPaid = completeCodPayment(connection, orderID);
 
         updateOrderStatus(
                 connection,
@@ -353,9 +365,10 @@ public class WarehouseOrderDAO {
                 "Delivered",
                 "Shipped"
         );
+        return codPaid;
     }
 
-    private void completeCodPayment(Connection connection, int orderID)
+    private boolean completeCodPayment(Connection connection, int orderID)
             throws SQLException {
 
         String sql
@@ -368,7 +381,7 @@ public class WarehouseOrderDAO {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, orderID);
-            statement.executeUpdate();
+            return statement.executeUpdate() == 1;
         }
     }
 

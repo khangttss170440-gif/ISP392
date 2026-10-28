@@ -1,0 +1,75 @@
+CHATBOT TIM SAN PHAM VA BO SUU TAP
+=================================
+
+Vi du co the thu
+----------------
+- tim dong ho
+- Tim ao so mi duoi 500k
+- Con mau den size L khong?
+- Tim do di lam gom quan ao giay dong ho ca vatk
+- Tim bo suu tap di lam
+- Tim bo suu tap cuoi tuan duoi 5 trieu
+- Tim bo suu tap co dong ho
+- Tim bo co giay size 42
+- Con duoi 2 trieu?
+- Khong gioi han gia
+- Xem bo suu tap khac
+- Tim san pham moi
+
+Nguon du lieu
+-------------
+San pham, mau, size, SKU, gia va ton kho lay truc tiep tu cac ban ghi Active
+trong SQL Server. Mau/size moi duoc doc tu danh muc. Ket qua gom theo san pham
+de khong chiem het danh sach bang cac size cua cung mot mau.
+
+Bo suu tap chi lay ban ghi Published. Moi mon trong bo phai con ban va con
+hang o dung mau da duoc cua hang chon. Bo nhap, da an, thieu san pham hoac het
+mot mon se khong duoc gioi thieu. Khong tu tao bo suu tap gia neu khong tim thay.
+
+Ngan sach bo suu tap duoc so voi TONG gia cac mon, tu phien ban con hang re
+nhat khop bo loc. Gia thuc te co the thay doi khi chon mau/size tren trang chi
+tiet. Link cua chatbot mo dung bo da chon qua collectionId tren /collections.
+
+Hoi tiep va nhieu nhom san pham
+------------------------------
+Bo loc duoc luu theo session, khong dung chung giua khach. Hoi mau/size/gia
+se giu cac dieu kien khac. Doi loai san pham hoac doi giua san pham/bo suu tap
+se bat dau pham vi phu hop; reset xoa ca lich su va bo loc.
+
+Yeu cau nhieu nhom (ao, quan, giay, dong ho, ca vat) duoc phan bo ket qua theo
+tung nhom, khong lap cung san pham. Neu chua co mon khop thi thong bao nhom
+con thieu. Goi y san pham le khong duoc trinh bay nhu mot bo suu tap da dang.
+
+Xu ly cau hoi
+-------------
+Ho tro tieng Viet khong dau, tu dong nghia, sai chinh ta nhe cua ten san pham,
+gia dang 300-500k, tu 300 den 500k, 1.500.000, 1tr5 va ngan sach gan dung.
+Gia/mau/size khong duoc tu dong noi long khi khong tim thay. Giao dien hien
+thi bo loc dang ap dung va nut bo dieu kien de khach tu chon.
+
+Tra cuu san pham va bo suu tap khong phu thuoc Gemini. Gemini duoc dung cho
+phan tu van khi can, co timeout rieng; neu API ban thi ket qua that van hien.
+Khong gui SQL do AI tao vao database.
+
+Cau hinh
+--------
+CHATBOT_* trong src/java/application.properties dieu khien gioi han ket qua,
+tu dien dong nghia, dip su dung, nguong sua loi nho, timeout va gioi han truy van.
+GEMINI_* duoc doc qua AppConfig. Credentials nam trong bien moi truong/file
+local; khong ghi vao Java/JSP. Khoi dong lai ung dung sau khi doi cau hinh.
+
+CHATBOT_CLIENT_TIMEOUT_MILLIS duoc xuat ngay tren phan tu chatbot trong JSP.
+JavaScript chi dat bo dem khi gia tri la so duong hop le; trang cu thieu
+cau hinh se khong tu huy yeu cau ngay. Khi deploy can dong bo JSP va assets.
+
+Danh muc hien duoc doc moi moi lan tim, co gioi han CHATBOT_CATALOG_VARIANT_LIMIT
+de gioi han bo nho; neu vuot gioi han thi bao loi thay vi tra ket qua bi cat ngam.
+Neu danh muc tang lon can chuyen phan ung vien sang chi muc tim kiem database.
+
+Kiem tra
+--------
+scripts/run-config-checks.ps1 gom kiem tra parser, ngu canh, phan bo nhom,
+bo suu tap cong khai/ton kho/ngan sach, HTTP session va bien dich Java/JSP.
+test/web/chatbot-timeout.spec.cjs kiem tra timeout, cau hinh trang cu,
+loi mang va hien thi ket qua san pham/bo suu tap tren giao dien.
+Kiem tra tu dong dung fixture/stub, khong thay doi du lieu kinh doanh.

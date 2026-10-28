@@ -28,7 +28,7 @@ public class ShippingQuoteController extends HttpServlet {
         if (!(account instanceof Customer)) { response.setStatus(401); response.getWriter().write("{\"error\":\"Vui lòng đăng nhập lại.\"}"); return; }
         synchronized (session) {
             Long last = (Long) session.getAttribute("shipping.lastQuote");
-            if (last != null && System.currentTimeMillis() - last < 1500) {
+            if (last != null && System.currentTimeMillis() - last < util.AppConfig.integer("SHIPPING_QUOTE_COOLDOWN_MILLIS", 1, 60000)) {
                 response.setStatus(429); response.getWriter().write("{\"error\":\"Vui lòng đợi một chút rồi thử lại.\"}"); return;
             }
             session.setAttribute("shipping.lastQuote", System.currentTimeMillis());

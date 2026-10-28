@@ -34,8 +34,8 @@ public class GhnDeliveryDAO {
         }
     }
     public void book(int order,int weight,int length,int width,int height) throws SQLException {
-        if(weight<1 || weight>=20_000 || length<1 || length>200 || width<1 || width>200 || height<1 || height>200)
-            throw new IllegalArgumentException("Nhập cân nặng 1–19.999 g, mỗi chiều kiện từ 1–200 cm.");
+        if(weight<1 || weight>util.AppConfig.integer("GHN_MAX_WEIGHT_GRAMS", 1, 19999) || length<1 || length>util.AppConfig.integer("GHN_MAX_DIMENSION_CM", 1, 200) || width<1 || width>util.AppConfig.integer("GHN_MAX_DIMENSION_CM", 1, 200) || height<1 || height>util.AppConfig.integer("GHN_MAX_DIMENSION_CM", 1, 200))
+            throw new IllegalArgumentException("Nhập cân nặng từ 1 đến " + util.AppConfig.integer("GHN_MAX_WEIGHT_GRAMS", 1, 19999) + " g; mỗi chiều từ 1 đến " + util.AppConfig.integer("GHN_MAX_DIMENSION_CM", 1, 200) + " cm.");
         Map<String,Object> payload;
         try(Connection c=DBConnection.getConnection()) {
             c.setAutoCommit(false);
@@ -44,7 +44,7 @@ public class GhnDeliveryDAO {
                 Map<String,Object> row=required(load(c,order)); checkShop(row);
                 String state=ShippingJson.string(row,"BookingState");
                 if("Booked".equals(state)) throw new IllegalArgumentException("Đơn đã có vận đơn GHN. Bấm cập nhật trạng thái.");
-                if("Booking".equals(state) && ((Timestamp)row.get("UpdatedAt")).getTime()>System.currentTimeMillis()-120_000)
+                if("Booking".equals(state) && ((Timestamp)row.get("UpdatedAt")).getTime()>System.currentTimeMillis()-util.AppConfig.integer("GHN_SYNC_LEASE_SECONDS", 1, 3600)*1000L)
                     throw new IllegalArgumentException("Đơn đang gửi GHN. Vui lòng đợi rồi cập nhật trạng thái.");
                 String old=ShippingJson.string(row,"BookingPayload");
                 payload=old.isEmpty()?payload(c,order,row,weight,length,width,height):ShippingJson.object(ShippingJson.read(old));
@@ -79,7 +79,7 @@ public class GhnDeliveryDAO {
                     throw new IllegalArgumentException("Đơn chưa đủ điều kiện thanh toán để tạo vận đơn.");
                 // Shop pays the carrier. Customer shipping is already included in Payment.Amount.
                 int amount=r.getBigDecimal("Amount").intValueExact();
-                if(amount<0 || (cod && amount>50_000_000)) throw new IllegalArgumentException("Số tiền COD không hợp lệ.");
+                if(amount<0 || (cod && BigDecimal.valueOf(amount).compareTo(util.AppConfig.decimal("GHN_MAX_COD_AMOUNT"))>0)) throw new IllegalArgumentException("Số tiền COD không hợp lệ.");
                 p.put("cod_amount",cod?amount:0);p.put("payment_type_id",1);
             }
         }
@@ -94,7 +94,7 @@ public class GhnDeliveryDAO {
         if(!phone.matches("0[0-9]{9,10}")) throw new IllegalArgumentException("Số điện thoại người nhận không hợp lệ.");
         p.put("to_phone",phone);p.put("items",items);p.put("client_order_code",row.get("ClientOrderCode"));
         p.put("weight",weight);p.put("length",length);p.put("width",width);p.put("height",height);
-        p.put("service_type_id",2);p.put("required_note","CHOXEMHANGKHONGTHU");return p;
+        p.put("service_type_id",util.AppConfig.integer("GHN_SERVICE_TYPE_ID", 1, 10));p.put("required_note",util.AppConfig.require("GHN_REQUIRED_NOTE"));return p;
     }
     private void saveBooking(int order,String code,Map<String,Object> result) throws SQLException {
         try(Connection c=DBConnection.getConnection()) {
@@ -119,25 +119,25 @@ public class GhnDeliveryDAO {
         List<Integer> orders=new ArrayList<>();
         String sql="SELECT TOP (?) g.OrderID FROM dbo.GhnDelivery g JOIN dbo.SalesOrder o ON o.OrderID=g.OrderID "
                 +"WHERE g.ShopID=? AND g.Environment='staging' AND g.BookingState IN ('Booked','Unknown','Booking') "
-                +"AND (g.BookingState<>'Booking' OR g.UpdatedAt<DATEADD(minute,-2,SYSDATETIME())) "
+                +"AND (g.BookingState<>'Booking' OR g.UpdatedAt<DATEADD(second,?,SYSDATETIME())) "
                 +"AND (g.WebhookGeneration>g.LastWebhookGenerationSynced OR ISNULL(g.CarrierStatus,'') NOT IN ('delivered','cancel','returned','exception','lost','damage','scrap')) "
                 +"AND (o.OrderStatus IN ('Confirmed','Shipped','Processing') OR (o.OrderStatus='Delivered' AND g.WebhookGeneration>g.LastWebhookGenerationSynced)) AND g.NextSyncAt<=SYSUTCDATETIME() "
                 +"AND ISNULL(g.CarrierStatus,'') NOT LIKE 'simulation_%' "
                 +"AND (g.SyncLeaseUntil IS NULL OR g.SyncLeaseUntil<SYSUTCDATETIME()) ORDER BY g.NextSyncAt,g.OrderID";
         try(Connection c=DBConnection.getConnection();PreparedStatement s=c.prepareStatement(sql)) {
-            s.setQueryTimeout(5);s.setInt(1,Math.min(100,Math.max(1,limit)));s.setInt(2,GhnClient.shopId());
+            s.setQueryTimeout(5);s.setInt(1,Math.min(100,Math.max(1,limit)));s.setInt(2,GhnClient.shopId());s.setInt(3,-util.AppConfig.integer("GHN_SYNC_LEASE_SECONDS", 1, 3600));
             try(ResultSet r=s.executeQuery()){while(r.next())orders.add(r.getInt(1));}
         }
         return orders;
     }
     private String syncWithLease(int order,boolean scheduled) throws SQLException {
         UUID lease=UUID.randomUUID();
-        String sql="UPDATE dbo.GhnDelivery SET SyncLeaseToken=?,SyncLeaseUntil=DATEADD(second,120,SYSUTCDATETIME()),NextSyncAt=DATEADD(second,60,SYSUTCDATETIME()) "
+        String sql="UPDATE dbo.GhnDelivery SET SyncLeaseToken=?,SyncLeaseUntil=DATEADD(second,?,SYSUTCDATETIME()),NextSyncAt=DATEADD(second,?,SYSUTCDATETIME()) "
                 +"WHERE OrderID=? AND ShopID=? AND Environment='staging' AND BookingState<>'Ready' AND ISNULL(CarrierStatus,'') NOT LIKE 'simulation_%' "
                 +"AND (SyncLeaseUntil IS NULL OR SyncLeaseUntil<SYSUTCDATETIME())"
                 +(scheduled?" AND NextSyncAt<=SYSUTCDATETIME() AND (WebhookGeneration>LastWebhookGenerationSynced OR ISNULL(CarrierStatus,'') NOT IN ('delivered','cancel','returned','exception','lost','damage','scrap'))":"");
         try(Connection c=DBConnection.getConnection();PreparedStatement s=c.prepareStatement(sql)) {
-            s.setQueryTimeout(5);s.setString(1,lease.toString());s.setInt(2,order);s.setInt(3,GhnClient.shopId());
+            s.setQueryTimeout(5);s.setString(1,lease.toString());s.setInt(2,util.AppConfig.integer("GHN_SYNC_LEASE_SECONDS", 1, 3600));s.setInt(3,util.AppConfig.integer("GHN_SYNC_INTERVAL_SECONDS", 1, 86400));s.setInt(4,order);s.setInt(5,GhnClient.shopId());
             if(s.executeUpdate()!=1) {
                 if(scheduled) return null;
                 throw new IllegalArgumentException("Đơn chưa có vận đơn hoặc đang được đồng bộ. Vui lòng đợi một chút rồi thử lại.");
@@ -150,9 +150,9 @@ public class GhnDeliveryDAO {
         } finally {
             String release="UPDATE dbo.GhnDelivery SET SyncLeaseToken=NULL,SyncLeaseUntil=NULL,SyncFailureCount="
                     +(success?"0":"CASE WHEN SyncFailureCount<1000000 THEN SyncFailureCount+1 ELSE SyncFailureCount END")
-                    +(success?"":",NextSyncAt=DATEADD(second,60,SYSUTCDATETIME())")+" WHERE OrderID=? AND SyncLeaseToken=?";
+                    +(success?"":",NextSyncAt=DATEADD(second,?,SYSUTCDATETIME())")+" WHERE OrderID=? AND SyncLeaseToken=?";
             try(Connection c=DBConnection.getConnection();PreparedStatement s=c.prepareStatement(release)) {
-                s.setQueryTimeout(5);s.setInt(1,order);s.setString(2,lease.toString());s.executeUpdate();
+                s.setQueryTimeout(5);int index=1;if(!success)s.setInt(index++,util.AppConfig.integer("GHN_SYNC_INTERVAL_SECONDS", 1, 86400));s.setInt(index++,order);s.setString(index,lease.toString());s.executeUpdate();
             } catch(SQLException releaseFailure) {
                 java.util.logging.Logger.getLogger(GhnDeliveryDAO.class.getName()).warning("GHN sync lease release deferred for order "+order+"; lease will expire.");
             }
@@ -179,6 +179,7 @@ public class GhnDeliveryDAO {
                 || (merchantCode.isEmpty() && code.isEmpty()))
             throw new IllegalArgumentException("Mã đơn GHN không khớp đơn của shop.");
         saveBooking(order,returned,data);
+        boolean codPaid = false;
         try(Connection c=DBConnection.getConnection()) {
             c.setAutoCommit(false);
             try {
@@ -195,7 +196,7 @@ public class GhnDeliveryDAO {
                 if("delivered".equals(status)) {
                     execute(c,"UPDATE dbo.Shipment SET ShipmentStatus='Delivered',DeliveredDate=COALESCE(DeliveredDate,SYSDATETIME()) WHERE OrderID=? AND ShipmentStatus='Shipped'",order);
                     execute(c,"UPDATE dbo.SalesOrder SET OrderStatus='Delivered',UpdatedAt=SYSDATETIME() WHERE OrderID=? AND OrderStatus='Shipped'",order);
-                    execute(c,"UPDATE dbo.Payment SET PaymentStatus='Paid',PaymentDate=COALESCE(PaymentDate,SYSDATETIME()) WHERE OrderID=? AND PaymentMethod='COD' AND PaymentStatus='Pending'",order);
+                    codPaid = executeCount(c,"UPDATE dbo.Payment SET PaymentStatus='Paid',PaymentDate=COALESCE(PaymentDate,SYSDATETIME()) WHERE OrderID=? AND PaymentMethod='COD' AND PaymentStatus='Pending'",order) == 1;
                 }
                 if("cancel".equals(status)) {
                     // Carrier cancellation stops this shipment, not the paid sales order.
@@ -205,10 +206,11 @@ public class GhnDeliveryDAO {
                 c.commit();
             } catch(SQLException|RuntimeException e){c.rollback();throw e;}
         }
+        if(codPaid) service.OrderPaidEmailService.notifyPaidOrder(order);
         // Tracking details do not always include prices. Fetch the existing shipment's fee
         // separately; a fee failure must not discard a successfully synchronized status.
         try {
-            Map<String,Object> fees=ShippingJson.object(new GhnClient().cached("v2/shipping-order/soc?order_code="+returned,null,60_000));
+            Map<String,Object> fees=ShippingJson.object(new GhnClient().cached("v2/shipping-order/soc?order_code="+returned,null,util.AppConfig.integer("GHN_FEE_CACHE_MILLIS", 1, Integer.MAX_VALUE)));
             if(returned.equals(ShippingJson.string(fees,"order_code"))) {
                 BigDecimal fee=carrierFee(fees);
                 if(fee!=null) try(Connection c=DBConnection.getConnection()) {
@@ -239,11 +241,14 @@ public class GhnDeliveryDAO {
             }
             if(total==null) return null;
             BigDecimal amount=new BigDecimal(total.toString()).setScale(0,java.math.RoundingMode.UNNECESSARY);
-            return amount.signum()<0 || amount.compareTo(new BigDecimal("5000000"))>0?null:amount;
+            return amount.signum()<0 || amount.compareTo(util.AppConfig.decimal("SHIPPING_MAX_FEE"))>0?null:amount;
         } catch(IllegalArgumentException | ArithmeticException invalidFee) { return null; }
     }
     private static void execute(Connection c,String sql,Object... args) throws SQLException {
         try(PreparedStatement s=c.prepareStatement(sql)){for(int i=0;i<args.length;i++)s.setObject(i+1,args[i]);s.executeUpdate();}
+    }
+    private static int executeCount(Connection c,String sql,Object... args) throws SQLException {
+        try(PreparedStatement s=c.prepareStatement(sql)){for(int i=0;i<args.length;i++)s.setObject(i+1,args[i]);return s.executeUpdate();}
     }
     private static void lockOrder(Connection c,int order) throws SQLException {
         try(PreparedStatement s=c.prepareStatement("SELECT OrderStatus FROM dbo.SalesOrder WITH(UPDLOCK,ROWLOCK) WHERE OrderID=?")) {

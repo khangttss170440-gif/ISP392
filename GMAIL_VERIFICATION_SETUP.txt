@@ -3,6 +3,7 @@ GMAIL VERIFICATION SETUP
 
 Registration codes are sent through Gmail SMTP over SSL (smtp.gmail.com:465).
 The application creates a customer account only after the code is confirmed.
+Shared configuration and external-file setup are documented in CONFIGURATION_SETUP.txt.
 
 1. Use a Gmail mailbox owned by the store.
 2. Enable 2-Step Verification for that Google account.
@@ -12,10 +13,31 @@ The application creates a customer account only after the code is confirmed.
 
    setx GMAIL_SMTP_USER "your-store@gmail.com"
    setx GMAIL_APP_PASSWORD "your-16-character-app-password"
+   setx STORE_ORDER_NOTIFICATION_EMAIL "orders@your-domain.com"
+   setx MAIL_SMTP_HOST "smtp.gmail.com"
+   setx MAIL_SMTP_PORT "465"
+   setx MAIL_SMTP_TIMEOUT_MILLIS "15000"
+   setx MAIL_EHLO_DOMAIN "your-domain.com"
+   setx MAIL_FROM_NAME "Your Store Name"
 
 5. Completely close and reopen NetBeans (or the process that launches Tomcat),
    then restart Tomcat so it receives the new environment variables.
 6. Register with a real email address and enter the six-digit code received.
+
+Paid-order emails
+-----------------
+
+After a VNPAY Sandbox payment succeeds, or COD is marked Paid after delivery,
+the application emails the store and the customer's registered email. The
+customer email lists each product, color/size, quantity, unit price, and order
+total. STORE_ORDER_NOTIFICATION_EMAIL receives the store alert.
+
+SMTP settings support environment variables, JVM properties and the external
+configuration file through AppConfig. Non-secret defaults live in
+src/java/application.properties. Credentials and recipients have no default.
+Restart Tomcat after changing these values.
+Email delivery is performed after the payment is committed; SMTP failures are
+recorded in the Tomcat application log and do not roll back the payment.
 
 Keep GMAIL_APP_PASSWORD private. Do not commit it to Git or put it in Java/JSP.
 The registration email is required for verification. The phone field remains an

@@ -14,7 +14,7 @@
 %>
 <!DOCTYPE html><html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%=navEscape(product.getProductName())%> — MENSFORM</title>
+    <title><%=navEscape(product.getProductName())%> — <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/product-images.css">
 </head><body><%@include file="/includes/header.jspf"%>
@@ -38,7 +38,7 @@
             <p id="colorImageNote" class="product-meta" role="status" hidden></p>
         </div>
         <div class="detail-copy">
-            <span class="eyebrow"><%=navEscape(product.getBrand() == null ? "MENSFORM" : product.getBrand())%></span>
+            <span class="eyebrow"><%=navEscape(product.getBrand() == null ? util.AppConfig.require("APP_NAME") : product.getBrand())%></span>
             <h1><%=navEscape(product.getProductName())%></h1>
             <p><%=navEscape(product.getDescription() == null ? "Một lựa chọn tinh giản, dễ kết hợp và phù hợp cho nhịp sống hằng ngày." : product.getDescription())%></p>
             <div class="detail-price" id="selected-price" aria-live="polite">Chọn màu và kích cỡ</div>
@@ -67,9 +67,9 @@
                     </select>
                 </div>
                 <p id="variantStock" class="product-meta" role="status"><%=variants == null || variants.isEmpty() ? "Sản phẩm hiện chưa có phiên bản bán hàng." : "Chọn phiên bản để xem tình trạng còn hàng."%></p>
-                <div class="inline-form"><div class="grow"><label class="form-label" for="quantity">Số lượng</label><input class="field" id="quantity" name="quantity" type="number" min="1" max="99" value="1" required></div><button class="button" id="addVariantToCart" type="submit" <%=variants == null || variants.isEmpty() ? "disabled" : ""%>>Thêm vào giỏ　↗</button></div>
+                <div class="inline-form"><div class="grow"><label class="form-label" for="quantity">Số lượng</label><input class="field" id="quantity" name="quantity" type="number" min="1" max="<%=util.AppConfig.integer("CART_MAX_ITEM_QUANTITY", 1, 1000000)%>" value="1" required></div><button class="button" id="addVariantToCart" type="submit" <%=variants == null || variants.isEmpty() ? "disabled" : ""%>>Thêm vào giỏ　↗</button></div>
             </form>
-            <p class="product-meta" style="margin-top:15px">Đơn từ 799.000₫ miễn phí giao hàng toàn quốc · Đơn dưới mức này tính phí tham khảo theo khu vực J&amp;T và số lượng sản phẩm</p>
+            <p class="product-meta" style="margin-top:15px"><%=util.AppConfig.escapeHtml(service.ShippingService.freeShippingMessage())%> · Phí giao hàng được tính khi đặt hàng.</p>
             <p><a class="button line small" href="<%=request.getContextPath()%>/collections?productId=<%=product.getProductID()%>">Gợi ý phối cùng sản phẩm này ↗</a></p>
         </div>
     </div>

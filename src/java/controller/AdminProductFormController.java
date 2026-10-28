@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,8 +15,6 @@ import model.Staff;
 import service.ProductImageStore;
 import service.ProductImageStore.Upload;
 
-@WebServlet(urlPatterns = {"/admin/product-form", "/staff/warehouse/product-form"})
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = ProductImageStore.MAX_FILE_SIZE, maxRequestSize = ProductImageStore.MAX_REQUEST_SIZE)
 public class AdminProductFormController extends HttpServlet {
 
     private static final String PAGE = "/admin/product-form.jsp";
@@ -79,7 +75,7 @@ public class AdminProductFormController extends HttpServlet {
             saveProduct(request, response);
         } catch (IllegalStateException e) {
             response.sendError(413,
-                    "Ảnh tải lên vượt giới hạn. Tối đa 6 ảnh, mỗi ảnh 10 MB. Vui lòng quay lại và chọn lại ảnh.");
+                    "Ảnh tải lên vượt giới hạn. Tối đa " + ProductImageStore.MAX_IMAGES + " ảnh, mỗi ảnh " + ProductImageStore.MAX_FILE_SIZE + " byte.");
         }
     }
 

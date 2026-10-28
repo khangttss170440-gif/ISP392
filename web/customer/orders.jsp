@@ -13,7 +13,7 @@ NumberFormat money=NumberFormat.getInstance(new Locale("vi","VN"));
 <html lang="vi">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Đơn hàng của tôi | MENSFORM</title>
+<title>Đơn hàng của tôi | <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/order-tracking.css">
 </head>

@@ -3,7 +3,6 @@ package controller;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.charset.StandardCharsets;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,9 +12,20 @@ import service.ProductImageStore;
 @WebServlet("/product-image")
 public class ProductImageController extends HttpServlet {
     private ProductImageStore images;
-    private static final byte[] PLACEHOLDER = ("<svg xmlns='http://www.w3.org/2000/svg' width='600' height='750' viewBox='0 0 600 750'><rect width='600' height='750' fill='#eee8df'/><path d='m220 230-75 55 45 85 35-20v210h150V350l35 20 45-85-75-55-35 30h-90Z' fill='#a18b71'/><text x='300' y='640' text-anchor='middle' font-family='Arial' font-size='18' fill='#635344'>MENSFORM</text></svg>").getBytes(StandardCharsets.UTF_8);
+    private byte[] placeholder;
 
-    @Override public void init() { images = ProductImageStore.from(getServletContext()); }
+    @Override public void init() throws javax.servlet.ServletException {
+        images = ProductImageStore.from(getServletContext());
+        String path = util.AppConfig.require("PRODUCT_IMAGE_PLACEHOLDER_PATH");
+        if (!path.startsWith("/assets/") || !path.endsWith(".svg") || path.contains(".."))
+            throw new javax.servlet.ServletException("Invalid product placeholder asset path.");
+        try (java.io.InputStream input = getServletContext().getResourceAsStream(path)) {
+            if (input == null) throw new javax.servlet.ServletException("Product placeholder asset is missing.");
+            placeholder = input.readAllBytes();
+        } catch (IOException error) {
+            throw new javax.servlet.ServletException("Could not read product placeholder asset.", error);
+        }
+    }
 
     @Override protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         serve(request, response, true);
@@ -40,9 +50,9 @@ public class ProductImageController extends HttpServlet {
                     return;
                 }
                 response.setContentType("image/svg+xml;charset=UTF-8");
-                if (notModified(request, response, "\"mensform-placeholder-v1\"", false)) return;
-                response.setContentLength(PLACEHOLDER.length);
-                if (sendBody) response.getOutputStream().write(PLACEHOLDER);
+                if (notModified(request, response, "\"" + Integer.toHexString(java.util.Arrays.hashCode(placeholder)) + "\"", false)) return;
+                response.setContentLength(placeholder.length);
+                if (sendBody) response.getOutputStream().write(placeholder);
                 return;
             }
             response.setContentType(image.toString().toLowerCase(java.util.Locale.ROOT).endsWith(".png") ? "image/png" : "image/jpeg");

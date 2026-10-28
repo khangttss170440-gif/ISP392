@@ -22,7 +22,7 @@ public class SalesOrderRequestDAO {
                 + "INNER JOIN dbo.Customer c ON c.CustomerID = r.CustomerID "
                 + "INNER JOIN dbo.SalesOrder so ON so.OrderID = r.OrderID "
                 + "WHERE r.RequestStatus = 'Pending' "
-                + "ORDER BY r.RequestedAt ASC, r.RequestID ASC";
+                + "ORDER BY r.RequestedAt DESC, r.RequestID DESC";
 
         List<OrderRequest> requests = new ArrayList<>();
 

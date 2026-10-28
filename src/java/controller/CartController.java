@@ -20,7 +20,7 @@ public class CartController extends HttpServlet {
     private static final String CART_KEY = "CART";
     private static final String MESSAGE_KEY = "CART_MESSAGE";
     private static final String ERROR_KEY = "CART_ERROR";
-    private static final int MAX_ITEM_QUANTITY = 99;
+    private static final int MAX_ITEM_QUANTITY = util.AppConfig.integer("CART_MAX_ITEM_QUANTITY", 1, 1000000);
 
     private ProductCatalogDAO productCatalogDAO;
 

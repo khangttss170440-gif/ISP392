@@ -1,5 +1,6 @@
 (() => {
     const form = document.getElementById('productVariantForm');
+    const settings = document.querySelector('[data-runtime-settings]')?.dataset;
     if (!form) return;
     const variantId = document.getElementById('variantId');
     const size = document.getElementById('variantSize');
@@ -44,7 +45,7 @@
         if (selected) {
             price.textContent = `${selected.price}₫`;
             stock.textContent = `Còn ${selected.stock} sản phẩm · ${selected.color} / ${selected.size}`;
-            quantity.max = String(Math.min(99, selected.stock));
+            quantity.max = String(Math.min(Number(settings.cartMax), selected.stock));
             const current = Number(quantity.value);
             quantity.value = String(Number.isInteger(current) && current > 0 ? Math.min(current, Number(quantity.max)) : 1);
         } else {

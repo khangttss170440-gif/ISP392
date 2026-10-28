@@ -1,12 +1,14 @@
 (() => {
     const root = document.querySelector('[data-order-tracking]');
     if (!root) return;
+    const settings = document.querySelector('[data-runtime-settings]').dataset;
+    const pollMillis = Number(settings.trackingPoll);
     const rows = new Map([...document.querySelectorAll('[data-tracking-row]')]
         .filter(row => row.closest('[data-order-tracking]') === root)
         .map(row => [Number(row.dataset.orderId), row]));
     if (!rows.size) return;
     const notice = root.querySelector('[data-tracking-notice]');
-    const clock = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'Asia/Ho_Chi_Minh' });
+    const clock = new Intl.DateTimeFormat(settings.locale, { dateStyle: 'short', timeStyle: 'medium', timeZone: settings.timezone });
     let timer, controller, running = false, stopped = false;
     const text = (row, selector, value) => row.querySelectorAll(selector).forEach(el => { el.textContent = value || ''; });
     const update = item => {
@@ -34,7 +36,7 @@
     };
     const schedule = () => {
         clearTimeout(timer);
-        if (!stopped && !document.hidden) timer = setTimeout(poll, 60000);
+        if (!stopped && !document.hidden) timer = setTimeout(poll, pollMillis);
     };
     async function poll() {
         if (stopped || running || document.hidden) return;
@@ -43,7 +45,7 @@
             const ids = [...rows.keys()];
             for (let i = 0; i < ids.length; i += 100) {
                 controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 12000);
+                const timeout = setTimeout(() => controller.abort(), Number(settings.trackingTimeout));
                 try {
                     const url = new URL(root.dataset.trackingEndpoint, location.origin);
                     url.searchParams.set('orderIds', ids.slice(i, i + 100).join(','));
@@ -58,9 +60,9 @@
                     data.orders.forEach(update);
                 } finally { clearTimeout(timeout); }
             }
-            if (notice) notice.textContent = 'Trạng thái được tự động kiểm tra mỗi phút.';
+            if (notice) notice.textContent = `Trạng thái được tự động kiểm tra mỗi ${pollMillis / 1000} giây.`;
         } catch (error) {
-            if (!stopped && !document.hidden && notice) notice.textContent = 'Chưa nhận được cập nhật mới. Thông tin đang hiển thị được giữ lại; hệ thống sẽ thử lại sau một phút.';
+            if (!stopped && !document.hidden && notice) notice.textContent = `Chưa nhận được cập nhật mới. Hệ thống sẽ thử lại sau ${pollMillis / 1000} giây.`;
         } finally { running = false; controller = null; schedule(); }
     }
     document.addEventListener('visibilitychange', () => {

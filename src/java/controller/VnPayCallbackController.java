@@ -38,10 +38,12 @@ public class VnPayCallbackController extends HttpServlet {
                 String transactionStatus = params.get("vnp_TransactionStatus");
                 if (amount != null && transactionCode != null && !transactionCode.trim().isEmpty()
                         && responseCode != null && transactionStatus != null) {
+                    boolean[] newlyPaid = new boolean[1];
                     valid = checkoutDAO.recordVnPayResult(orderID, transactionCode,
                             responseCode, transactionStatus, amount,
-                            params.get("vnp_Message"));
+                            params.get("vnp_Message"), newlyPaid);
                     if (valid) {
+                        if (newlyPaid[0]) service.OrderPaidEmailService.notifyPaidOrder(orderID);
                         code = "00";
                         message = "Confirm Success";
                     } else {

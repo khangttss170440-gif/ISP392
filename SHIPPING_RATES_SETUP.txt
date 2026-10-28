@@ -1,39 +1,21 @@
-MENSFORM - PHI GIAO HANG UOC TINH THEO VUNG
+PHI GIAO HANG GHN TEST
+=====================
 
-Khong can Google Maps API key. Phi duoc tinh o server tu tinh/thanh pho giao hang,
-so luong san pham va gia tri tien hang. Khach hang khong the tu sua phi tren trinh duyet.
+Checkout lay phi tu API GHN Test theo dia chi giao hang. Bieu phi J&T uoc tinh
+cu va cac ham tao don bang phi mac dinh da duoc xoa khoi ung dung.
 
-CHINH SACH CUA SHOP
-- Don tu 799.000 dong (tinh theo tien hang truoc ma giam gia): mien phi ship toan quoc.
-- Don duoi nguong: tinh phi tham khao theo ma vung J&T.
-- Du lieu project chua co can nang san pham, nen tam uoc tinh moi san pham nang 0,5 kg.
-- Phi luu trong SalesOrder.ShippingFee va cong vao Payment.Amount khi tao don.
+Cau hinh xem CONFIGURATION_SETUP.txt va src/java/application.properties:
+- SHIPPING_FREE_THRESHOLD: nguong mien phi theo gia tri tien hang.
+- SHIPPING_MAX_FEE: gioi han kiem tra bao gia van chuyen.
+- SHOP_ADDRESS: dia chi hien thi cua cua hang.
+- GHN_ESTIMATED_ITEM_WEIGHT_GRAMS: trong luong uoc tinh cua moi san pham.
+- GHN_ESTIMATED_LENGTH_CM/WIDTH_CM/HEIGHT_CM: kich thuoc kien uoc tinh.
+- GHN_TOKEN/GHN_SHOP_ID: tai khoan va diem lay hang tu GHN.
 
-BANG GIA THAM KHAO
-Ma vung | 0,5 kg | 1 kg | 1,5 kg | 2 kg | Moi 0,5 kg tiep theo
-A       | 17.700 | 17.700 | 17.700 | 17.700 | +2.500
-B       | 22.500 | 24.500 | 26.600 | 28.600 | +2.500
-C       | 24.000 | 28.000 | 32.000 | 36.000 | +4.500
-F       | 25.000 | 29.000 | 33.000 | 37.000 | +4.500
+JSP, JavaScript va Java deu lay chinh sach tu cau hinh chung. Khi dia chi hoac
+bao gia GHN khong hop le, checkout yeu cau tinh lai va khong tu gan phi mac dinh.
+Don du dieu kien mien phi van phai co dia chi duoc GHN xac nhan.
+Kho can can do kien thuc te truoc khi tao van don.
 
-PHAN VUNG DON GIAN CHO PROJECT
-- A: TP. Ho Chi Minh.
-- B: Long An, Binh Duong, Dong Nai, Ba Ria - Vung Tau, Tien Giang, Ben Tre,
-  Tra Vinh, Vinh Long.
-- C: An Giang, Bac Lieu, Binh Phuoc, Binh Thuan, Ca Mau, Can Tho, Dong Thap,
-  Hau Giang, Soc Trang, Tay Ninh, Kien Giang.
-- F: cac tinh/thanh con lai.
-
-LUU Y VE DO CHINH XAC
-Bieu gia cong khai duoc chon la bang J&T tu Long An, ap dung tu 01/01/2024.
-Project dung bang nay lam moc tham khao va gom tinh/thanh vao 4 vung; day khong phai
-bao gia truc tiep, bang gia hop dong rieng, phu phi hay cuoc hien hanh duoc bao dam.
-J&T co cong cu tra cuu rieng theo diem gui, diem nhan va can nang; shop nen doi chieu
-voi cong cu do hoac bang gia hop dong truoc khi thu phi khach hang that.
-
-Neu muon cuoc gan thuc te hon, bo sung can nang dong goi cho tung san pham va cap nhat
-bang gia/vung theo hop dong van chuyen cua shop. Khong can toa do hay geocoding.
-
-Nguon tham khao:
-https://website.jtexpress.vn/storage/app/uploads/public/659/133/656/659133656f9bb667501771.pdf
-https://jtexpress.vn/vi/tracking?type=price-list
+Thong tin secret luu trong bien moi truong hoac file cau hinh local duoc Git
+bo qua. Khoi dong lai NetBeans/Tomcat sau khi thay doi cau hinh.

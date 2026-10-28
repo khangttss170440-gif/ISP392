@@ -1,5 +1,6 @@
 /* MENSFORM home page interactions. Everything degrades to static content without JS. */
 (function () {
+  var settings = document.querySelector('[data-runtime-settings]').dataset;
   var motionOK = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
   var $ = function (id) { return document.getElementById(id); };
   var IMG = (document.querySelector('.hero-pic img') || {src: ''}).src.replace(/[^/]*$/, '');
@@ -45,7 +46,9 @@
   document.querySelectorAll('.seg button').forEach(function(b){b.addEventListener('click',function(){setForm(b.dataset.f)});
     b.addEventListener('keydown',function(e){var ks=['slim','regular','relaxed'],i=ks.indexOf(curF);if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();i=(i+(e.key==='ArrowRight'?1:2))%3;setForm(ks[i]);document.querySelector('.seg [data-f='+ks[i]+']').focus()}})});
   function suggest(){var h=+$('hIn').value,w=+$('wIn').value;$('hOut').textContent=h+' cm';$('wOut').textContent=w+' kg';
-    var sizes=['S','M','L','XL','XXL'],i=w<55?0:w<64?1:w<73?2:w<83?3:4;if(h>=183&&i<4)i++;if(h<162&&i>0)i--;
+    var sizes=settings.fitSizes.split('|'), limits=settings.fitWeights.split(',').map(Number);
+    var i=limits.findIndex(function(limit){return w<limit});if(i<0)i=sizes.length-1;
+    if(h>=Number(settings.fitTall)&&i<sizes.length-1)i++;if(h<Number(settings.fitShort)&&i>0)i--;
     $('sugSize').textContent='Size '+sizes[i];}
   $('hIn').addEventListener('input',suggest);$('wIn').addEventListener('input',suggest);
   suggest();setForm('regular');

@@ -287,7 +287,7 @@ public class SupportDAO {
                             customerTicket.getCustomerID(),
                             customerTicket.getOrderID(),
                             "Cửa hàng đã phản hồi yêu cầu hỗ trợ",
-                            "Bạn có tin nhắn mới từ MENSFORM: " + message);
+                            "Bạn có tin nhắn mới từ " + util.AppConfig.require("APP_NAME") + ": " + message);
                 }
 
                 String update =

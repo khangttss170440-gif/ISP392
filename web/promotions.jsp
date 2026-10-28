@@ -13,7 +13,7 @@
 %>
 <!DOCTYPE html><html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Khuyến mãi — MENSFORM</title><link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
+    <title>Khuyến mãi — <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title><link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
 </head><body>
 <%@include file="/includes/header.jspf"%>
 <main class="page"><div class="shell">

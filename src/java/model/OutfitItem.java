@@ -68,12 +68,9 @@ public final class OutfitItem {
         return categoryRole==Role.UNKNOWN?classifyText(name):categoryRole;
     }
     private static Role classifyText(String value) {
-        if(has(value,"jacket","coat","blazer","ao khoac","vest"))return Role.LAYER;
-        if(has(value,"pants","trousers","jeans","shorts","quan","chino"))return Role.BOTTOM;
-        if(has(value,"shoes","sneakers","loafers","boots","giay","dep"))return Role.SHOES;
-        if(has(value,"accessories","accessory","phu kien","belt","that lung","day nit","watch","dong ho",
-                "necklace","day chuyen","vong","tie","ca vat","bag","tui","cap","hat","mu","non","kinh"))return Role.ACCESSORY;
-        if(has(value,"t shirt","tshirt","shirt","polo","hoodie","sweater","ao","so mi"))return Role.TOP;
+        for (Role role : new Role[]{Role.LAYER,Role.BOTTOM,Role.SHOES,Role.ACCESSORY,Role.TOP}) {
+            if (has(value, util.AppConfig.list("OUTFIT_ROLE_" + role.name()).toArray(String[]::new))) return role;
+        }
         return Role.UNKNOWN;
     }
 }

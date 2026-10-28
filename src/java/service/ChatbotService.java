@@ -13,21 +13,11 @@ import java.util.concurrent.ThreadLocalRandom;
 /** Calls the Gemini generateContent API without exposing credentials to the browser. */
 public class ChatbotService {
 
-    private static final String API_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/";
-    private static final String DEFAULT_MODEL = "gemini-3.8-flash";
-    private static final String INSTRUCTIONS =
-            "Bạn là trợ lý tư vấn mua sắm của cửa hàng thời trang nam MENSFORM. "
-            + "Trả lời bằng tiếng Việt, thân thiện, ngắn gọn và hữu ích; giúp khách "
-            + "chọn trang phục, phối đồ và giải đáp câu hỏi chung về mua sắm. "
-            + "Bạn không có quyền truy cập đơn hàng hay thông tin tài khoản. Với câu hỏi "
-            + "về sản phẩm, giá và tồn kho, chỉ được sử dụng dữ liệu danh mục được đính "
-            + "kèm trong tin nhắn hiện tại; không suy đoán hoặc lấy thông tin từ các lượt "
-            + "chat cũ. Nếu danh mục hiện tại không có kết quả, nói rõ chưa tìm thấy và "
-            + "hỏi khách muốn nới điều kiện tìm kiếm nào.";
+    private static final String INSTRUCTIONS = util.AppConfig.require("CHATBOT_SYSTEM_INSTRUCTIONS")
+            .replace("{storeName}", util.AppConfig.require("APP_NAME"));
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(15))
+            .connectTimeout(Duration.ofSeconds(util.AppConfig.integer("GEMINI_CONNECT_TIMEOUT_SECONDS", 1, 300)))
             .build();
 
     public ChatbotReply reply(String message, List<ChatbotMessage> history)
@@ -38,16 +28,27 @@ public class ChatbotService {
     public ChatbotReply reply(String message, List<ChatbotMessage> history,
                               String catalogContext)
             throws IOException, InterruptedException {
+        return reply(message, history, catalogContext,
+                util.AppConfig.integer("GEMINI_REQUEST_TIMEOUT_SECONDS", 1, 300),
+                util.AppConfig.integer("GEMINI_MAX_ATTEMPTS", 1, 5));
+    }
 
-        String apiKey = System.getenv("GEMINI_API_KEY");
+    public ChatbotReply replyForProducts(String message, List<ChatbotMessage> history, String catalogContext)
+            throws IOException, InterruptedException {
+        return reply(message, history, catalogContext,
+                util.AppConfig.integer("CHATBOT_PRODUCT_AI_TIMEOUT_SECONDS", 1, 60),
+                util.AppConfig.integer("CHATBOT_PRODUCT_AI_MAX_ATTEMPTS", 1, 3));
+    }
+
+    private ChatbotReply reply(String message, List<ChatbotMessage> history,
+            String catalogContext, int timeoutSeconds, int attempts) throws IOException, InterruptedException {
+
+        String apiKey = util.AppConfig.get("GEMINI_API_KEY");
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("GEMINI_API_KEY is not configured.");
         }
 
-        String model = System.getenv("GEMINI_MODEL");
-        if (model == null || model.isBlank()) {
-            model = DEFAULT_MODEL;
-        }
+        String model = util.AppConfig.require("GEMINI_MODEL");
         if (!model.matches("[A-Za-z0-9._-]+")) {
             throw new IllegalStateException("GEMINI_MODEL is invalid.");
         }
@@ -84,11 +85,12 @@ public class ChatbotService {
         }
         payload.append("{\"role\":\"user\",\"parts\":[{\"text\":\"")
                 .append(escapeJson(currentPrompt))
-                .append("\"}]}],\"generationConfig\":{\"maxOutputTokens\":350}}");
+                .append("\"}]}],\"generationConfig\":{\"maxOutputTokens\":")
+                .append(util.AppConfig.integer("GEMINI_MAX_OUTPUT_TOKENS", 1, 65536)).append("}}");
 
         HttpRequest request = HttpRequest.newBuilder(
-                        URI.create(API_URL + model + ":generateContent"))
-                .timeout(Duration.ofSeconds(55))
+                        URI.create(util.AppConfig.httpsUrl("GEMINI_API_BASE_URL") + model + ":generateContent"))
+                .timeout(Duration.ofSeconds(timeoutSeconds))
                 .header("x-goog-api-key", apiKey)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(
@@ -96,11 +98,11 @@ public class ChatbotService {
                 .build();
 
         HttpResponse<String> response = null;
-        for (int attempt = 0; attempt < 3; attempt++) {
+        for (int attempt = 0; attempt < attempts; attempt++) {
             response = HTTP_CLIENT.send(
                     request,
                     HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if (response.statusCode() < 500 || attempt == 2) {
+            if (response.statusCode() < 500 || attempt == attempts - 1) {
                 break;
             }
 

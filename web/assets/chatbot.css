@@ -43,3 +43,20 @@
 .chatbot-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:480px){.chatbot{right:14px;bottom:max(14px,env(safe-area-inset-bottom))}.chatbot-panel{bottom:68px;width:calc(100vw - 28px);height:min(570px,calc(100dvh - 104px))}.chatbot-launcher{padding:13px 16px}.chatbot-form input{font-size:16px}.chatbot-head{padding:15px 12px}}
 @media(prefers-reduced-motion:reduce){.chatbot-launcher{transition:none}}
+
+.chatbot-product.chatbot-product-with-image{grid-template-columns:70px minmax(0,1fr);column-gap:12px}
+.chatbot-product-image{grid-column:1;grid-row:1 / span 4;width:70px;height:90px;object-fit:cover;background:#eee8df}
+.chatbot-product.chatbot-product-with-image>strong,.chatbot-product.chatbot-product-with-image>span,.chatbot-product.chatbot-product-with-image>b,.chatbot-product.chatbot-product-with-image>small{grid-column:2;min-width:0}
+.chatbot-search-summary{margin:0;align-self:flex-start;max-width:94%;font-size:11px;color:#7b5a35;overflow-wrap:anywhere}
+.chatbot-search-actions{display:flex;flex-wrap:wrap;gap:6px;max-width:94%;align-self:flex-start}
+.chatbot-search-actions button{border:1px solid #b99a60;background:#fff;padding:6px 9px;color:#7b5a35;font-size:11px}
+.chatbot-search-actions button:hover{background:#f6f3ed}
+
+.chatbot-collections{display:grid;gap:12px;width:100%;align-self:flex-start;flex-shrink:0}
+.chatbot-collection{display:grid;gap:7px;padding:12px;border:1px solid #b99a60;background:#fff;color:#211c18;text-decoration:none}
+.chatbot-collection:hover{background:#fdfbf7;border-color:#7b5a35}
+.chatbot-collection-images{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.chatbot-collection-images img{width:100%;height:90px;object-fit:cover;background:#eee8df}
+.chatbot-collection>strong{font-size:14px}.chatbot-collection>small,.chatbot-collection>p,.chatbot-collection li{font-size:11px;color:#7d746b}
+.chatbot-collection>p{margin:0}.chatbot-collection ul{padding-left:16px;margin:0}.chatbot-collection>b{color:#7b5a35;font-size:14px}
+.chatbot-collection>span{font-size:11px;color:#7b5a35;text-decoration:underline}

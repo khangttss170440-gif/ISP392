@@ -1,10 +1,13 @@
 <%@page pageEncoding="UTF-8"%>
-<aside class="chatbot" data-endpoint="<%=request.getContextPath()%>/chatbot" aria-label="Trợ lý MENSFORM">
+<aside class="chatbot" data-endpoint="<%=request.getContextPath()%>/chatbot"
+       data-request-timeout="<%=util.AppConfig.integer("CHATBOT_CLIENT_TIMEOUT_MILLIS", 1000, 300000)%>"
+       data-store-name="<%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%>"
+       aria-label="Trợ lý <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%>">
     <section class="chatbot-panel" id="chatbot-panel" aria-labelledby="chatbot-title" hidden>
         <header class="chatbot-head">
             <div class="chatbot-brand">
                 <span class="chatbot-avatar" aria-hidden="true">M</span>
-                <div><small>YOUR STYLE COMPANION</small><h2 id="chatbot-title">Trợ lý MENSFORM</h2><span class="chatbot-status">Tư vấn phong cách cùng AI</span></div>
+                <div><small>YOUR STYLE COMPANION</small><h2 id="chatbot-title">Trợ lý <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></h2><span class="chatbot-status">Tư vấn phong cách cùng AI</span></div>
             </div>
             <div class="chatbot-head-actions">
                 <button class="chatbot-icon-button" id="chatbot-reset" type="button" aria-label="Bắt đầu cuộc trò chuyện mới" title="Cuộc trò chuyện mới">↻</button>
@@ -13,13 +16,13 @@
         </header>
         <div class="chatbot-messages" id="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions" aria-label="Nội dung trò chuyện"></div>
         <div class="chatbot-suggestions" aria-label="Gợi ý câu hỏi">
-            <button type="button" data-message="Gợi ý cách phối đồ đi làm cho nam">Phối đồ đi làm</button>
+            <button type="button" data-message="Tìm bộ sưu tập đi làm">Bộ sưu tập đi làm</button>
             <button type="button" data-message="Tìm áo sơ mi dưới 500k">Tìm áo sơ mi</button>
-            <button type="button" data-message="Tư vấn cách chọn size áo phù hợp">Chọn size áo</button>
+            <button type="button" data-message="Tìm đồng hồ dưới 2 triệu">Tìm đồng hồ</button>
         </div>
         <form class="chatbot-form" id="chatbot-form">
             <label class="chatbot-sr-only" for="chatbot-input">Tin nhắn cho trợ lý</label>
-            <input id="chatbot-input" name="message" type="text" maxlength="1200" placeholder="Bạn đang tìm phong cách nào?" autocomplete="off" required>
+            <input id="chatbot-input" name="message" type="text" maxlength="<%=util.AppConfig.integer("CHATBOT_MAX_MESSAGE_LENGTH", 1, 10000)%>" placeholder="Bạn đang tìm phong cách nào?" autocomplete="off" required>
             <button type="submit" aria-label="Gửi tin nhắn" title="Gửi tin nhắn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 12 7-7 7 7M12 5v15"/></svg></button>
         </form>
         <p class="chatbot-note">AI có thể nhầm lẫn. Hãy kiểm tra chi tiết sản phẩm.</p>

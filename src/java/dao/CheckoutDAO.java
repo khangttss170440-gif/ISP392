@@ -18,49 +18,18 @@ import util.DBConnection;
 
 public class CheckoutDAO {
 
-    public int createCodOrder(
-            int customerID,
-            Cart cart,
-            String shippingAddress,
-            String notes) throws SQLException {
-        return createCodOrder(customerID, cart, shippingAddress, notes, "");
-    }
-
-    public int createCodOrder(int customerID, Cart cart, String shippingAddress,
-                              String notes, String promotionCode) throws SQLException {
-        return createCodOrder(customerID, cart, shippingAddress, notes, promotionCode, service.ShippingService.NATIONAL_FEE);
-    }
-
-    public int createCodOrder(int customerID, Cart cart, String shippingAddress,
-                              String notes, String promotionCode, BigDecimal shippingFee) throws SQLException {
-        return createOrder(customerID, cart, shippingAddress, notes,
-                promotionCode, shippingFee, "COD");
-    }
-
-    public int createOrder(int customerID, Cart cart, String shippingAddress,
-                           String notes, String promotionCode,
-                           BigDecimal shippingFee, String paymentMethod) throws SQLException {
-        return createOrderInternal(customerID, cart, shippingAddress, notes, promotionCode, shippingFee, paymentMethod, null);
-    }
-
     public int createOrder(int customerID, Cart cart, String shippingAddress,
                            String notes, String promotionCode,
                            service.ShippingService.Quote quote, String paymentMethod) throws SQLException {
-        if (quote == null || !quote.isPriced() || quote.destinationJson == null)
+        if (quote == null || !quote.isPriced() || quote.destinationJson == null || quote.destinationJson.isBlank())
             throw new IllegalArgumentException("Vui lòng tính lại phí GHN trước khi đặt hàng.");
-        return createOrderInternal(customerID, cart, shippingAddress, notes, promotionCode, quote.fee, paymentMethod, quote);
-    }
-
-    private int createOrderInternal(int customerID, Cart cart, String shippingAddress,
-                           String notes, String promotionCode, BigDecimal shippingFee,
-                           String paymentMethod, service.ShippingService.Quote quote) throws SQLException {
+        BigDecimal shippingFee = quote.fee;
 
         if (!"COD".equals(paymentMethod) && !"VNPAY".equals(paymentMethod)) {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
         }
 
-        if (shippingFee == null || shippingFee.signum() < 0 || shippingFee.compareTo(new BigDecimal("5000000")) > 0
-                || (quote == null && !service.ShippingService.isValidEstimatedFee(shippingFee, cart == null ? 1 : cart.getTotalQuantity()))) {
+        if (shippingFee == null || shippingFee.signum() < 0 || shippingFee.compareTo(util.AppConfig.decimal("SHIPPING_MAX_FEE")) > 0) {
             throw new IllegalArgumentException("Phí giao hàng không hợp lệ.");
         }
 
@@ -104,7 +73,7 @@ public class CheckoutDAO {
                     );
                 }
 
-                if (quote != null && (subtotal.compareTo(service.ShippingService.FREE_SHIPPING_THRESHOLD) >= 0) != quote.freeByOrderValue)
+                if (service.ShippingService.qualifiesForFreeShipping(subtotal) != quote.freeByOrderValue)
                     throw new IllegalArgumentException("Giá sản phẩm đã thay đổi. Vui lòng kiểm tra lại phí giao hàng.");
                 BigDecimal discount = BigDecimal.ZERO;
                 if (promotionCode != null && !promotionCode.trim().isEmpty()) {
@@ -148,7 +117,7 @@ public class CheckoutDAO {
                         shippingAddress.trim()
                 );
 
-                if (quote != null) GhnDeliveryDAO.insert(connection, orderID, quote.destinationJson);
+                GhnDeliveryDAO.insert(connection, orderID, quote.destinationJson);
 
                 connection.commit();
                 return orderID;
@@ -183,6 +152,14 @@ public class CheckoutDAO {
     public boolean recordVnPayResult(int orderID, String transactionCode,
             String responseCode, String transactionStatus, BigDecimal amount,
             String responseMessage) throws SQLException {
+        return recordVnPayResult(orderID, transactionCode, responseCode,
+                transactionStatus, amount, responseMessage, null);
+    }
+
+    public boolean recordVnPayResult(int orderID, String transactionCode,
+            String responseCode, String transactionStatus, BigDecimal amount,
+            String responseMessage, boolean[] newlyPaid) throws SQLException {
+        if (newlyPaid != null && newlyPaid.length > 0) newlyPaid[0] = false;
         if (orderID <= 0 || amount == null || amount.signum() <= 0
                 || transactionCode == null || transactionCode.trim().isEmpty()) {
             return false;
@@ -215,12 +192,14 @@ public class CheckoutDAO {
 
                 boolean successful = "00".equals(responseCode)
                         && "00".equals(transactionStatus);
+                boolean transitionedToPaid = false;
                 if ("Pending".equalsIgnoreCase(paymentStatus)) {
                     String update = "UPDATE dbo.Payment SET PaymentStatus = ? WHERE PaymentID = ? AND PaymentStatus = 'Pending'";
                     try (PreparedStatement statement = connection.prepareStatement(update)) {
                         statement.setString(1, successful ? "Paid" : "Failed");
                         statement.setInt(2, paymentID);
-                        statement.executeUpdate();
+                        int changed = statement.executeUpdate();
+                        transitionedToPaid = successful && changed == 1;
                     }
                 } else if (!((successful && "Paid".equalsIgnoreCase(paymentStatus))
                         || (!successful && "Failed".equalsIgnoreCase(paymentStatus)))) {
@@ -264,6 +243,7 @@ public class CheckoutDAO {
                     }
                 }
                 connection.commit();
+                if (newlyPaid != null && newlyPaid.length > 0) newlyPaid[0] = transitionedToPaid;
                 return true;
             } catch (SQLException | RuntimeException e) {
                 try { connection.rollback(); } catch (SQLException rollbackError) { e.addSuppressed(rollbackError); }

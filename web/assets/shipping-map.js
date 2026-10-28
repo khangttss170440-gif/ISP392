@@ -12,7 +12,7 @@
 
     const input = (name) => form.querySelector(`[name="${name}"]`);
     const isSaved = () => addressSelect && addressSelect.value !== 'new';
-    const qualifiesByAmount = () => Number(document.getElementById('checkoutTotalLabel')?.dataset.subtotal || 0) >= 799000;
+    const qualifiesByAmount = () => Number(document.getElementById('checkoutTotalLabel')?.dataset.subtotal || 0) >= Number(widget.dataset.freeThreshold);
     const showFee = (fee, priced, freeByOrderValue) => {
         const feeLabel = document.getElementById('shippingFeeLabel');
         const total = document.getElementById('checkoutTotalLabel');
@@ -54,7 +54,7 @@
         } catch (error) {
             if (current === sequence && error.name !== 'AbortError') {
                 showFee(0, false, qualifiesByAmount());
-                status.textContent = `${error.message} ${qualifiesByAmount() ? 'Đơn từ 799.000₫ vẫn được miễn phí giao hàng.' : ''}`;
+                status.textContent = `${error.message} ${qualifiesByAmount() ? widget.dataset.freeMessage : ''}`;
             }
         } finally {
             if (current === sequence) button.disabled = false;

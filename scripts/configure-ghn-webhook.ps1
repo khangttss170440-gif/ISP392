@@ -1,6 +1,7 @@
 # Keep this secret separate from the GHN API token. Only the shared webhook secret is copied.
 $ErrorActionPreference = 'Stop'
-$ghnSecret = [Environment]::GetEnvironmentVariable('GHN_WEBHOOK_SECRET','User')
+. (Join-Path $PSScriptRoot 'read-app-setting.ps1')
+$ghnSecret = Get-AppSetting 'GHN_WEBHOOK_SECRET'
 if ([string]::IsNullOrWhiteSpace($ghnSecret) -or $ghnSecret.Length -lt 32) {
     $ghnSecret = [Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N')
     [Environment]::SetEnvironmentVariable('GHN_WEBHOOK_SECRET',$ghnSecret,'User')

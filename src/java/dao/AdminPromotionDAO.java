@@ -25,7 +25,7 @@ public class AdminPromotionDAO {
         String sql =
                 "SELECT " + COLUMNS
                 + " FROM dbo.Promotion "
-                + "ORDER BY StartDate DESC, PromotionID DESC";
+                + "ORDER BY PromotionID DESC";
 
         List<Promotion> promotions = new ArrayList<>();
 

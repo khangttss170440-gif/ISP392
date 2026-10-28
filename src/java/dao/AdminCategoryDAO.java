@@ -21,7 +21,7 @@ public class AdminCategoryDAO {
         String sql =
                 "SELECT CategoryID, CategoryName, Description, Status "
                 + "FROM dbo.ProductCategory "
-                + "ORDER BY CategoryName";
+                + "ORDER BY CategoryID DESC";
 
         List<ProductCategory> categories = new ArrayList<>();
 

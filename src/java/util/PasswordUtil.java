@@ -10,7 +10,7 @@ import javax.crypto.spec.PBEKeySpec;
 public final class PasswordUtil {
 
     private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
-    private static final int ITERATIONS = 120000;
+    private static final int ITERATIONS = AppConfig.integer("PASSWORD_HASH_ITERATIONS", 120000, 1000000);
     private static final int KEY_LENGTH = 256;
     private static final int SALT_LENGTH = 16;
 

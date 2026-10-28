@@ -275,7 +275,15 @@ public class CheckoutController extends HttpServlet {
                         orderID, amount, request.getRemoteAddr(), returnUrl);
                 cart.clear();
                 session.removeAttribute("CHECKOUT_PROMOTION_CODE");
-                response.sendRedirect(paymentUrl);
+                if ("iframe".equals(request.getHeader("Sec-Fetch-Dest"))) {
+                    // Payment providers must open in the main browser window.
+                    request.setAttribute("externalNavigationUrl", paymentUrl);
+                    response.setHeader("Cache-Control", "no-store");
+                    request.getRequestDispatcher("/WEB-INF/views/external-navigation.jsp")
+                            .forward(request, response);
+                } else {
+                    response.sendRedirect(paymentUrl);
+                }
                 return;
             }
 

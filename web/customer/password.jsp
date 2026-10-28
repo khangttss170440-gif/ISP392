@@ -18,7 +18,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%=title%> | MENSFORM</title>
+    <title><%=title%> | <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <style>
         .password-card{max-width:620px;margin:42px auto;padding:clamp(24px,5vw,46px);background:#fff;border:1px solid #e6e1d8;border-radius:16px;box-shadow:0 12px 34px #192b2110}
@@ -46,7 +46,7 @@
             <p>Mật khẩu mới đã được lưu.</p>
             <a class="button" href="<%=request.getContextPath()%>/customer/account.jsp">Về tài khoản</a>
         <% } else if ("verify".equals(stage)) { %>
-            <p>Nhập mã 6 chữ số trong email cùng mật khẩu mới. Mã hết hạn sau 10 phút.</p>
+            <p>Nhập mã 6 chữ số trong email cùng mật khẩu mới. Mã hết hạn sau <%=util.AppConfig.integer("AUTH_CODE_LIFETIME_SECONDS", 1, 86400)%> giây.</p>
             <form action="<%=action%>" method="post" autocomplete="off">
                 <input type="hidden" name="stage" value="verify">
                 <label class="form-label" for="code">Mã xác nhận</label>
@@ -59,7 +59,7 @@
             </form>
         <% } else { %>
             <% if ("change".equals(flow)) { %>
-                <p>Nhập mật khẩu hiện tại. MENSFORM sẽ gửi mã xác nhận đến email đăng ký của bạn.</p>
+                <p>Nhập mật khẩu hiện tại. <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> sẽ gửi mã xác nhận đến email đăng ký của bạn.</p>
                 <form action="<%=action%>" method="post">
                     <input type="hidden" name="stage" value="start">
                     <label class="form-label" for="currentPassword">Mật khẩu hiện tại</label>

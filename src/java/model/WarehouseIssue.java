@@ -16,6 +16,8 @@ public class WarehouseIssue {
     private String sku;
     private String reportedByName;
     private String resolvedByName;
+    private String paymentMethod;
+    private String paymentStatus;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -114,6 +116,11 @@ public class WarehouseIssue {
     public void setResolvedByName(String resolvedByName) {
         this.resolvedByName = resolvedByName;
     }
+
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
 
     public Timestamp getCreatedAt() {
         return createdAt;

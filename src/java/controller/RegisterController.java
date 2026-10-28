@@ -25,9 +25,9 @@ public class RegisterController extends HttpServlet {
     static final String CODE_EXPIRES = "PENDING_EMAIL_VERIFICATION_EXPIRES";
     static final String CODE_SENT_AT = "PENDING_EMAIL_VERIFICATION_SENT_AT";
     static final String CODE_ATTEMPTS = "PENDING_EMAIL_VERIFICATION_ATTEMPTS";
-    static final long CODE_LIFETIME_MILLIS = 10 * 60 * 1000L;
-    static final long RESEND_WAIT_MILLIS = 60 * 1000L;
-    static final int MAX_CODE_ATTEMPTS = 5;
+    static final long CODE_LIFETIME_MILLIS = util.AppConfig.integer("AUTH_CODE_LIFETIME_SECONDS", 1, 86400) * 1000L;
+    static final long RESEND_WAIT_MILLIS = util.AppConfig.integer("AUTH_CODE_RESEND_SECONDS", 1, 86400) * 1000L;
+    static final int MAX_CODE_ATTEMPTS = util.AppConfig.integer("AUTH_CODE_MAX_ATTEMPTS", 1, 20);
 
     private CustomerDAO customerDAO;
 

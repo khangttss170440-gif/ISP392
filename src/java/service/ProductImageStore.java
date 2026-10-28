@@ -29,18 +29,24 @@ import javax.servlet.http.Part;
 
 /** Persistent product photos, independent of the deployed WAR directory. */
 public class ProductImageStore {
-    public static final int MAX_IMAGES = 6;
-    public static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
-    public static final long MAX_REQUEST_SIZE = 62 * 1024 * 1024;
-    public static final long MAX_PIXELS = 12_000_000L;
-    private static final int MAX_ENCODED_SIZE = 20 * 1024 * 1024;
-    private static final float JPEG_QUALITY = 0.98f;
+    public static final int MAX_IMAGES = util.AppConfig.integer("PRODUCT_IMAGE_MAX_COUNT", 1, 100);
+    public static final long MAX_FILE_SIZE = util.AppConfig.integer("PRODUCT_IMAGE_MAX_FILE_BYTES", 1, Integer.MAX_VALUE - 1);
+    public static final long MAX_REQUEST_SIZE = util.AppConfig.integer("PRODUCT_IMAGE_MAX_REQUEST_BYTES", 1, Integer.MAX_VALUE);
+    public static final long MAX_PIXELS = util.AppConfig.integer("PRODUCT_IMAGE_MAX_PIXELS", 1, Integer.MAX_VALUE);
+    private static final int MAX_ENCODED_SIZE = util.AppConfig.integer("PRODUCT_IMAGE_MAX_ENCODED_BYTES", 1, Integer.MAX_VALUE);
+    private static final float JPEG_QUALITY = configuredQuality();
     private final Path root;
+
+    private static float configuredQuality() {
+        float value = util.AppConfig.decimal("PRODUCT_IMAGE_JPEG_QUALITY").floatValue();
+        if (value <= 0 || value > 1) throw new IllegalStateException("PRODUCT_IMAGE_JPEG_QUALITY must be in (0, 1].");
+        return value;
+    }
 
     public ProductImageStore(Path root) { this.root = root.toAbsolutePath().normalize(); }
 
     public static ProductImageStore from(ServletContext context) {
-        String configured = System.getenv("MENSFORM_PRODUCT_IMAGE_DIR");
+        String configured = util.AppConfig.get("MENSFORM_PRODUCT_IMAGE_DIR");
         if (configured == null || configured.isBlank()) configured = context.getInitParameter("productImageDirectory");
         if (configured == null || configured.isBlank()) {
             configured = Paths.get(System.getProperty("catalina.base", "."), "mensform-data", "product-images").toString();
@@ -107,13 +113,13 @@ public class ProductImageStore {
         long encodedTotal = 0;
         for (Part part : parts) {
             if (!"images".equals(part.getName()) || part.getSize() == 0) continue;
-            if (uploads.size() >= MAX_IMAGES) throw new IllegalArgumentException("Mỗi sản phẩm tối đa 6 ảnh.");
-            if (part.getSize() > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa 10 MB.");
+            if (uploads.size() >= MAX_IMAGES) throw new IllegalArgumentException("Mỗi sản phẩm tối đa " + MAX_IMAGES + " ảnh.");
+            if (part.getSize() > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa " + MAX_FILE_SIZE + " byte.");
             byte[] bytes;
             try (java.io.InputStream input = part.getInputStream()) {
                 bytes = input.readNBytes((int) MAX_FILE_SIZE + 1);
             }
-            if (bytes.length > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa 10 MB.");
+            if (bytes.length > MAX_FILE_SIZE) throw new IllegalArgumentException("Mỗi ảnh tối đa " + MAX_FILE_SIZE + " byte.");
             try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
                 Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
                 if (!readers.hasNext()) throw invalidImage();
@@ -124,7 +130,7 @@ public class ProductImageStore {
                     reader.setInput(input);
                     int width = reader.getWidth(0), height = reader.getHeight(0);
                     if (width <= 0 || height <= 0 || (long) width * height > MAX_PIXELS) {
-                        throw new IllegalArgumentException("Ảnh tối đa 12 megapixel.");
+                        throw new IllegalArgumentException("Ảnh tối đa " + MAX_PIXELS + " pixel.");
                     }
                     java.awt.image.BufferedImage decoded = reader.read(0);
                     if (decoded == null) throw invalidImage();
@@ -132,7 +138,7 @@ public class ProductImageStore {
                         byte[] encoded = encode(decoded, format);
                         encodedTotal += encoded.length;
                         if (encodedTotal > MAX_IMAGES * MAX_FILE_SIZE)
-                            throw new IllegalArgumentException("Tổng ảnh sau xử lý vượt 60 MB. Vui lòng tải ít ảnh hơn mỗi lần.");
+                            throw new IllegalArgumentException("Tổng ảnh sau xử lý vượt " + (MAX_IMAGES * MAX_FILE_SIZE) + " byte. Vui lòng tải ít ảnh hơn mỗi lần.");
                         uploads.add(new Upload(encoded, format.equals("jpeg") ? "jpg" : "png"));
                     } finally { decoded.flush(); }
                 } finally { reader.dispose(); }
@@ -149,7 +155,7 @@ public class ProductImageStore {
         java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream() {
             private void checkSize(int extra) {
                 if (extra < 0 || (long) count + extra > MAX_ENCODED_SIZE)
-                    throw new IllegalArgumentException("Ảnh sau xử lý vượt 20 MB. Hãy chọn ảnh có dung lượng hoặc độ phân giải nhỏ hơn.");
+                    throw new IllegalArgumentException("Ảnh sau xử lý vượt " + MAX_ENCODED_SIZE + " byte. Hãy chọn ảnh nhỏ hơn.");
             }
             @Override public synchronized void write(int value) { checkSize(1); super.write(value); }
             @Override public synchronized void write(byte[] data, int offset, int length) {
@@ -188,7 +194,7 @@ public class ProductImageStore {
 
     public void checkCapacity(int productId, List<Upload> uploads) throws IOException {
         if (!uploads.isEmpty() && list(productId).size() + uploads.size() > MAX_IMAGES) {
-            throw new IllegalArgumentException("Mỗi sản phẩm tối đa 6 ảnh. Hãy giảm số ảnh tải thêm.");
+            throw new IllegalArgumentException("Mỗi sản phẩm tối đa " + MAX_IMAGES + " ảnh. Hãy giảm số ảnh tải thêm.");
         }
     }
 

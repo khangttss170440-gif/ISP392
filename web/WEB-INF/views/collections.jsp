@@ -40,8 +40,8 @@ Map<Integer,List<ProductVariant>> collectionVariantCache=new HashMap<>();
 <!DOCTYPE html>
 <html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Bộ sưu tập phối đồ — MENSFORM</title>
-    <meta name="description" content="Gợi ý phối áo, quần và phụ kiện từ sản phẩm MENSFORM còn hàng. Chọn set theo dịp sử dụng và ngân sách.">
+    <title>Bộ sưu tập phối đồ — <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
+    <meta name="description" content="Gợi ý phối áo, quần và phụ kiện từ sản phẩm <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> còn hàng. Chọn set theo dịp sử dụng và ngân sách.">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/mensform-collections.css?v=20261024f">
 </head><body class="collections-page cx">
@@ -53,7 +53,7 @@ Map<Integer,List<ProductVariant>> collectionVariantCache=new HashMap<>();
                 <div class="breadcrumb"><a href="<%=request.getContextPath()%>/index.jsp">Trang chủ</a> / Bộ sưu tập</div>
                 <span class="eyebrow">Lookbook · Thu Đông 2026</span>
                 <h1>Bộ sưu tập<em>phối theo dịp.</em></h1>
-                <p>Những bộ áo, quần và phụ kiện được ghép sẵn. Chọn dịp, đặt mức chi hoặc bắt đầu từ một món bạn thích, phần còn lại để MENSFORM lo.</p>
+                <p>Những bộ áo, quần và phụ kiện được ghép sẵn. Chọn dịp, đặt mức chi hoặc bắt đầu từ một món bạn thích, phần còn lại để <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> lo.</p>
                 <div class="cx-hero-actions">
                     <a class="cx-btn" href="#outfitFilters">Tìm set phù hợp <span aria-hidden="true">↓</span></a>
                     <a class="cx-link" href="<%=collectionEscape(collectionUrl(request.getContextPath(),"suggested",selectedStyle,selectedBudget,selectedProductId))%>">Xem gợi ý tự động</a>
@@ -105,7 +105,7 @@ Map<Integer,List<ProductVariant>> collectionVariantCache=new HashMap<>();
                 </select>
             </div>
             <div><label for="outfitBudget">Ngân sách tối đa / set (₫)</label>
-                <input class="field" id="outfitBudget" name="budget" type="number" min="1" max="50000000" step="1" inputmode="numeric" placeholder="Ví dụ: 1000000" value="<%=selectedBudget==null?"":selectedBudget.toPlainString()%>">
+                <input class="field" id="outfitBudget" name="budget" type="number" min="1" max="<%=util.AppConfig.decimal("COLLECTION_MAX_BUDGET").toPlainString()%>" step="1" inputmode="numeric" placeholder="Ví dụ: 1000000" value="<%=selectedBudget==null?"":selectedBudget.toPlainString()%>">
             </div>
             <div><label for="outfitProduct">Phối cùng sản phẩm</label>
                 <select class="select" id="outfitProduct" name="productId">

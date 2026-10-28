@@ -29,7 +29,7 @@
 <!DOCTYPE html>
 <html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Khuyến mãi · MENSFORM Admin</title>
+    <title>Khuyến mãi · <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%> Admin</title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
 </head><body><div class="admin-layout">
 <%@include file="/admin/includes/sidebar.jspf"%>
@@ -50,7 +50,7 @@
             <input type="hidden" name="action" value="<%=creating ? "create" : "update"%>">
             <input type="hidden" name="promotionId" value="<%=p.getPromotionID()%>">
             <input type="hidden" name="originalQuantity" value="<%=p.getQuantity()%>">
-            <div><label class="form-label" for="<%=prefix%>code">Mã khuyến mãi *</label><input class="field" id="<%=prefix%>code" name="promotionCode" value="<%=promotionEscape(p.getPromotionCode())%>" pattern="[A-Za-z0-9_-]{3,50}" maxlength="50" placeholder="VD: MENSFORM10" required></div>
+            <div><label class="form-label" for="<%=prefix%>code">Mã khuyến mãi *</label><input class="field" id="<%=prefix%>code" name="promotionCode" value="<%=promotionEscape(p.getPromotionCode())%>" pattern="[A-Za-z0-9_-]{3,50}" maxlength="50" placeholder="VD: <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%>10" required></div>
             <div><label class="form-label" for="<%=prefix%>name">Tên chương trình *</label><input class="field" id="<%=prefix%>name" name="promotionName" value="<%=promotionEscape(p.getPromotionName())%>" maxlength="150" required></div>
             <div><label class="form-label" for="<%=prefix%>type">Loại giảm *</label><select class="select" id="<%=prefix%>type" name="discountType"><option value="Percentage" <%= "Percentage".equals(p.getDiscountType()) ? "selected" : ""%>>Phần trăm (%)</option><option value="Fixed" <%= "Fixed".equals(p.getDiscountType()) ? "selected" : ""%>>Số tiền (₫)</option></select></div>
             <div><label class="form-label" for="<%=prefix%>value">Giá trị giảm *</label><input class="field" id="<%=prefix%>value" name="discountValue" type="number" min="0.01" step="0.01" value="<%=promotionEscape(p.getDiscountValue())%>" required></div>

@@ -18,7 +18,7 @@
 %>
 <!doctype html><html lang="vi"><head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ảnh sản phẩm · MENSFORM</title>
+    <title>Ảnh sản phẩm · <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/product-images.css">
 </head><body>
@@ -42,7 +42,7 @@
     <% if (selectedProduct != null) { int imageProductId = selectedProduct.getProductID(); %>
     <section class="admin-panel">
         <h2>#<%=imageProductId%> · <%=imageEscape(selectedProduct.getProductName())%></h2>
-        <p class="admin-note"><%=currentImages == null ? 0 : currentImages.size()%>/6 ảnh. JPG/PNG, tối đa 10 MB và 12 megapixel mỗi ảnh. Giữ nguyên kích thước ảnh; JPG được lưu chất lượng cao, PNG không nén mất chi tiết.</p>
+        <p class="admin-note"><%=currentImages == null ? 0 : currentImages.size()%>/<%=service.ProductImageStore.MAX_IMAGES%> ảnh. JPG/PNG, tối đa <%=service.ProductImageStore.MAX_FILE_SIZE / (1024 * 1024)%> MB và <%=service.ProductImageStore.MAX_PIXELS / 1000000%> megapixel mỗi ảnh. Giữ nguyên kích thước ảnh; JPG được lưu chất lượng cao, PNG không nén mất chi tiết.</p>
         <p class="admin-note">Nên dùng ảnh gốc từ 1200 × 1500 px (tốt hơn: 1600 × 2000 px). Ảnh nhỏ hoặc mờ cần được thay bằng nguồn rõ hơn; bấm ảnh để xem kích thước đầy đủ.</p>
         <% if (currentImages == null || currentImages.isEmpty()) { %>
         <p class="admin-empty">Sản phẩm chưa có ảnh. Bạn có thể tải ảnh đầu tiên bên dưới.</p>
@@ -94,7 +94,7 @@
             <input type="hidden" name="productId" value="<%=imageProductId%>">
             <input type="hidden" name="action" value="upload">
             <label class="form-label" for="productImages">Tải thêm ảnh</label>
-            <p id="imageHelp" class="admin-note">Tổng số ảnh sau khi tải thêm không vượt quá 6. Thay ảnh không làm tăng số lượng ảnh.</p>
+            <p id="imageHelp" class="admin-note">Tổng số ảnh sau khi tải thêm không vượt quá <%=service.ProductImageStore.MAX_IMAGES%>. Thay ảnh không làm tăng số lượng ảnh.</p>
             <input class="field" id="productImages" type="file" name="images" accept="image/jpeg,image/png" multiple required aria-describedby="imageHelp imageUploadError">
             <p id="imageUploadError" class="product-upload-error" role="alert"></p>
             <div class="product-image-thumbs" id="uploadPreview" aria-label="Ảnh vừa chọn"></div>

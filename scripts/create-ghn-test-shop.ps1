@@ -3,15 +3,9 @@ param([switch]$Create)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Net.Http
 
-function Read-Setting([string]$Key) {
-    foreach ($scope in @('User', 'Machine', 'Process')) {
-        $value = [Environment]::GetEnvironmentVariable($Key, $scope)
-        if (-not [string]::IsNullOrWhiteSpace($value)) { return $value.Trim() }
-    }
-    return ''
-}
-$ghnToken = Read-Setting 'GHN_TOKEN'
-$ghnExistingShop = Read-Setting 'GHN_SHOP_ID'
+. (Join-Path $PSScriptRoot 'read-app-setting.ps1')
+$ghnToken = Get-AppSetting 'GHN_TOKEN'
+$ghnExistingShop = Get-AppSetting 'GHN_SHOP_ID'
 if ([string]::IsNullOrWhiteSpace($ghnToken) -or $ghnExistingShop -notmatch '^[1-9][0-9]{0,9}$') {
     throw 'Chua co GHN_TOKEN/GHN_SHOP_ID. Luu Token test va Shop ID hien tai tren may nay truoc.'
 }
@@ -21,11 +15,16 @@ if ($ghnToken -match '[\r\n]' -or $ghnToken -eq 'TOKEN_TEST_CUA_BAN') {
 $ghnHandler = [Net.Http.HttpClientHandler]::new()
 $ghnHandler.AllowAutoRedirect = $false
 $ghnHttp = [Net.Http.HttpClient]::new($ghnHandler)
-$ghnHttp.Timeout = [TimeSpan]::FromSeconds(15)
+$ghnHttp.Timeout = [TimeSpan]::FromSeconds([int](Get-AppSetting 'GHN_REQUEST_TIMEOUT_SECONDS'))
+$ghnBaseUrl = Get-AppSetting 'GHN_API_BASE_URL'
+$ghnBaseUri = [Uri]$ghnBaseUrl
+if ($ghnBaseUri.Scheme -ne 'https' -or $ghnBaseUri.Host -ne 'dev-online-gateway.ghn.vn') {
+    throw 'GHN_API_BASE_URL must reference the staging HTTPS host.'
+}
 
 function Invoke-Ghn([string]$Path, $Body = $null) {
     $method = if ($null -eq $Body) { [Net.Http.HttpMethod]::Get } else { [Net.Http.HttpMethod]::Post }
-    $request = [Net.Http.HttpRequestMessage]::new($method, ('https://dev-online-gateway.ghn.vn/shiip/public-api/' + $Path))
+    $request = [Net.Http.HttpRequestMessage]::new($method, ($ghnBaseUrl.TrimEnd('/') + '/' + $Path))
     $response = $null
     try {
         $request.Headers.Add('Token', $ghnToken)
@@ -80,13 +79,16 @@ try {
     # Read the complete shop list so a rerun can reuse a matching shop.
     $shops = @()
     $offset = 0
-    for ($page = 0; $page -lt 20; $page++) {
-        $pageData = Invoke-Ghn ('v2/shop/all?offset=' + $offset + '&limit=100')
+    $pageSize = [int](Get-AppSetting 'GHN_SHOP_PAGE_SIZE')
+    $maxPages = [int](Get-AppSetting 'GHN_SHOP_MAX_PAGES')
+    if ($pageSize -lt 1 -or $pageSize -gt 100 -or $maxPages -lt 1 -or $maxPages -gt 1000) { throw 'Invalid GHN pagination settings.' }
+    for ($page = 0; $page -lt $maxPages; $page++) {
+        $pageData = Invoke-Ghn ('v2/shop/all?offset=' + $offset + '&limit=' + $pageSize)
         $pageShops = @($pageData.shops | Where-Object { $null -ne $_ })
         $shops += $pageShops
-        if ($pageShops.Count -lt 100) { break }
+        if ($pageShops.Count -lt $pageSize) { break }
         $next = [int]$pageData.last_offset
-        if ($next -le $offset -or $page -eq 19) { throw 'Chua doc du danh sach shop de kiem tra trung. Dung lai va kiem tra tren GHN.' }
+        if ($next -le $offset -or $page -eq $maxPages - 1) { throw 'Chua doc du danh sach shop de kiem tra trung. Dung lai va kiem tra tren GHN.' }
         $offset = $next
     }
     $existing = @($shops | Where-Object { [string]$_._id -eq $ghnExistingShop })
@@ -94,7 +96,7 @@ try {
         throw 'Shop ID hien tai phai thuoc Token va dang hoat dong de goi API tao shop. Kiem tra tai khoan GHN test.'
     }
     Write-Host 'TAO DIEM LAY HANG GHN TEST - khong tao van don, khong goi shipper.'
-    $shopName = Read-Required 'Ten cua hang' 'MENSFORM Test' 100
+    $shopName = Read-Required 'Ten cua hang' ((Get-AppSetting 'APP_NAME') + ' Test') 100
     $shopPhone = Read-Required 'SDT cua hang' ([string]$existing[0].phone) 20
     $shopPhone = $shopPhone -replace '[ .()-]', ''
     if ($shopPhone.StartsWith('+84')) { $shopPhone = '0' + $shopPhone.Substring(3) }

@@ -31,13 +31,13 @@ public final class OutfitRecommendationService {
         // Alternate styles, deduplicate the actual combination, and limit repeated products.
         List<OutfitSet> result=new ArrayList<>();Set<String> signatures=new HashSet<>();
         Set<String> bases=new HashSet<>();
-        for(int round=0;round<4 && result.size()<12;round++) for(List<OutfitSet> sets:byStyle.values()) {
+        for(int round=0;round<Style.values().length && result.size()<util.AppConfig.integer("OUTFIT_RESULT_LIMIT", 1, 1000);round++) for(List<OutfitSet> sets:byStyle.values()) {
             for(OutfitSet set:sets) {
                 String base=set.getItems().get(0).getKey()+"|"+set.getItems().get(1).getKey();
                 if(signatures.contains(set.getSignature()) || bases.contains(base))continue;
                 signatures.add(set.getSignature());bases.add(base);result.add(set);break;
             }
-            if(result.size()==12)break;
+            if(result.size()==util.AppConfig.integer("OUTFIT_RESULT_LIMIT", 1, 1000))break;
         }
         return result;
     }
@@ -49,10 +49,10 @@ public final class OutfitRecommendationService {
                 .thenComparing(OutfitItem::getFromPrice).thenComparingInt(OutfitItem::getProductId).thenComparing(OutfitItem::getColor);
         List<OutfitItem> tops=items.stream().filter(i->i.getRole()==Role.TOP && accepts(i,style))
                 .filter(i->!anchorTop||i.getProductId()==anchor)
-                .sorted(priority).limit(32).collect(Collectors.toList());
+                .sorted(priority).limit(util.AppConfig.integer("OUTFIT_CANDIDATE_LIMIT", 1, 1000)).collect(Collectors.toList());
         List<OutfitItem> bottoms=items.stream().filter(i->i.getRole()==Role.BOTTOM && accepts(i,style))
                 .filter(i->!anchorBottom||i.getProductId()==anchor)
-                .sorted(priority).limit(32).collect(Collectors.toList());
+                .sorted(priority).limit(util.AppConfig.integer("OUTFIT_CANDIDATE_LIMIT", 1, 1000)).collect(Collectors.toList());
         List<Pair> pairs=new ArrayList<>();
         for(OutfitItem top:tops) for(OutfitItem bottom:bottoms) {
             BigDecimal price=top.getFromPrice().add(bottom.getFromPrice());
@@ -74,7 +74,7 @@ public final class OutfitRecommendationService {
             }
             List<Role> extraRoles=style==Style.WEEKEND?List.of(Role.SHOES,Role.ACCESSORY,Role.LAYER):List.of(Role.SHOES,Role.ACCESSORY);
             for(Role role:extraRoles) {
-                if(selected.size()>=4 || selected.stream().anyMatch(i->i.getRole()==role))continue;
+                if(selected.size()>=util.AppConfig.integer("OUTFIT_MAX_ITEMS", 2, 10) || selected.stream().anyMatch(i->i.getRole()==role))continue;
                 OutfitItem extra=bestExtra(items,selected,style,budget,null,role,false);
                 if(extra!=null)selected.add(extra);
             }
@@ -89,7 +89,7 @@ public final class OutfitRecommendationService {
             boolean accessory=selected.stream().anyMatch(i->i.getRole()==Role.ACCESSORY);
             String missing=accessory?"":"Chưa ghép phụ kiện: kho hiện chưa có lựa chọn phù hợp về màu sắc và mức giá cho set này.";
             result.add(new OutfitSet(style.id,style.title,style.description,selected,reasons,missing));
-            if(result.size()==40)break;
+            if(result.size()==util.AppConfig.integer("OUTFIT_STYLE_RESULT_LIMIT", 1, 1000))break;
         }
         return result;
     }
@@ -101,7 +101,7 @@ public final class OutfitRecommendationService {
                 .filter(i->selected.stream().noneMatch(old->old.getProductId()==i.getProductId()))
                 .filter(i->accepts(i,style))
                 .filter(i->budget==null||total.add(i.getFromPrice()).compareTo(budget)<=0)
-                .filter(i->required||i.getFromPrice().compareTo(total.multiply(i.getRole()==Role.SHOES?new BigDecimal("1.2"):new BigDecimal("0.6")))<=0)
+                .filter(i->required||i.getFromPrice().compareTo(total.multiply(i.getRole()==Role.SHOES?util.AppConfig.decimal("OUTFIT_SHOES_PRICE_RATIO"):util.AppConfig.decimal("OUTFIT_ACCESSORY_PRICE_RATIO")))<=0)
                 .filter(i->selected.stream().allMatch(old->compatibility(i,old)>=0))
                 .sorted(Comparator.comparingInt((OutfitItem i)->styleScore(i,style)+selected.stream().mapToInt(old->compatibility(i,old)).sum()).reversed()
                         .thenComparing(OutfitItem::getFromPrice).thenComparing(OutfitItem::getKey))
@@ -111,48 +111,46 @@ public final class OutfitRecommendationService {
     private boolean accepts(OutfitItem item,Style style) {
         String text=item.getSearchText();
         if(style==Style.OFFICE) {
-            if(item.getRole()==Role.TOP && OutfitItem.has(text,"t shirt","tshirt","hoodie","oversize","tank"))return false;
-            if(item.getRole()==Role.BOTTOM && OutfitItem.has(text,"cargo","shorts","quan dui","rach","ripped"))return false;
-            if(item.getRole()==Role.ACCESSORY && OutfitItem.has(text,"cap","hat","mu","non"))return false;
+            if(item.getRole()==Role.TOP && hasRule(text,"OUTFIT_OFFICE_EXCLUDE_TOP"))return false;
+            if(item.getRole()==Role.BOTTOM && hasRule(text,"OUTFIT_OFFICE_EXCLUDE_BOTTOM"))return false;
+            if(item.getRole()==Role.ACCESSORY && hasRule(text,"OUTFIT_OFFICE_EXCLUDE_ACCESSORY"))return false;
         }
         return true;
     }
     private int styleScore(OutfitItem item,Style style) {
         String text=item.getSearchText();int score=0;
         if(style==Style.OFFICE) {
-            if(OutfitItem.has(text,"oxford","so mi","polo","chino","trousers","leather","da","belt"))score+=12;
-            if(OutfitItem.has(text,"jeans"))score-=3;
+            if(hasRule(text,"OUTFIT_OFFICE_KEYWORDS"))score+=score("OUTFIT_OFFICE_SCORE");
+            if(OutfitItem.has(text,"jeans"))score-=score("OUTFIT_OFFICE_JEANS_PENALTY");
         } else if(style==Style.WEEKEND) {
-            if(OutfitItem.has(text,"t shirt","oversize","jeans","cargo","sneakers","cotton"))score+=10;
+            if(hasRule(text,"OUTFIT_WEEKEND_KEYWORDS"))score+=score("OUTFIT_WEEKEND_SCORE");
         } else if(style==Style.EVENING) {
-            if(OutfitItem.has(text,"shirt","polo","slim","leather","belt","watch"))score+=8;
-            if(Set.of("black","navy","gray","brown").contains(tone(item)))score+=8;
-        } else if(OutfitItem.has(text,"basic","regular","cotton","t shirt","sneakers"))score+=10;
-        if(neutral(tone(item)))score+=3;
+            if(hasRule(text,"OUTFIT_EVENING_KEYWORDS"))score+=score("OUTFIT_EVENING_SCORE");
+            if(util.AppConfig.list("OUTFIT_EVENING_TONES").contains(tone(item)))score+=score("OUTFIT_EVENING_TONE_SCORE");
+        } else if(hasRule(text,"OUTFIT_EVERYDAY_KEYWORDS"))score+=score("OUTFIT_EVERYDAY_SCORE");
+        if(neutral(tone(item)))score+=score("OUTFIT_NEUTRAL_SCORE");
         return score;
     }
     private int compatibility(OutfitItem first,OutfitItem second) {
         String a=tone(first),b=tone(second);
-        if("unknown".equals(a)||"unknown".equals(b))return 1;
-        if(a.equals(b))return 9;
-        if(neutral(a)||neutral(b))return 12;
-        if(Set.of(a,b).equals(Set.of("blue","navy")))return 7;
+        if("unknown".equals(a)||"unknown".equals(b))return score("OUTFIT_COLOR_UNKNOWN_SCORE");
+        if(a.equals(b))return score("OUTFIT_COLOR_SAME_SCORE");
+        if(neutral(a)||neutral(b))return score("OUTFIT_COLOR_NEUTRAL_SCORE");
+        if(Set.of(a,b).equals(Set.of("blue","navy")))return score("OUTFIT_COLOR_BLUE_NAVY_SCORE");
         return -1;
     }
-    private boolean neutral(String tone){return Set.of("black","white","gray","beige","brown","navy").contains(tone);}
+    private boolean neutral(String tone){return util.AppConfig.list("OUTFIT_NEUTRAL_TONES").contains(tone);}
     private String tone(OutfitItem item) {
         String color=OutfitItem.normalize(item.getColor());
-        if(OutfitItem.has(color,"den","black"))return "black";
-        if(OutfitItem.has(color,"trang","white","ivory","off white"))return "white";
-        if(OutfitItem.has(color,"xam","ghi","gray","grey","silver","bac"))return "gray";
-        if(OutfitItem.has(color,"be","kem","beige","cream","khaki","vang","gold"))return "beige";
-        if(OutfitItem.has(color,"nau","brown","tan","camel"))return "brown";
-        if(OutfitItem.has(color,"navy","xanh den","xanh than"))return "navy";
-        if(OutfitItem.has(color,"blue","xanh duong","xanh bien"))return "blue";
-        if(OutfitItem.has(color,"green","xanh la","reu","olive"))return "green";
-        if(OutfitItem.has(color,"do","red","burgundy","maroon"))return "red";
+        for (String tone : util.AppConfig.list("OUTFIT_TONE_ORDER")) {
+            if (hasRule(color, "OUTFIT_TONE_" + tone.toUpperCase(Locale.ROOT))) return tone;
+        }
         return "unknown";
     }
+    private static boolean hasRule(String text, String key) {
+        return OutfitItem.has(text, util.AppConfig.list(key).toArray(String[]::new));
+    }
+    private static int score(String key) { return util.AppConfig.integer(key, 0, 1000); }
     private static final class Pair {
         final OutfitItem top,bottom;final int score;
         Pair(OutfitItem top,OutfitItem bottom,int score){this.top=top;this.bottom=bottom;this.score=score;}

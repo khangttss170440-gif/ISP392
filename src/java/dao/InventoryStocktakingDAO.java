@@ -55,7 +55,7 @@ public class InventoryStocktakingDAO {
             throws SQLException {
 
         String sql =
-                "SELECT TOP (100) st.StocktakingID, st.VariantID, "
+                "SELECT TOP (" + util.AppConfig.integer("INVENTORY_HISTORY_LIMIT", 1, 100000) + ") st.StocktakingID, st.VariantID, "
                 + "p.ProductName, pv.SKU, pv.Color, pv.Size, "
                 + "s.FullName AS StaffName, st.StocktakingDate, "
                 + "st.CycleType, st.SystemQuantity, st.ActualQuantity, "
@@ -146,9 +146,9 @@ public class InventoryStocktakingDAO {
             );
         }
 
-        if (actualQuantities.size() > 50) {
+        if (actualQuantities.size() > util.AppConfig.integer("INVENTORY_MAX_BATCH_SIZE", 1, 1000)) {
             throw new IllegalArgumentException(
-                    "Mỗi lần kiểm kê tối đa 50 biến thể."
+                    "Mỗi lần kiểm kê tối đa " + util.AppConfig.integer("INVENTORY_MAX_BATCH_SIZE", 1, 1000) + " biến thể."
             );
         }
 
@@ -161,9 +161,9 @@ public class InventoryStocktakingDAO {
             if (entry.getKey() <= 0
                     || entry.getValue() == null
                     || entry.getValue() < 0
-                    || entry.getValue() > 1000000) {
+                    || entry.getValue() > util.AppConfig.integer("INVENTORY_MAX_QUANTITY", 1, Integer.MAX_VALUE)) {
                 throw new IllegalArgumentException(
-                        "Số lượng kiểm kê phải từ 0 đến 1000000."
+                        "Số lượng kiểm kê phải từ 0 đến " + util.AppConfig.integer("INVENTORY_MAX_QUANTITY", 1, Integer.MAX_VALUE) + "."
                 );
             }
         }

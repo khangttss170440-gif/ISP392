@@ -1,0 +1,115 @@
+CAU HINH DU AN VA KET QUA RA SOAT HARDCODE
+=========================================
+
+Nguon cau hinh
+--------------
+util.AppConfig doc gia tri theo thu tu:
+1. Bien moi truong cua tien trinh Tomcat.
+2. JVM system property (-DKEY=value).
+3. File UTF-8 duoc chi dinh boi MENSFORM_CONFIG_FILE.
+4. src/java/application.properties: gia tri mac dinh khong chua bi mat.
+
+Neu khong chi dinh MENSFORM_CONFIG_FILE, ung dung tim lan luot:
+- ${catalina.base}/conf/mensform.properties cua Tomcat.
+- config/application.local.properties tu thu muc lam viec cua tien trinh.
+- config/application.local.properties cua project chua thu muc classes dang
+  duoc NetBeans trien khai (nhan dien bang build.xml va src/java).
+Duong dan duoc chi dinh ro qua MENSFORM_CONFIG_FILE luon duoc uu tien; neu
+file do khong doc duoc thi bao loi, khong tu dong chuyen sang file khac.
+Khoi dong lai NetBeans/Tomcat sau khi thay doi cau hinh.
+
+Cau hinh tren may nay
+--------------------
+Thong tin database truoc day trong DBConnection.java da duoc chuyen sang
+config/application.local.properties. File nay duoc Git bo qua, khong nam trong
+web/ va khong duoc dong goi vao WAR.
+
+Mo PowerShell tai thu muc du an va chay de IDE/Tomcat tim dung file:
+
+  setx MENSFORM_CONFIG_FILE (Resolve-Path config/application.local.properties).Path
+
+Sau do dong/mo lai NetBeans va khoi dong lai Tomcat. Bien moi truong DB_* da
+co tren may se uu tien hon gia tri trong file. Khong chia se file local.
+
+Tren may khac, sao chep config/application.example.properties thanh file
+cau hinh rieng va dien DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD.
+DB_JDBC_URL tuy chon cho ket noi SQL Server can tham so bo sung; thong tin
+dang nhap van duoc doc rieng tu DB_USER va DB_PASSWORD.
+DB_TRUST_SERVER_CERTIFICATE mac dinh false; chi bat khi can cho SQL Server
+noi bo voi chung chi tu ky. Khong co tai khoan/mat khau database mac dinh.
+
+Cac nhom da chuyen khoi ma nguon
+-------------------------------
+- DB_*: may chu, cong, database, tai khoan, TLS, timeout va connection pool.
+- APP_NAME, APP_LOCALE, APP_CURRENCY, APP_TIMEZONE: ten hien thi va dinh dang.
+  APP_CURRENCY chi dieu khien hien thi; luong thanh toan VNPay hien dung VND.
+- MAIL_*, GMAIL_*: SMTP, cong, timeout, EHLO, ten nguoi gui va thong tin xac thuc.
+  STORE_ORDER_NOTIFICATION_EMAIL la hop thu nhan thong bao cua cua hang.
+  Email khach va chi tiet san pham duoc truy van theo don hang trong database.
+- VNPAY_*: URL Sandbox, merchant credentials, loai don, ngon ngu, thoi han.
+- GHN_*: API staging, shop/token, cache, chu ky dong bo, worker, trong luong,
+  kich thuoc kien, loai dich vu, ghi chu giao hang va gioi han COD.
+  URL van duoc kiem tra dung host staging/Sandbox truoc khi gui credentials.
+- SHIPPING_* va SHOP_ADDRESS: nguong mien phi, phi toi da va dia chi cua hang.
+  Bieu phi uoc tinh J&T cu va cac ham tao don bang phi mac dinh da duoc xoa.
+  Checkout lay phi tu GHN Test; khi khong co bao gia hop le thi dung dat hang.
+  JSP va JavaScript lay nguong/can nang/kich thuoc tu cung cau hinh Java.
+- GEMINI_*, CHATBOT_*: endpoint/model, prompt, token, timeout, retry,
+  gioi han tin nhan/lich su/tan suat, so ket qua va tu dien mau.
+- OUTFIT_*: tu dien phan loai/mau, quy tac cham diem, ngan sach phu kien
+  va so luong goi y. San pham, gia va ton kho lay tu database.
+- FIT_*: quy tac size tham khao cua cong cu tu van tren trang chu.
+- AUTH_*, SESSION_*, PASSWORD_HASH_ITERATIONS: han OTP, gui lai, so lan thu,
+  thoi gian phien va chi phi tao password hash. Hash cu van xac minh duoc.
+- PRODUCT_IMAGE_*: so anh, dung luong, pixel, chat luong JPG va gioi han upload.
+  Cac servlet multipart va JavaScript deu nhan gioi han tu cau hinh chung.
+- CART_MAX_ITEM_QUANTITY, INVENTORY_MAX_*, COLLECTION_MAX_BUDGET,
+  HOME_PRODUCT_LIMIT, ORDER_TRACKING_*: gioi han va chu ky hien thi nghiep vu.
+- UI_FONT_STYLESHEET_URL: nguon font chung; anh placeholder la asset rieng.
+
+Ghi chu pham vi
+---------------
+web/META-INF/context.xml phai giu thuoc tinh Context path de NetBeans trien
+khai ung dung. Day la cau hinh deployment; bo thuoc tinh nay se lam NetBeans
+bao loi path null ngay ca khi Java/JSP da bien dich thanh cong.
+
+Ten bang/cot, SQL tham so hoa, route, trang thai/role theo schema, ma giao thuc,
+don vi do luong, gioi han an toan cua API/crypto, noi dung giao dien va gia tri
+CSS/SVG la dinh nghia chuong trinh. Cac gia tri nay duoc giu theo hop dong ky
+thuat; khong bien quyen truy cap hay schema thanh cau hinh tuy y.
+Du lieu seed va migration SQL la du lieu khoi tao, khong phai du lieu gia
+lap duoc tra ve thay cho database trong luong chay thuc te.
+
+Kiem tra
+--------
+Script scripts/run-config-checks.ps1 nhan -TomcatHome va -AntHome (Ant tuy chon).
+Script bien dich Java, chay kiem tra cau hinh/payment/carrier/Tomcat, kiem tra
+cu phap JavaScript va PowerShell; neu co Ant thi bien dich toan bo JSP.
+Cac kiem tra dung du lieu gia va carrier stub, khong gui Gmail, khong goi
+API thanh toan/van chuyen that, khong thay doi du lieu kinh doanh.
+
+Vi du (thay duong dan bang ban cai tren may):
+  ./scripts/run-config-checks.ps1 -TomcatHome $env:CATALINA_HOME -AntHome $env:ANT_HOME
+
+Khong commit file local, .env, token, App Password hoac credentials.
+
+Dieu huong mot dia chi
+---------------------
+APP_SINGLE_URL_ENABLED=true giu thanh dia chi tai context root cua ung dung.
+Filter SingleUrlNavigationFilter chi boc GET dieu huong trang cua trinh duyet
+vao app-shell.jsp; POST, fetch, iframe, assets va VNPay IPN van di truc tiep
+den controller. Moi trang ben trong van thuc hien day du kiem tra quyen.
+Trang hien tai duoc luu trong history.state cua tung tab de F5 mo lai dung
+trang, khong luu vao session dung chung giua cac tab. Back/Forward dung
+lich su dieu huong iframe cua trinh duyet.
+
+VNPay phai mo o cua so chinh de khong bi nha cung cap chan nhung iframe.
+Khi quay ve, callback giu nguyen chu ky/tham so va duoc xu ly trong trang
+ben trong. Chuc nang nay an URL khoi thanh dia chi, khong che request hay
+ma HTML/JavaScript khoi Developer Tools. Sao chep URL root se mo trang chu.
+Dat APP_SINGLE_URL_ENABLED=false va khoi dong lai de tro ve dieu huong cu.
+
+Kiem tra Chrome read-only (can Playwright; NODE_PATH neu thu vien o ngoai repo):
+  $env:MENSFORM_BASE_URL = 'http://localhost:8080/MenWearStore/'
+  $env:MENSFORM_BROWSER_EXECUTABLE = '<duong dan Chrome tren may>'
+  node test/web/single-url-navigation.browser.cjs

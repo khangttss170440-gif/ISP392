@@ -14,7 +14,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sản phẩm · MENSFORM</title>
+    <title>Sản phẩm · <%=util.AppConfig.escapeHtml(util.AppConfig.require("APP_NAME"))%></title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/store.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/product-images.css">
 </head>
@@ -84,7 +84,7 @@
                     </div>
                     <div class="product-upload">
                         <label class="form-label" for="productImages">Ảnh sản phẩm</label>
-                        <p class="admin-note" id="imageHelp">Chọn tối đa 6 ảnh JPG/PNG, mỗi ảnh tối đa 10 MB và 12 megapixel. Giữ nguyên kích thước ảnh, lưu JPG chất lượng cao. Nên chọn ảnh gốc từ 1200 × 1500 px để xem rõ chi tiết. Ảnh đầu tiên là ảnh đại diện.</p>
+                        <p class="admin-note" id="imageHelp">Chọn tối đa <%=service.ProductImageStore.MAX_IMAGES%> ảnh JPG/PNG, mỗi ảnh tối đa <%=service.ProductImageStore.MAX_FILE_SIZE / (1024 * 1024)%> MB và <%=service.ProductImageStore.MAX_PIXELS / 1000000%> megapixel. Giữ nguyên kích thước ảnh, lưu JPG chất lượng cao. Nên chọn ảnh gốc từ 1200 × 1500 px để xem rõ chi tiết. Ảnh đầu tiên là ảnh đại diện.</p>
                         <input class="field" id="productImages" name="images" type="file" accept="image/jpeg,image/png" multiple aria-describedby="imageHelp imageUploadError">
                         <p id="imageUploadError" role="alert" class="product-upload-error"></p>
                         <div class="product-image-thumbs" id="uploadPreview" aria-label="Ảnh vừa chọn"></div>

@@ -35,7 +35,7 @@ private String ghnStatus(Object value) {
 <% java.util.Map<?,?> ghn = (java.util.Map<?,?>)request.getAttribute("ghnDelivery"); %>
 <section class="portal-panel">
     <h2>Vận chuyển GHN — Test</h2>
-    <% if(String.valueOf(ghn==null?"":ghn.get("CarrierStatus")).startsWith("simulation_")){ %><p>Đơn đang ở chế độ mô phỏng cục bộ. GHN thật không được cập nhật và website đã dừng đồng bộ trạng thái cho đơn này.</p><% }else{ %><p>Hệ thống tự đồng bộ trạng thái từ API GHN Test khoảng mỗi phút khi website hoạt động. Khách hàng có thể theo dõi cập nhật trong Đơn hàng của tôi.</p><% } %>
+    <% if(String.valueOf(ghn==null?"":ghn.get("CarrierStatus")).startsWith("simulation_")){ %><p>Đơn đang ở chế độ mô phỏng cục bộ. GHN thật không được cập nhật và website đã dừng đồng bộ trạng thái cho đơn này.</p><% }else{ %><p>Hệ thống tự đồng bộ trạng thái từ API GHN Test mỗi <%=util.AppConfig.integer("GHN_SYNC_INTERVAL_SECONDS", 1, 86400)%> giây khi website hoạt động. Khách hàng có thể theo dõi cập nhật trong Đơn hàng của tôi.</p><% } %>
     <% if (ghn == null) { %>
     <p>Đơn này chưa lưu địa chỉ GHN. Các đơn đặt mới sau khi bật kết nối sẽ có nút tạo vận đơn. Với đơn cũ, tiếp tục dùng phần giao hàng thủ công bên dưới.</p>
     <% } else { %>
@@ -61,10 +61,10 @@ private String ghnStatus(Object value) {
         <input type="hidden" name="csrfToken" value="<%=ghnEscape(request.getAttribute("ghnCsrf"))%>">
         <input type="hidden" name="orderId" value="<%=o.getOrderID()%>">
         <input type="hidden" name="action" value="create">
-        <div><label class="form-label">Cân nặng thực tế (g)</label><input class="field" type="number" name="weight" min="1" max="19999" value="<%=lines==null?500:lines.stream().mapToInt(model.OrderLine::getQuantity).sum()*500%>" required></div>
-        <div><label class="form-label">Dài (cm)</label><input class="field" type="number" name="length" min="1" max="200" value="30" required></div>
-        <div><label class="form-label">Rộng (cm)</label><input class="field" type="number" name="width" min="1" max="200" value="20" required></div>
-        <div><label class="form-label">Cao (cm)</label><input class="field" type="number" name="height" min="1" max="200" value="10" required></div>
+        <div><label class="form-label">Cân nặng thực tế (g)</label><input class="field" type="number" name="weight" min="1" max="<%=util.AppConfig.integer("GHN_MAX_WEIGHT_GRAMS", 1, 19999)%>" value="<%=(lines==null?1:lines.stream().mapToInt(model.OrderLine::getQuantity).sum())*service.GhnShippingService.estimatedItemWeight()%>" required></div>
+        <div><label class="form-label">Dài (cm)</label><input class="field" type="number" name="length" min="1" max="<%=util.AppConfig.integer("GHN_MAX_DIMENSION_CM", 1, 200)%>" value="<%=service.GhnShippingService.dimension("LENGTH")%>" required></div>
+        <div><label class="form-label">Rộng (cm)</label><input class="field" type="number" name="width" min="1" max="<%=util.AppConfig.integer("GHN_MAX_DIMENSION_CM", 1, 200)%>" value="<%=service.GhnShippingService.dimension("WIDTH")%>" required></div>
+        <div><label class="form-label">Cao (cm)</label><input class="field" type="number" name="height" min="1" max="<%=util.AppConfig.integer("GHN_MAX_DIMENSION_CM", 1, 200)%>" value="<%=service.GhnShippingService.dimension("HEIGHT")%>" required></div>
         <p class="span-all">Cân đo kiện trước khi gửi. Phí hãng có thể khác phí checkout; phần chênh lệch do shop thanh toán.</p>
         <% if (!"Ready".equals(ghn.get("BookingState")) && !String.valueOf(ghn.get("CarrierStatus")).startsWith("simulation_")) { %>
         <p class="span-all">Lần gửi trước chưa rõ kết quả. Bấm cập nhật trạng thái trước. Gửi lại sử dụng nguyên nội dung và mã đã lưu để tránh tạo trùng; các số đo nhập lại sẽ không thay đổi yêu cầu trước.</p>

@@ -21,9 +21,9 @@ import util.RegistrationCode;
 @WebServlet(urlPatterns = {"/password/forgot", "/password/change"})
 public class PasswordRecoveryController extends HttpServlet {
     private static final String PREFIX = "PASSWORD_RECOVERY_";
-    private static final long CODE_LIFETIME_MILLIS = 10 * 60 * 1000L;
-    private static final long RESEND_WAIT_MILLIS = 60 * 1000L;
-    private static final int MAX_CODE_ATTEMPTS = 5;
+    private static final long CODE_LIFETIME_MILLIS = util.AppConfig.integer("AUTH_CODE_LIFETIME_SECONDS", 1, 86400) * 1000L;
+    private static final long RESEND_WAIT_MILLIS = util.AppConfig.integer("AUTH_CODE_RESEND_SECONDS", 1, 86400) * 1000L;
+    private static final int MAX_CODE_ATTEMPTS = util.AppConfig.integer("AUTH_CODE_MAX_ATTEMPTS", 1, 20);
 
     private CustomerDAO customerDAO;
     private CustomerAccountDAO accountDAO;

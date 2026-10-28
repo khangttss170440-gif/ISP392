@@ -8,6 +8,9 @@ public class ChatbotProduct {
     private String productName;
     private String categoryName;
     private String brand;
+    private String description;
+    private String material;
+    private String sku;
     private String color;
     private String size;
     private BigDecimal price;
@@ -21,6 +24,12 @@ public class ChatbotProduct {
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
     public String getBrand() { return brand; }
     public void setBrand(String brand) { this.brand = brand; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getMaterial() { return material; }
+    public void setMaterial(String material) { this.material = material; }
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
     public String getSize() { return size; }

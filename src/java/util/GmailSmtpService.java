@@ -13,36 +13,37 @@ import java.util.Base64;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-/** Sends account verification codes through Gmail SMTP using a Gmail App Password. */
+/** Sends application email through Gmail SMTP using a Gmail App Password. */
 public final class GmailSmtpService {
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final int SMTP_PORT = 465;
-    private static final int TIMEOUT_MILLIS = 15000;
-
     private GmailSmtpService() { }
 
     public static void sendRegistrationCode(String recipient, String name,
             String code) throws IOException {
         sendCode(recipient, name, code,
-                "Mã xác thực tài khoản MENSFORM",
-                "Mã xác thực đăng ký tài khoản MENSFORM của bạn là: ",
+                "Mã xác thực tài khoản " + configuredFromName(),
+                "Mã xác thực đăng ký tài khoản " + configuredFromName() + " của bạn là: ",
                 "Nếu bạn không thực hiện đăng ký, hãy bỏ qua email này.");
     }
 
     public static void sendPasswordResetCode(String recipient, String name,
             String code) throws IOException {
         sendCode(recipient, name, code,
-                "Mã đặt lại mật khẩu MENSFORM",
-                "Mã xác nhận đặt lại mật khẩu MENSFORM của bạn là: ",
+                "Mã đặt lại mật khẩu " + configuredFromName(),
+                "Mã xác nhận đặt lại mật khẩu " + configuredFromName() + " của bạn là: ",
                 "Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.");
     }
 
     public static void sendPasswordChangeCode(String recipient, String name,
             String code) throws IOException {
         sendCode(recipient, name, code,
-                "Xác nhận đổi mật khẩu MENSFORM",
-                "Mã xác nhận đổi mật khẩu MENSFORM của bạn là: ",
+                "Xác nhận đổi mật khẩu " + configuredFromName(),
+                "Mã xác nhận đổi mật khẩu " + configuredFromName() + " của bạn là: ",
                 "Nếu bạn không yêu cầu đổi mật khẩu, hãy bỏ qua email này.");
+    }
+
+    public static void sendOrderPaidEmail(String recipient, String subject,
+            String body) throws IOException {
+        sendMessage(recipient, subject, body);
     }
 
     private static void sendCode(String recipient, String name, String code,
@@ -52,13 +53,30 @@ public final class GmailSmtpService {
                 "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             throw new IOException("Invalid recipient email address.");
         }
+        sendMessage(recipient, subjectText, "Xin chào " + safeHeader(name)
+                + ",\n\n" + codeText + code + "\n\nMã có hiệu lực trong "
+                + AppConfig.integer("AUTH_CODE_LIFETIME_SECONDS", 1, 86400) + " giây. "
+                + warningText);
+    }
+
+    private static void sendMessage(String recipient, String subjectText,
+            String body) throws IOException {
+        if (recipient == null || !recipient.matches(
+                "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            throw new IOException("Invalid recipient email address.");
+        }
         String username = requiredEnvironmentValue("GMAIL_SMTP_USER");
         String appPassword = requiredEnvironmentValue("GMAIL_APP_PASSWORD")
                 .replaceAll("\\s+", "");
+        String smtpHost = requiredEnvironmentValue("MAIL_SMTP_HOST");
+        int smtpPort = requiredPositiveInt("MAIL_SMTP_PORT");
+        int timeoutMillis = requiredPositiveInt("MAIL_SMTP_TIMEOUT_MILLIS");
+        String ehloDomain = requiredEnvironmentValue("MAIL_EHLO_DOMAIN");
+        String fromName = safeHeader(requiredEnvironmentValue("MAIL_FROM_NAME"));
 
-        try (Socket raw = SSLSocketFactory.getDefault()
-                    .createSocket(SMTP_HOST, SMTP_PORT)) {
-            raw.setSoTimeout(TIMEOUT_MILLIS);
+        try (Socket raw = SSLSocketFactory.getDefault().createSocket()) {
+            raw.connect(new java.net.InetSocketAddress(smtpHost, smtpPort), timeoutMillis);
+            raw.setSoTimeout(timeoutMillis);
             SSLSocket socket = (SSLSocket) raw;
             socket.startHandshake();
             BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -67,7 +85,7 @@ public final class GmailSmtpService {
                     socket.getOutputStream(), StandardCharsets.US_ASCII));
 
             expect(readResponse(reader), 220, "SMTP greeting");
-            command(writer, reader, "EHLO mensform.local", 250);
+            command(writer, reader, "EHLO " + safeHeader(ehloDomain), 250);
             command(writer, reader, "AUTH LOGIN", 334);
             command(writer, reader, Base64.getEncoder().encodeToString(
                     username.getBytes(StandardCharsets.UTF_8)), 334);
@@ -77,17 +95,13 @@ public final class GmailSmtpService {
             command(writer, reader, "RCPT TO:<" + recipient + ">", 250, 251);
             command(writer, reader, "DATA", 354);
 
-            String greetingName = safeHeader(name);
             String subject = Base64.getEncoder().encodeToString(
                     subjectText.getBytes(StandardCharsets.UTF_8));
-            String body = "Xin chào " + greetingName + ",\n\n"
-                    + codeText + code + "\n\nMã có hiệu lực trong 10 phút. "
-                    + warningText;
             String encodedBody = Base64.getMimeEncoder(76,
                     "\r\n".getBytes(StandardCharsets.US_ASCII))
                     .encodeToString(body.getBytes(StandardCharsets.UTF_8));
 
-            writer.write("From: MENSFORM <" + username + ">\r\n");
+            writer.write("From: " + encodeHeader(fromName) + " <" + username + ">\r\n");
             writer.write("To: <" + safeHeader(recipient) + ">\r\n");
             writer.write("Subject: =?UTF-8?B?" + subject + "?=\r\n");
             writer.write("Date: " + DateTimeFormatter.RFC_1123_DATE_TIME
@@ -147,11 +161,29 @@ public final class GmailSmtpService {
     }
 
     private static String requiredEnvironmentValue(String name) {
-        String value = System.getenv(name);
+        String value = AppConfig.get(name);
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalStateException(name + " is not configured.");
         }
         return value.trim();
+    }
+
+    private static int requiredPositiveInt(String name) {
+        String value = requiredEnvironmentValue(name);
+        try {
+            int parsed = Integer.parseInt(value);
+            if (parsed > 0) return parsed;
+        } catch (NumberFormatException ignored) { }
+        throw new IllegalStateException(name + " must be a positive integer.");
+    }
+
+    private static String configuredFromName() {
+        return safeHeader(requiredEnvironmentValue("MAIL_FROM_NAME"));
+    }
+
+    private static String encodeHeader(String value) {
+        return "=?UTF-8?B?" + Base64.getEncoder().encodeToString(
+                value.getBytes(StandardCharsets.UTF_8)) + "?=";
     }
 
     private static String safeHeader(String value) {

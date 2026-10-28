@@ -29,7 +29,7 @@ public class AdminVariantDAO {
             sql.append("WHERE pv.ProductID = ? ");
         }
 
-        sql.append("ORDER BY p.ProductName, pv.SKU");
+        sql.append("ORDER BY pv.VariantID DESC");
 
         List<ProductVariant> variants = new ArrayList<>();
 

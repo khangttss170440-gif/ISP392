@@ -59,9 +59,13 @@ public final class OutfitCollectionDAO {
         return new ArrayList<>(result.values());
     }
     public List<OutfitSet> published(List<OutfitItem> available,String style,BigDecimal budget,Integer anchor) throws SQLException {
+        return published(available,style,budget,anchor,null);
+    }
+    public List<OutfitSet> published(List<OutfitItem> available,String style,BigDecimal budget,Integer anchor,Integer collectionId) throws SQLException {
         Map<String,OutfitItem> catalog=available.stream().collect(Collectors.toMap(OutfitItem::getKey,i->i));
         List<OutfitSet> result=new ArrayList<>();
         for(OutfitCollection row:list(true)) {
+            if(collectionId!=null && collectionId!=row.getId())continue;
             if(!"all".equals(style) && !style.equals(row.getStyle()))continue;
             if(anchor!=null && row.getPieces().stream().noneMatch(p->p.getProductId()==anchor))continue;
             if(row.getPieces().size()<2 || row.getPieces().stream().anyMatch(p->!catalog.containsKey(p.getKey())))continue;

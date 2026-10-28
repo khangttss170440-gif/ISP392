@@ -15,6 +15,7 @@ import model.Staff;
 @WebServlet("/staff/sales/inventory-issues")
 public class SalesWarehouseIssueController extends HttpServlet {
 
+    private static final String CSRF_KEY = "warehouseIssue.csrf";
     private WarehouseIssueDAO issueDAO;
 
     @Override
@@ -40,6 +41,10 @@ public class SalesWarehouseIssueController extends HttpServlet {
         }
 
         HttpSession session = request.getSession(false);
+        if (session.getAttribute(CSRF_KEY) == null) {
+            session.setAttribute(CSRF_KEY, java.util.UUID.randomUUID().toString());
+        }
+        request.setAttribute("csrfToken", session.getAttribute(CSRF_KEY));
         request.setAttribute(
                 "message",
                 removeSessionValue(session, "WAREHOUSE_ISSUE_MESSAGE")
@@ -83,6 +88,12 @@ public class SalesWarehouseIssueController extends HttpServlet {
         }
 
         HttpSession session = request.getSession(false);
+        Object csrfToken = session == null ? null : session.getAttribute(CSRF_KEY);
+        if (!(csrfToken instanceof String)
+                || !csrfToken.equals(request.getParameter("csrfToken"))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
         Integer issueID = positiveInteger(request.getParameter("issueId"));
         String action = value(request.getParameter("action"));
         String note = value(request.getParameter("resolutionNote"));
@@ -115,6 +126,11 @@ public class SalesWarehouseIssueController extends HttpServlet {
                 successMessage =
                         "Đã hủy đơn, cập nhật lại tồn kho và gửi thông báo "
                         + "cho khách trong mục Hỗ trợ.";
+            } else if ("simulate_refund".equals(action)) {
+                updated = issueDAO.simulateRefundForIssue(
+                        issueID, staff.getStaffID(), note
+                );
+                successMessage = "Đã mô phỏng hoàn tiền VNPay Sandbox. Hãy bấm hủy đơn để hoàn tồn kho và báo khách.";
             } else {
                 session.setAttribute("WAREHOUSE_ISSUE_ERROR",
                         "Thao tác xử lý không hợp lệ.");
@@ -180,6 +196,15 @@ public class SalesWarehouseIssueController extends HttpServlet {
         }
         if ("ORDER_NOT_CANCELLABLE".equals(code)) {
             return "Trạng thái đơn hiện tại không cho phép hủy.";
+        }
+        if ("REFUND_SIMULATION_VNPAY_ONLY".equals(code)) {
+            return "Chỉ mô phỏng hoàn tiền cho đơn đã thanh toán qua VNPay Sandbox.";
+        }
+        if ("NO_PAID_VNPAY_PAYMENT".equals(code)) {
+            return "Không tìm thấy khoản VNPay đang ở trạng thái đã thanh toán để mô phỏng hoàn tiền.";
+        }
+        if ("PAID_PAYMENT_REMAINS".equals(code)) {
+            return "Đơn còn khoản thanh toán khác đang Paid; chưa ghi nhận mô phỏng hoàn tiền.";
         }
         return "Không thể cập nhật sự cố. Vui lòng thử lại.";
     }

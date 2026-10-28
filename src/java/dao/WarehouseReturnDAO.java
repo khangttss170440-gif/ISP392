@@ -25,7 +25,7 @@ public class WarehouseReturnDAO {
                 + "INNER JOIN dbo.SalesOrder so ON so.OrderID = r.OrderID "
                 + "WHERE r.RequestType = 'RETURN' "
                 + "AND r.RequestStatus = 'Approved' "
-                + "ORDER BY r.RequestedAt ASC, r.RequestID ASC";
+                + "ORDER BY r.RequestedAt DESC, r.RequestID DESC";
 
         List<OrderRequest> requests = new ArrayList<>();
 
